@@ -1,0 +1,9 @@
+{
+  "version": "illustrative-1.0",
+  "illustrative": true,
+  "severity": {"S1": "Minor reversible harm", "S2": "Injury requiring treatment", "S3": "Severe or irreversible harm"},
+  "likelihood": {"L1": "Low exposure under documented project criteria", "L2": "Occasional exposure under documented project criteria", "L3": "Frequent exposure under documented project criteria"},
+  "values": {"S1": {"L1": 1, "L2": 2, "L3": 3}, "S2": {"L1": 2, "L2": 4, "L3": 6}, "S3": {"L1": 3, "L2": 6, "L3": 9}},
+  "medium_min": 4,
+  "high_min": 9
+}

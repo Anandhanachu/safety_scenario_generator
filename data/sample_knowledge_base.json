@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "illustrative-sidewalk-robot",
+  "dataset_name": "Illustrative delivery robot training records — unreviewed",
+  "records": [
+    {"id":"SRC-001","type":"source","title":"Illustrative project assumption","description":"Training assumption only: loss of sensing or communications may require a controlled stop. This is not a validated robot capability or approved safety requirement."},
+    {"id":"FLT-CAMERA","type":"fault","title":"Camera failure","description":"Camera unavailable in day, night or reduced visibility operation.","related_ids":["HAZ-001"]},
+    {"id":"FLT-COMMS","type":"fault","title":"Communication loss","description":"Communication loss interrupts operator telemetry.","related_ids":["HAZ-002"]},
+    {"id":"FLT-TRACTION","type":"fault","title":"Reduced traction","description":"Wet or rainy pavement may reduce available traction.","related_ids":["HAZ-001"]},
+    {"id":"FLT-DELAY","type":"fault","title":"Processing delay","description":"Processing delay can cause stale sensor data.","related_ids":["HAZ-001"]},
+    {"id":"HAZ-001","type":"hazard","title":"Insufficient obstacle detection","description":"Hypothesis: camera failure, processing delay or reduced visibility could contribute to contact with a pedestrian.","source_ids":["SRC-001"],"mitigation_ids":["MIT-001"],"test_ids":["TEST-001"]},
+    {"id":"HAZ-002","type":"hazard","title":"Loss of remote supervision","description":"Hypothesis: communication loss could prevent remote intervention.","source_ids":["SRC-001"],"mitigation_ids":["MIT-001"],"test_ids":["TEST-001"]},
+    {"id":"MIT-001","type":"mitigation","title":"Controlled-stop requirement candidate","description":"Proposed requirement: command a stop on loss of critical sensing or communications; engineer must define physical capabilities and verify implementation.","source_ids":["SRC-001"]},
+    {"id":"TEST-001","type":"acceptance_test","title":"Software watchdog state transition","description":"Inject a stale sensor or lost communication condition; verify that the toy controller requests STOP. This tests software logic only.","source_ids":["SRC-001"],"related_ids":["MIT-001"]}
+  ]
+}
