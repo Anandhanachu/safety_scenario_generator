@@ -36,17 +36,19 @@ def services():
 
 def theme(dark):
     bg, surface, text, muted, border = ("#101827", "#182235", "#e5edf8", "#adbdd3", "#34445d") if dark else ("#f5f7fb", "#ffffff", "#17233b", "#52627a", "#dbe2ee")
+    sidebar_surface, sidebar_text, sidebar_hover, sidebar_selected = (("#111c32", "#d8e2f3", "#213352", "#33467b") if dark
+                                                                  else ("#ffffff", "#17233b", "#eef2ff", "#e0e7ff"))
     st.markdown(f"""<style>
     .stApp, [data-testid="stAppViewContainer"] {{ background:{bg}; color:{text}; }}
     [data-testid="stHeader"], [data-testid="stSidebar"] {{ background:{surface}; color:{text}; }}
     [data-testid="stSidebar"] {{ border-right:1px solid {border}; }}
     .block-container {{ padding-top:2rem; max-width:1600px; }}
-    [data-testid="stSidebar"] {{background:#111c32!important;}}
+    [data-testid="stSidebar"] {{background:{sidebar_surface}!important;}}
     [data-testid="stSidebar"] p, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {{color:#d8e2f3!important;}}
+    [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {{color:{sidebar_text}!important;}}
     [data-testid="stSidebar"] [role="radiogroup"] label {{padding:6px 10px;border-radius:8px;transition:background .15s;}}
-    [data-testid="stSidebar"] [role="radiogroup"] label:hover {{background:#213352;}}
-    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{background:#33467b;}}
+    [data-testid="stSidebar"] [role="radiogroup"] label:hover {{background:{sidebar_hover};}}
+    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{background:{sidebar_selected};}}
     .workspace-hero {{border:1px solid {border};border-left:5px solid #6366f1;background:{surface};border-radius:16px;padding:25px 28px;margin-bottom:24px;}}
     .workspace-hero h1 {{margin:6px 0 8px!important;font-size:2.15rem!important;}}
     .workspace-hero p {{color:{muted};margin:0;max-width:850px;line-height:1.6;}}
