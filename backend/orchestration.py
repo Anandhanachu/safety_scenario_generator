@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 from backend.persistence import now
 from backend.schemas import ModelOutput, strict_json
-from knowledge_base.core import retrieve
+from knowledge_base.core import retrieve_with_diagnostics, RETRIEVAL_VERSION
 from models.adapters import BackendError, Cancelled, make_adapter
 from verification.pipeline import verify
 
@@ -42,11 +42,11 @@ class RunManager:
 
     def start(self, request, dataset, matrix, settings):
         query = json.dumps(request.inputs.model_dump())
-        evidence = retrieve(dataset, query, request.retrieval_limit, request.relevance_threshold)
+        evidence, retrieval_diagnostics = retrieve_with_diagnostics(dataset, query, request.retrieval_limit, request.relevance_threshold)
         snapshot = {"schema_version": "1.0", "created": now(), "request": request.model_dump(),
                     "knowledge_base_version": dataset.version, "knowledge_base": dataset.model_dump(),
                     "risk_matrix": matrix.model_dump(), "prompt_version": PROMPT_VERSION,
-                    "retrieval": {"method": "tfidf+relationships", "limit": request.retrieval_limit, "threshold": request.relevance_threshold},
+                    "retrieval": {"method": RETRIEVAL_VERSION, "limit": request.retrieval_limit, "threshold": request.relevance_threshold, "diagnostics": retrieval_diagnostics},
                     "evidence": evidence,
                     "backend_endpoints": {s.backend: settings[s.backend]["base_url"] for s in request.selections},
                     "rules_candidates": [e["record"]["id"] for e in evidence if e["record"]["type"] == "hazard" and e["record"]["review_status"] == "approved" and not e["record"]["illustrative"]]}
@@ -99,6 +99,11 @@ class RunManager:
                 decoded = strict_json(raw)
             except ValueError:
                 raise BackendError("Invalid model JSON: malformed syntax or duplicate keys") from None
+            if isinstance(decoded, dict) and isinstance(decoded.get("scenarios"), list):
+                result["candidate_inventory"] = [{"candidate_index": i, "scenario_id": str(c.get("scenario_id", f"candidate-{i+1}"))[:100] if isinstance(c, dict) else f"candidate-{i+1}",
+                    "title": str(c.get("title", "Untitled proposal"))[:200] if isinstance(c, dict) else "Malformed proposal"}
+                    for i, c in enumerate(decoded["scenarios"])]
+                result["declared_candidate_count"] = len(decoded["scenarios"])
             parsed = ModelOutput.model_validate(decoded)
             result["schema_valid"] = True
             self._stage(identity, selection.backend, "calculating_risk")

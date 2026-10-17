@@ -12,8 +12,13 @@ class Services:
         self.manager = RunManager(self.store)
         self.benchmarks = BenchmarkRunner(self.manager, self.store)
         if not self.store.setting("active_kb"):
-            sample = parse_upload((ROOT / "data/sample_knowledge_base.json").read_bytes())
+            sample = parse_upload((ROOT / "data/expanded_knowledge_base.json").read_bytes())
             self.activate_dataset(sample)
+        else:
+            original = parse_upload((ROOT / "data/sample_knowledge_base.json").read_bytes())
+            # Upgrade only the untouched bundled starter; preserve all custom/edited datasets.
+            if self.dataset().version == original.version:
+                self.activate_dataset(parse_upload((ROOT / "data/expanded_knowledge_base.json").read_bytes()))
         if not self.store.setting("active_matrix"):
             self.activate_matrix(RiskMatrix.model_validate_json((ROOT / "configs/risk_matrix.example.json").read_text(encoding="utf-8")))
 

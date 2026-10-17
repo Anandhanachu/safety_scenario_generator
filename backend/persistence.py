@@ -54,6 +54,22 @@ class Store:
             rows = db.execute("SELECT * FROM snapshots WHERE kind=? ORDER BY created DESC, rowid DESC LIMIT ?", (kind, limit)).fetchall()
         return [{**dict(r), "payload": json.loads(r["payload"])} for r in rows]
 
+    def iter_snapshots(self, kind):
+        with self.connect() as db:
+            cursor = db.execute("SELECT * FROM snapshots WHERE kind=? ORDER BY created DESC, rowid DESC", (kind,))
+            while True:
+                batch = cursor.fetchmany(100)
+                if not batch:
+                    break
+                for row in batch:
+                    yield {**dict(row), "payload": json.loads(row["payload"])}
+
+    def latest_reviews(self, run_id=None):
+        with self.connect() as db:
+            query = "SELECT * FROM reviews" + (" WHERE run_id=?" if run_id else "") + " ORDER BY created, rowid"
+            rows = db.execute(query, (run_id,) if run_id else ()).fetchall()
+        return {(r["run_id"], r["scenario_id"]): {**dict(r), "payload": json.loads(r["payload"])} for r in rows}
+
     def setting(self, key, default=None):
         with self.connect() as db:
             row = db.execute("SELECT payload FROM settings WHERE key=?", (key,)).fetchone()
@@ -79,19 +95,22 @@ class Store:
         if decision not in allowed or not reviewer.strip():
             raise ValueError("A valid decision and named reviewer are required")
         run = self.get(run_id)["payload"]
-        scenarios = [f"{backend}:{s['scenario_id']}" for backend, result in run.get("results", {}).items() for s in result.get("scenarios", [])]
+        from backend.analytics import proposal_entries
+        scenarios = [entry["scope"] for entry in proposal_entries(run)]
         if scenario_id not in scenarios:
             raise ValueError("Scenario not found in this run")
+        if decision == "accepted" and not next(e for e in proposal_entries(run) if e["scope"] == scenario_id)["schema_valid"]:
+            raise ValueError("Schema-invalid candidates require revision before acceptance")
         payload = {"decision": decision, "reviewer": reviewer[:200], "notes": notes[:8000]}
         with self.connect() as db:
             db.execute("INSERT INTO reviews VALUES (?,?,?,?,?)", (uuid4().hex, run_id, scenario_id, now(), json.dumps(payload)))
 
     def reviews(self, run_id):
         with self.connect() as db:
-            rows = db.execute("SELECT * FROM reviews WHERE run_id=? ORDER BY created", (run_id,)).fetchall()
+            rows = db.execute("SELECT * FROM reviews WHERE run_id=? ORDER BY created, rowid", (run_id,)).fetchall()
         return [{**dict(r), "payload": json.loads(r["payload"])} for r in rows]
 
     def clear_history(self):
         with self.connect() as db:
             db.execute("DELETE FROM reviews")
-            db.execute("DELETE FROM snapshots WHERE kind IN ('run','evaluation','simulation','risk_assessment')")
+            db.execute("DELETE FROM snapshots WHERE kind IN ('run','evaluation','simulation','risk_assessment','retrieval_benchmark')")

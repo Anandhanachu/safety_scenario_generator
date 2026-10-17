@@ -51,6 +51,8 @@ flowchart TD
 
 ## Features and workflow
 
+The dashboard now includes a 181-record illustrative engineering catalogue, a complete Scenario Register, graphical model latency/validation/review comparisons, and cached TF-IDF search with visible relevance/timing diagnostics. See [retrieval and analytics details](docs/retrieval_and_analytics.md) for measured results and counting rules.
+
 1. In **Settings**, configure the three endpoints, independent model IDs and generation parameters. Credentials come from environment variables or an ignored `.env` file. Restart after changing environment configuration.
 2. In **Model Studio**, refresh the actual runtime/service catalogue and select a model separately for each backend. Listing is not proof of successful inference. The default llama.cpp server does not expose portable load/unload operations; those controls are visibly disabled.
 3. In **Knowledge Base**, upload JSON, inspect structural validation and record previews, then explicitly activate it. Invalid uploads leave the active dataset unchanged. Download the schema and sample from the page. Search, filter, edit/add/delete records through the dataset JSON editor, and restore saved versions.
@@ -61,6 +63,8 @@ flowchart TD
 8. **Test Simulation** executes a documented toy watchdog state machine with pass/fail/inconclusive outputs. It neither controls a robot nor simulates physical braking.
 9. **Evaluation and Benchmarks** imports labels or downloads 24 illustrative draft cases, then runs rules-only enumeration, LLM-only prompts or the full pipeline. Exact-ID matching, explicit numerators/denominators and unavailable metrics prevent invented accuracy values. Cloud runs require an explicit execution action and may incur charges.
 10. **Device Control** reaches the installed board agent over local Wi-Fi, reads actual status/logs and exposes only confirmed firmware capabilities. Connect it using the [UNO Q setup guide](docs/uno_q_setup.md).
+
+11. **Scenario Register** lists all identifiable AI proposals across all saved runs. Filter and inspect proposals, record human acceptance/rejection/follow-up decisions, and export the complete inventory. Overview totals use the latest decision for each proposal; validation is displayed separately from human approval.
 
 ## First real inference
 

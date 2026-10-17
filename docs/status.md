@@ -4,7 +4,7 @@ Development and verification: 17-18 October 2026.
 
 ## Implemented
 
-- Eleven-page Streamlit workspace with light/dark styling, real empty states, independent selections and last-check connection indicators.
+- Twelve-page Streamlit workspace with redesigned light/dark styling, all-history proposal totals, real empty states, independent selections and last-check connection indicators.
 - Strict Pydantic input/proposal/KB/risk contracts; bounded, explicitly activated JSON import with references, content versions and restoration.
 - Shared deterministic TF-IDF retrieval and frozen per-comparison evidence/configuration snapshots.
 - Real llama.cpp-compatible laptop adapter, documented Imagine v2 cloud adapter and authenticated UNO Q job adapter. No application mocks or fallback.
@@ -15,6 +15,8 @@ Development and verification: 17-18 October 2026.
 - Deterministic watchdog software simulation with pass/fail/inconclusive results.
 - Benchmark import, downloadable 24-case draft, rules/LLM-only/full methods, explicit metric numerators/denominators and independent error retention.
 - Setup documentation, environment example and tests.
+- Expanded 181-record illustrative KB; content-cached sparse word/bigram retrieval, search inspector, real lexical benchmark and synthetic index-load diagnostics.
+- Model latency/validation/human-decision charts; complete proposal register with latest acceptance/rejection/pending/follow-up decisions, duplicate-ID isolation and audit trails.
 
 ## Requires configuration or external verification
 
@@ -38,12 +40,13 @@ Development and verification: 17-18 October 2026.
 
 ## Verification record
 
-- Python 3.10.10 on Windows: `python -m pytest -q` — **81 passed**. One third-party Starlette/AnyIO deprecation warning; no test failures.
+- Python 3.10.10 on Windows: `python -m pytest -q` — **98 passed** after the retrieval, analytics and UI expansion. One third-party Starlette/AnyIO deprecation warning; no test failures.
 - `python -m pip check` — no broken requirements.
 - Compilation check across app, backend, adapters, KB, verification, risk, simulation, evaluation, reporting, UI and agent — passed.
 - Streamlit started on `http://127.0.0.1:8501`; actual `/_stcore/health` returned `ok`.
 - Browser inspection confirmed the empty dashboard and functional dark-theme styling; AppTest opened all eleven pages plus saved scenario/review/risk views.
 - Application API and agent authentication/validation were checked with FastAPI TestClient. No credentials, external model or physical device was required by these tests.
 - PDF export was checked for deterministic output, readable extraction, long untrusted content and pagination. A clearly labelled development-only report was rendered with Poppler and both pages visually inspected for alignment, legibility and footers; it contains no model inference or engineering conclusions.
+- Retrieval was measured against 16 curated lexical queries (80 warm samples): 100% hit@5, 85.42% mean recall@5, 1.463 ms warm median and 2.077 ms warm p95. Separate synthetic scaling loads reached the supported 5,000-record limit. See `retrieval_and_analytics.md` for limitations and raw metric definitions.
 
 External inference, target-board installation and firmware remain unverified regardless of local test results. These are setup/verification dependencies, not successful demonstration claims.

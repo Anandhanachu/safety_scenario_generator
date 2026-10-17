@@ -200,3 +200,59 @@ def test_agent_job_lifecycle_uses_validated_runtime_boundary(monkeypatch, model_
         time.sleep(0.01)
     assert result["status"] == "completed"
     assert json.loads(result["output"]) == model_output
+
+
+def test_register_page_reviews_and_counts_across_models(tmp_path, monkeypatch, dataset, matrix, settings, model_output):
+    import ui.dashboard as dashboard
+    from backend.analytics import scenario_register, review_counts
+    service = Services(tmp_path)
+    service.manager = RunManager(service.store, factory(model_output))
+    identity = service.manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local",model_id="test"), Selection(backend="qualcomm",model_id="test")]), dataset,matrix,settings)
+    wait_for(service.manager, identity)
+    monkeypatch.setattr(dashboard, "services", lambda:service)
+    app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=20).run()
+    app.sidebar.radio[0].set_value("Scenario Register").run()
+    assert not app.exception
+    next(x for x in app.text_input if x.label == "Proposal reviewer").set_value("Engineer")
+    next(x for x in app.selectbox if x.label == "Proposal decision").set_value("accepted")
+    next(x for x in app.button if x.label == "Save proposal decision").click().run()
+    assert not app.exception
+    counts = review_counts(scenario_register(service.store))
+    assert counts["accepted"] == 1 and counts["pending_review"] == 1
+    next(x for x in app.selectbox if x.label == "Proposal decision").set_value("rejected")
+    next(x for x in app.button if x.label == "Save proposal decision").click().run()
+    counts = review_counts(scenario_register(service.store))
+    assert counts["accepted"] == 0 and counts["rejected"] == 1
+    app.sidebar.radio[0].set_value("Model Comparison").run()
+    assert not app.exception
+    assert len(app.get("plotly_chart")) >= 6
+    service.manager.pool.shutdown()
+
+
+def test_schema_invalid_proposals_remain_in_register(store, dataset, matrix, settings, model_output):
+    from backend.analytics import scenario_register
+    invalid = json.loads(json.dumps(model_output))
+    invalid["scenarios"][0]["title"] = "Missing mandatory narrative"
+    del invalid["scenarios"][0]["scenario_narrative"]
+    manager = RunManager(store, factory(invalid))
+    identity = manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local",model_id="test")]), dataset,matrix,settings)
+    finished = wait_for(manager, identity)
+    assert finished["results"]["laptop_local"]["status"] == "failed"
+    rows = scenario_register(store)
+    assert len(rows) == 1 and rows[0]["title"] == "Missing mandatory narrative"
+    assert not rows[0]["schema_valid"] and rows[0]["decision"] == "pending_review"
+    manager.pool.shutdown()
+
+
+def test_knowledge_search_inspector_returns_actual_matches(tmp_path, monkeypatch):
+    import ui.dashboard as dashboard
+    service = Services(tmp_path)
+    monkeypatch.setattr(dashboard, "services", lambda:service)
+    app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=20).run()
+    app.sidebar.radio[0].set_value("Knowledge Base").run()
+    next(x for x in app.button if x.label == "Search evidence").click().run()
+    assert not app.exception
+    result = app.session_state["search_inspection"]
+    assert result["results"][0]["record"]["id"] == "FLT-LIDAR"
+    assert result["diagnostics"]["direct_matches"] == 5
+    assert any(m.label == "Measured search total" for m in app.metric)

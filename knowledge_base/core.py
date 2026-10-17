@@ -1,11 +1,15 @@
 """Validated datasets and deterministic TF-IDF retrieval with relationship expansion."""
 import hashlib
 import json
+from collections import OrderedDict
+import threading
+import time
 from typing import Literal
 
 from pydantic import Field, model_validator
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 from backend.schemas import Strict
 
@@ -66,24 +70,93 @@ def parse_upload(raw: bytes) -> Dataset:
     return Dataset.model_validate(json.loads(raw, object_pairs_hook=pairs))
 
 
-def retrieve(dataset: Dataset, query: str, limit=12, threshold=0.05):
-    corpus = [f"{r.title} {r.description}" for r in dataset.records]
-    try:
-        vectorizer = TfidfVectorizer(stop_words="english")
-        matrix = vectorizer.fit_transform(corpus)
-        scores = cosine_similarity(vectorizer.transform([query]), matrix)[0]
-    except ValueError:
-        return []
-    ranked = sorted(range(len(scores)), key=lambda i: (-scores[i], dataset.records[i].id))
+RETRIEVAL_VERSION = "tfidf-word-bigram-v2"
+_cache, _cache_lock = OrderedDict(), threading.RLock()
+
+
+def clear_index_cache():
+    with _cache_lock:
+        _cache.clear()
+
+
+def query_text(query):
+    """Search values, not JSON field names such as `faults` or `weather`."""
+    if isinstance(query, str):
+        try:
+            decoded = json.loads(query)
+        except ValueError:
+            return query[:16000]
+        if not isinstance(decoded, dict):
+            return query[:16000]
+        query = decoded
+    if hasattr(query, "model_dump"):
+        query = query.model_dump()
+    if isinstance(query, dict):
+        def values(value):
+            if isinstance(value, str):
+                return [value]
+            if isinstance(value, (list, tuple)):
+                return [part for v in value for part in values(v)]
+            if isinstance(value, dict):
+                return [part for v in value.values() for part in values(v)]
+            return []
+        return " ".join(values(query))[:16000]
+    raise ValueError("Query must be text or structured operating inputs")
+
+
+class RetrievalIndex:
+    def __init__(self, records):
+        start = time.perf_counter()
+        self.records = records
+        self.by_id = {r["id"]: r for r in records}
+        self.vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), sublinear_tf=True,
+                                          strip_accents="unicode", dtype=np.float32, max_features=100000)
+        corpus = [f"{r['id'].replace('-', ' ')} {r['title']} {r['description']}" for r in records]
+        try:
+            self.matrix = self.vectorizer.fit_transform(corpus)
+        except ValueError:
+            self.matrix = None
+        self.build_ms = (time.perf_counter() - start) * 1000
+
+
+def get_index(dataset):
+    serialized = json.dumps(dataset.model_dump(), sort_keys=True, separators=(",", ":"))
+    identity = hashlib.sha256(serialized.encode()).hexdigest()
+    with _cache_lock:
+        reused = identity in _cache
+        if not reused:
+            _cache[identity] = RetrievalIndex(json.loads(serialized)["records"])
+            if len(_cache) > 4:
+                _cache.popitem(last=False)
+        _cache.move_to_end(identity)
+        return _cache[identity], reused
+
+
+def retrieve_with_diagnostics(dataset, query, limit=12, threshold=0.05):
+    if not 1 <= limit <= 40 or not 0 <= threshold <= 1:
+        raise ValueError("Retrieval limit must be 1-40 and threshold 0-1")
+    start = time.perf_counter()
+    index, reused = get_index(dataset)
+    search = query_text(query)
+    query_start = time.perf_counter()
+    scores = [] if index.matrix is None else cosine_similarity(index.vectorizer.transform([search]), index.matrix)[0]
+    ranked = sorted(range(len(scores)), key=lambda i: (-scores[i], index.records[i]["id"]))
     selected = [i for i in ranked if scores[i] > 0 and scores[i] >= threshold][:limit]
-    result = [{"record": dataset.records[i].model_dump(), "score": round(float(scores[i]), 6), "retrieval": "tfidf"} for i in selected]
+    # Return copies: callers cannot mutate a shared cached index or another run's snapshot.
+    result = [{"record": json.loads(json.dumps(index.records[i])), "score": round(float(scores[i]), 6), "retrieval": "tfidf"} for i in selected]
     known = {x["record"]["id"] for x in result}
-    index = {r.id: r for r in dataset.records}
     # References are included even if their lexical score is zero; cap total snapshot size.
     for entry in list(result):
-        record = index[entry["record"]["id"]]
-        for ref in record.source_ids + record.mitigation_ids + record.test_ids + record.related_ids:
+        record = index.by_id[entry["record"]["id"]]
+        for ref in record["source_ids"] + record["mitigation_ids"] + record["test_ids"] + record["related_ids"]:
             if ref not in known and len(result) < 100:
-                result.append({"record": index[ref].model_dump(), "score": None, "retrieval": f"relationship:{record.id}"})
+                result.append({"record": json.loads(json.dumps(index.by_id[ref])), "score": None, "retrieval": f"relationship:{record['id']}"})
                 known.add(ref)
-    return result
+    return result, {"version": RETRIEVAL_VERSION, "cache_reused": reused, "indexed_records": len(index.records),
+                    "index_build_ms": round(index.build_ms, 3), "query_ms": round((time.perf_counter()-query_start)*1000, 3),
+                    "total_ms": round((time.perf_counter()-start)*1000, 3), "normalized_query": search,
+                    "direct_matches": len(selected), "relationship_matches": len(result)-len(selected)}
+
+
+def retrieve(dataset: Dataset, query, limit=12, threshold=0.05):
+    return retrieve_with_diagnostics(dataset, query, limit, threshold)[0]

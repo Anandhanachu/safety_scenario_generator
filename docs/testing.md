@@ -6,6 +6,8 @@ Coverage includes valid/invalid/oversized knowledge uploads, duplicate keys and 
 
 Application startup is checked with actual local HTTP health responses and a browser inspection of the empty dashboard. These checks prove local startup and surrounding pipeline behavior, not real model compatibility, live provider success, robot safety or firmware correctness. See `docs/status.md` for recorded results and remaining external tests.
 
+The expansion adds tests for cache reuse and content invalidation, snapshot mutation isolation, structured-query normalization, lexical benchmarks, expanded KB category coverage, preserving custom datasets, all-history counting beyond 200 runs, latest-decision audit trails, duplicate AI identifiers, schema-invalid proposal inventories, model-latency aggregation, interactive register reviews and the real search-inspector flow. The complete suite currently contains 98 passing tests. Measured relevance/speed and synthetic load checks are described in `docs/retrieval_and_analytics.md`.
+
 ## Evaluation methods
 
 The included 24 cases cover 2 times of day × 3 weather states × 4 faults. They are **draft illustrative labels**, not reviewed ground truth. Download the JSON, review expected hazard IDs, acceptable evidence, required mitigations and expected review outcomes, attribute the reviewer and import the reviewed dataset. Exact ID matching is deliberately transparent: a generated hazard is counted as relevant if its `hazard_id` or a cited hazard-record ID matches an expected ID. This can miss paraphrases or be gamed by irrelevant citation; it is not a semantic accuracy score.

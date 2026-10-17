@@ -15,7 +15,7 @@ def comparison_rows(run):
         rows.append({"backend": backend, "model_id": result["model_id"], "status": result["status"],
                      "schema_valid": result.get("schema_valid", False),
                      "generation_latency_ms": result.get("generation_latency_ms"), "total_pipeline_latency_ms": result.get("total_pipeline_latency_ms"),
-                     "candidate_scenarios": len(scenarios), "valid_scenarios": result.get("valid_scenarios", 0),
+                     "candidate_scenarios": result.get("declared_candidate_count", len(scenarios)), "valid_scenarios": result.get("valid_scenarios", 0),
                      "invalid_evidence": sum(c["invalid_evidence"] for c in checks), "missing_evidence": sum(c["missing_evidence"] for c in checks),
                      "unsupported_claims_flagged": sum(c["unsupported_claims_flagged"] for c in checks),
                      "duplicates": sum(c["duplicate"] for c in checks), "invalid_mitigation_refs": sum(c["invalid_mitigation_refs"] for c in checks),
@@ -39,7 +39,11 @@ def csv_bytes(rows):
 
 
 def report(run, reviews=(), risk_assessments=(), simulations=()):
+    from backend.analytics import proposal_entries, review_counts
+    reviews = list(reviews)
+    latest = {r["scenario_id"]: r["payload"]["decision"] for r in reviews}
+    outcomes = [{"decision": latest.get(e["scope"], "pending_review")} for e in proposal_entries(run)]
     return {"report_schema": "1.0", "title": "SafeScenario AI engineering review report",
             "notice": "Unreviewed AI proposals; illustrative records and software simulation are labelled. This report is not certification or formal safety approval.",
-            "run": run, "comparison": comparison_rows(run), "human_reviews": list(reviews),
+            "run": run, "comparison": comparison_rows(run), "human_reviews": reviews, "proposal_review_summary": review_counts(outcomes),
             "human_risk_assessments": list(risk_assessments), "software_simulations": list(simulations)}

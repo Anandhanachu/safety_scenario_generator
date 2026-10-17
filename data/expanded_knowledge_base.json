@@ -1,0 +1,2076 @@
+{
+  "schema_version": "1.0",
+  "dataset_id": "expanded-sidewalk-robot-v2",
+  "dataset_name": "Sidewalk robot engineering catalogue - expanded, illustrative, unreviewed",
+  "records": [
+    {
+      "id": "SRC-001",
+      "type": "source",
+      "title": "Illustrative project assumption",
+      "description": "Training assumption only: loss of sensing or communications may require a controlled stop. This is not a validated robot capability or approved safety requirement."
+    },
+    {
+      "id": "FLT-CAMERA",
+      "type": "fault",
+      "title": "Camera failure",
+      "description": "Camera unavailable in day, night or reduced visibility operation.",
+      "related_ids": [
+        "HAZ-001"
+      ]
+    },
+    {
+      "id": "FLT-COMMS",
+      "type": "fault",
+      "title": "Communication loss",
+      "description": "Communication loss interrupts operator telemetry.",
+      "related_ids": [
+        "HAZ-002"
+      ]
+    },
+    {
+      "id": "FLT-TRACTION",
+      "type": "fault",
+      "title": "Reduced traction",
+      "description": "Wet or rainy pavement may reduce available traction.",
+      "related_ids": [
+        "HAZ-001"
+      ]
+    },
+    {
+      "id": "FLT-DELAY",
+      "type": "fault",
+      "title": "Processing delay",
+      "description": "Processing delay can cause stale sensor data.",
+      "related_ids": [
+        "HAZ-001"
+      ]
+    },
+    {
+      "id": "HAZ-001",
+      "type": "hazard",
+      "title": "Insufficient obstacle detection",
+      "description": "Hypothesis: camera failure, processing delay or reduced visibility could contribute to contact with a pedestrian.",
+      "source_ids": [
+        "SRC-001"
+      ],
+      "mitigation_ids": [
+        "MIT-001"
+      ],
+      "test_ids": [
+        "TEST-001"
+      ]
+    },
+    {
+      "id": "HAZ-002",
+      "type": "hazard",
+      "title": "Loss of remote supervision",
+      "description": "Hypothesis: communication loss could prevent remote intervention.",
+      "source_ids": [
+        "SRC-001"
+      ],
+      "mitigation_ids": [
+        "MIT-001"
+      ],
+      "test_ids": [
+        "TEST-001"
+      ]
+    },
+    {
+      "id": "MIT-001",
+      "type": "mitigation",
+      "title": "Controlled-stop requirement candidate",
+      "description": "Proposed requirement: command a stop on loss of critical sensing or communications; engineer must define physical capabilities and verify implementation.",
+      "source_ids": [
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "TEST-001",
+      "type": "acceptance_test",
+      "title": "Software watchdog state transition",
+      "description": "Inject a stale sensor or lost communication condition; verify that the toy controller requests STOP. This tests software logic only.",
+      "source_ids": [
+        "SRC-001"
+      ],
+      "related_ids": [
+        "MIT-001"
+      ]
+    },
+    {
+      "id": "SRC-NHTSA",
+      "type": "source",
+      "title": "NHTSA automated vehicle safety - contextual reading",
+      "description": "NHTSA provides automated-driving safety guidance and describes the importance of testing and validation. Road-vehicle material is contextual reading, not an approved requirement for sidewalk delivery robots.",
+      "source": "https://www.nhtsa.gov/vehicle-safety/automated-vehicle-safety | consulted 2026-10-18; scope: road vehicles, not a sidewalk robot safety approval."
+    },
+    {
+      "id": "SRC-OSHA",
+      "type": "source",
+      "title": "OSHA robotics overview - contextual reading",
+      "description": "OSHA describes robotics in occupational settings. This source is contextual reading for a hazard-review process, not evidence that a proposed sidewalk-robot mitigation is effective.",
+      "source": "https://www.osha.gov/robotics | consulted 2026-10-18; scope: occupational robotics, not sidewalk deployment approval."
+    },
+    {
+      "id": "CRIT-SEVERITY",
+      "type": "risk_criteria",
+      "title": "Severity classification review checklist",
+      "description": "Illustrative checklist: identify the potential harm and exposed population; record supporting project evidence and uncertainty before a human assigns severity. No severity category is preapproved.",
+      "source_ids": [
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "CRIT-EXPOSURE",
+      "type": "risk_criteria",
+      "title": "Likelihood and exposure review checklist",
+      "description": "Illustrative checklist: distinguish occurrence data, exposure assumptions and uncertainty. Do not infer likelihood from a compelling AI narrative. Collect reviewed project data before a human assigns likelihood.",
+      "source_ids": [
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "COND-LIDAR",
+      "type": "operating_condition",
+      "title": "Lidar dropout in a crowded sidewalk",
+      "description": "Illustrative operating context: Lidar dropout in a crowded sidewalk. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-LIDAR",
+        "HAZ-LIDAR"
+      ]
+    },
+    {
+      "id": "FLT-LIDAR",
+      "type": "fault",
+      "title": "Lidar dropout",
+      "description": "Candidate fault injection: Lidar scan dropout or missing range returns. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-LIDAR"
+      ]
+    },
+    {
+      "id": "HAZ-LIDAR",
+      "type": "hazard",
+      "title": "An obstacle may remain unobserved during lidar scan loss",
+      "description": "Hypothesis: lidar scan dropout or missing range returns could contribute to this hazard. Potential consequence: contact with a pedestrian or fixed object. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-LIDAR"
+      ],
+      "mitigation_ids": [
+        "MIT-LIDAR"
+      ],
+      "test_ids": [
+        "TEST-LIDAR"
+      ],
+      "related_ids": [
+        "CON-LIDAR"
+      ]
+    },
+    {
+      "id": "CON-LIDAR",
+      "type": "consequence",
+      "title": "Contact with a pedestrian or fixed object",
+      "description": "Potential consequence for review: contact with a pedestrian or fixed object. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-LIDAR"
+      ]
+    },
+    {
+      "id": "EVD-LIDAR",
+      "type": "evidence",
+      "title": "Unverified lidar dropout engineering assumption",
+      "description": "Illustrative assumption connecting lidar scan dropout or missing range returns to an obstacle may remain unobserved during lidar scan loss. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-LIDAR",
+      "type": "mitigation",
+      "title": "Proposed response: lidar dropout",
+      "description": "Proposed mitigation: Detect missing scans and enter an engineer-defined degraded state. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-LIDAR"
+      ],
+      "related_ids": [
+        "HAZ-LIDAR"
+      ]
+    },
+    {
+      "id": "TEST-LIDAR",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: lidar dropout",
+      "description": "Objective: evaluate the proposed response to lidar dropout. Preconditions: an isolated harness and reviewed project criteria. Method: Disconnect scan input and record fault detection, command state and timestamps; engineer defines timing criteria. Actual result: not executed.",
+      "source_ids": [
+        "EVD-LIDAR"
+      ],
+      "related_ids": [
+        "MIT-LIDAR",
+        "HAZ-LIDAR"
+      ]
+    },
+    {
+      "id": "COND-PROXIMITY",
+      "type": "operating_condition",
+      "title": "Close-range approach beside a wheelchair",
+      "description": "Illustrative operating context: Close-range approach beside a wheelchair. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-PROXIMITY",
+        "HAZ-PROXIMITY"
+      ]
+    },
+    {
+      "id": "FLT-PROXIMITY",
+      "type": "fault",
+      "title": "Proximity-sensor failure",
+      "description": "Candidate fault injection: Proximity sensor stuck clear or invalid close-range returns. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-PROXIMITY"
+      ]
+    },
+    {
+      "id": "HAZ-PROXIMITY",
+      "type": "hazard",
+      "title": "A nearby obstacle may be missed by close-range sensing",
+      "description": "Hypothesis: proximity sensor stuck clear or invalid close-range returns could contribute to this hazard. Potential consequence: low-speed contact with feet or mobility aids. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-PROXIMITY"
+      ],
+      "mitigation_ids": [
+        "MIT-PROXIMITY"
+      ],
+      "test_ids": [
+        "TEST-PROXIMITY"
+      ],
+      "related_ids": [
+        "CON-PROXIMITY"
+      ]
+    },
+    {
+      "id": "CON-PROXIMITY",
+      "type": "consequence",
+      "title": "Low-speed contact with feet or mobility aids",
+      "description": "Potential consequence for review: low-speed contact with feet or mobility aids. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-PROXIMITY"
+      ]
+    },
+    {
+      "id": "EVD-PROXIMITY",
+      "type": "evidence",
+      "title": "Unverified proximity-sensor failure engineering assumption",
+      "description": "Illustrative assumption connecting proximity sensor stuck clear or invalid close-range returns to a nearby obstacle may be missed by close-range sensing. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-PROXIMITY",
+      "type": "mitigation",
+      "title": "Proposed response: proximity-sensor failure",
+      "description": "Proposed mitigation: Validate sensor health and require an independent close-range response channel where designed. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-PROXIMITY"
+      ],
+      "related_ids": [
+        "HAZ-PROXIMITY"
+      ]
+    },
+    {
+      "id": "TEST-PROXIMITY",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: proximity-sensor failure",
+      "description": "Objective: evaluate the proposed response to proximity-sensor failure. Preconditions: an isolated harness and reviewed project criteria. Method: Inject stuck-clear readings at an instrumented obstacle; compare observations against a reviewed separation requirement. Actual result: not executed.",
+      "source_ids": [
+        "EVD-PROXIMITY"
+      ],
+      "related_ids": [
+        "MIT-PROXIMITY",
+        "HAZ-PROXIMITY"
+      ]
+    },
+    {
+      "id": "COND-DISAGREEMENT",
+      "type": "operating_condition",
+      "title": "Conflicting camera lidar observations near a glass panel",
+      "description": "Illustrative operating context: Conflicting camera lidar observations near a glass panel. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-DISAGREEMENT",
+        "HAZ-DISAGREEMENT"
+      ]
+    },
+    {
+      "id": "FLT-DISAGREEMENT",
+      "type": "fault",
+      "title": "Sensor disagreement",
+      "description": "Candidate fault injection: Camera and lidar disagree about occupied free space. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-DISAGREEMENT"
+      ]
+    },
+    {
+      "id": "HAZ-DISAGREEMENT",
+      "type": "hazard",
+      "title": "An inconsistent sensor fusion decision may select occupied space",
+      "description": "Hypothesis: camera and lidar disagree about occupied free space could contribute to this hazard. Potential consequence: contact after incorrect free-space classification. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-DISAGREEMENT"
+      ],
+      "mitigation_ids": [
+        "MIT-DISAGREEMENT"
+      ],
+      "test_ids": [
+        "TEST-DISAGREEMENT"
+      ],
+      "related_ids": [
+        "CON-DISAGREEMENT"
+      ]
+    },
+    {
+      "id": "CON-DISAGREEMENT",
+      "type": "consequence",
+      "title": "Contact after incorrect free-space classification",
+      "description": "Potential consequence for review: contact after incorrect free-space classification. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-DISAGREEMENT"
+      ]
+    },
+    {
+      "id": "EVD-DISAGREEMENT",
+      "type": "evidence",
+      "title": "Unverified sensor disagreement engineering assumption",
+      "description": "Illustrative assumption connecting camera and lidar disagree about occupied free space to an inconsistent sensor fusion decision may select occupied space. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-DISAGREEMENT",
+      "type": "mitigation",
+      "title": "Proposed response: sensor disagreement",
+      "description": "Proposed mitigation: Record fusion disagreements and define conservative arbitration with an engineer-reviewed fallback. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-DISAGREEMENT"
+      ],
+      "related_ids": [
+        "HAZ-DISAGREEMENT"
+      ]
+    },
+    {
+      "id": "TEST-DISAGREEMENT",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: sensor disagreement",
+      "description": "Objective: evaluate the proposed response to sensor disagreement. Preconditions: an isolated harness and reviewed project criteria. Method: Replay conflicting synchronized observations and verify the configured arbitration policy without assuming physical avoidance. Actual result: not executed.",
+      "source_ids": [
+        "EVD-DISAGREEMENT"
+      ],
+      "related_ids": [
+        "MIT-DISAGREEMENT",
+        "HAZ-DISAGREEMENT"
+      ]
+    },
+    {
+      "id": "COND-GLARE",
+      "type": "operating_condition",
+      "title": "Low sun glare at a building entrance",
+      "description": "Illustrative operating context: Low sun glare at a building entrance. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-GLARE",
+        "HAZ-GLARE"
+      ]
+    },
+    {
+      "id": "FLT-GLARE",
+      "type": "fault",
+      "title": "Camera glare",
+      "description": "Candidate fault injection: Low sun glare saturates camera frames. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-GLARE"
+      ]
+    },
+    {
+      "id": "HAZ-GLARE",
+      "type": "hazard",
+      "title": "A pedestrian may be occluded by camera saturation",
+      "description": "Hypothesis: low sun glare saturates camera frames could contribute to this hazard. Potential consequence: contact after a degraded visual observation. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-GLARE"
+      ],
+      "mitigation_ids": [
+        "MIT-GLARE"
+      ],
+      "test_ids": [
+        "TEST-GLARE"
+      ],
+      "related_ids": [
+        "CON-GLARE"
+      ]
+    },
+    {
+      "id": "CON-GLARE",
+      "type": "consequence",
+      "title": "Contact after a degraded visual observation",
+      "description": "Potential consequence for review: contact after a degraded visual observation. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-GLARE"
+      ]
+    },
+    {
+      "id": "EVD-GLARE",
+      "type": "evidence",
+      "title": "Unverified camera glare engineering assumption",
+      "description": "Illustrative assumption connecting low sun glare saturates camera frames to a pedestrian may be occluded by camera saturation. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-GLARE",
+      "type": "mitigation",
+      "title": "Proposed response: camera glare",
+      "description": "Proposed mitigation: Monitor image degradation and apply a reviewed operating-domain restriction. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-GLARE"
+      ],
+      "related_ids": [
+        "HAZ-GLARE"
+      ]
+    },
+    {
+      "id": "TEST-GLARE",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: camera glare",
+      "description": "Objective: evaluate the proposed response to camera glare. Preconditions: an isolated harness and reviewed project criteria. Method: Replay glare images with annotated objects; measure detection changes and check the specified degraded-state transition. Actual result: not executed.",
+      "source_ids": [
+        "EVD-GLARE"
+      ],
+      "related_ids": [
+        "MIT-GLARE",
+        "HAZ-GLARE"
+      ]
+    },
+    {
+      "id": "COND-NIGHT",
+      "type": "operating_condition",
+      "title": "Night operation in an unlit walkway",
+      "description": "Illustrative operating context: Night operation in an unlit walkway. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-NIGHT",
+        "HAZ-NIGHT"
+      ]
+    },
+    {
+      "id": "FLT-NIGHT",
+      "type": "fault",
+      "title": "Low-light perception degradation",
+      "description": "Candidate fault injection: Night camera low-light noise reduces scene detail. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-NIGHT"
+      ]
+    },
+    {
+      "id": "HAZ-NIGHT",
+      "type": "hazard",
+      "title": "A pedestrian in low illumination may be missed",
+      "description": "Hypothesis: night camera low-light noise reduces scene detail could contribute to this hazard. Potential consequence: contact with a person in a dark walkway. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-NIGHT"
+      ],
+      "mitigation_ids": [
+        "MIT-NIGHT"
+      ],
+      "test_ids": [
+        "TEST-NIGHT"
+      ],
+      "related_ids": [
+        "CON-NIGHT"
+      ]
+    },
+    {
+      "id": "CON-NIGHT",
+      "type": "consequence",
+      "title": "Contact with a person in a dark walkway",
+      "description": "Potential consequence for review: contact with a person in a dark walkway. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-NIGHT"
+      ]
+    },
+    {
+      "id": "EVD-NIGHT",
+      "type": "evidence",
+      "title": "Unverified low-light perception degradation engineering assumption",
+      "description": "Illustrative assumption connecting night camera low-light noise reduces scene detail to a pedestrian in low illumination may be missed. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-NIGHT",
+      "type": "mitigation",
+      "title": "Proposed response: low-light perception degradation",
+      "description": "Proposed mitigation: Define illumination limits and a monitored fallback when perception confidence is insufficient. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-NIGHT"
+      ],
+      "related_ids": [
+        "HAZ-NIGHT"
+      ]
+    },
+    {
+      "id": "TEST-NIGHT",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: low-light perception degradation",
+      "description": "Objective: evaluate the proposed response to low-light perception degradation. Preconditions: an isolated harness and reviewed project criteria. Method: Use an annotated low-light replay set and verify the documented illumination boundary and fault handling. Actual result: not executed.",
+      "source_ids": [
+        "EVD-NIGHT"
+      ],
+      "related_ids": [
+        "MIT-NIGHT",
+        "HAZ-NIGHT"
+      ]
+    },
+    {
+      "id": "COND-RAIN",
+      "type": "operating_condition",
+      "title": "Rain and water droplets on a sensor cover",
+      "description": "Illustrative operating context: Rain and water droplets on a sensor cover. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-RAIN",
+        "HAZ-RAIN"
+      ]
+    },
+    {
+      "id": "FLT-RAIN",
+      "type": "fault",
+      "title": "Rain sensor obstruction",
+      "description": "Candidate fault injection: Rain droplets obscure optical sensor windows. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-RAIN"
+      ]
+    },
+    {
+      "id": "HAZ-RAIN",
+      "type": "hazard",
+      "title": "Rain-obscured sensing may misclassify an occupied path",
+      "description": "Hypothesis: rain droplets obscure optical sensor windows could contribute to this hazard. Potential consequence: contact with an obstacle in rain. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-RAIN"
+      ],
+      "mitigation_ids": [
+        "MIT-RAIN"
+      ],
+      "test_ids": [
+        "TEST-RAIN"
+      ],
+      "related_ids": [
+        "CON-RAIN"
+      ]
+    },
+    {
+      "id": "CON-RAIN",
+      "type": "consequence",
+      "title": "Contact with an obstacle in rain",
+      "description": "Potential consequence for review: contact with an obstacle in rain. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-RAIN"
+      ]
+    },
+    {
+      "id": "EVD-RAIN",
+      "type": "evidence",
+      "title": "Unverified rain sensor obstruction engineering assumption",
+      "description": "Illustrative assumption connecting rain droplets obscure optical sensor windows to rain-obscured sensing may misclassify an occupied path. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-RAIN",
+      "type": "mitigation",
+      "title": "Proposed response: rain sensor obstruction",
+      "description": "Proposed mitigation: Specify sensor-cover inspection and environmental restrictions under reviewed test conditions. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-RAIN"
+      ],
+      "related_ids": [
+        "HAZ-RAIN"
+      ]
+    },
+    {
+      "id": "TEST-RAIN",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: rain sensor obstruction",
+      "description": "Objective: evaluate the proposed response to rain sensor obstruction. Preconditions: an isolated harness and reviewed project criteria. Method: Evaluate recorded rain-obscured inputs and compare detection and degradation alarms against project-defined criteria. Actual result: not executed.",
+      "source_ids": [
+        "EVD-RAIN"
+      ],
+      "related_ids": [
+        "MIT-RAIN",
+        "HAZ-RAIN"
+      ]
+    },
+    {
+      "id": "COND-LOCALIZATION",
+      "type": "operating_condition",
+      "title": "Localization drift beside a road edge",
+      "description": "Illustrative operating context: Localization drift beside a road edge. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-LOCALIZATION",
+        "HAZ-LOCALIZATION"
+      ]
+    },
+    {
+      "id": "FLT-LOCALIZATION",
+      "type": "fault",
+      "title": "Localization drift",
+      "description": "Candidate fault injection: Localization drift or inconsistent pose estimate. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-LOCALIZATION"
+      ]
+    },
+    {
+      "id": "HAZ-LOCALIZATION",
+      "type": "hazard",
+      "title": "The planned trajectory may leave the permitted sidewalk corridor",
+      "description": "Hypothesis: localization drift or inconsistent pose estimate could contribute to this hazard. Potential consequence: robot entering an unintended route. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-LOCALIZATION"
+      ],
+      "mitigation_ids": [
+        "MIT-LOCALIZATION"
+      ],
+      "test_ids": [
+        "TEST-LOCALIZATION"
+      ],
+      "related_ids": [
+        "CON-LOCALIZATION"
+      ]
+    },
+    {
+      "id": "CON-LOCALIZATION",
+      "type": "consequence",
+      "title": "Robot entering an unintended route",
+      "description": "Potential consequence for review: robot entering an unintended route. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-LOCALIZATION"
+      ]
+    },
+    {
+      "id": "EVD-LOCALIZATION",
+      "type": "evidence",
+      "title": "Unverified localization drift engineering assumption",
+      "description": "Illustrative assumption connecting localization drift or inconsistent pose estimate to the planned trajectory may leave the permitted sidewalk corridor. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-LOCALIZATION",
+      "type": "mitigation",
+      "title": "Proposed response: localization drift",
+      "description": "Proposed mitigation: Monitor pose consistency and bound operation to verified localization conditions. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-LOCALIZATION"
+      ],
+      "related_ids": [
+        "HAZ-LOCALIZATION"
+      ]
+    },
+    {
+      "id": "TEST-LOCALIZATION",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: localization drift",
+      "description": "Objective: evaluate the proposed response to localization drift. Preconditions: an isolated harness and reviewed project criteria. Method: Inject a known pose offset in a software map; verify corridor checks and record the commanded fallback. Actual result: not executed.",
+      "source_ids": [
+        "EVD-LOCALIZATION"
+      ],
+      "related_ids": [
+        "MIT-LOCALIZATION",
+        "HAZ-LOCALIZATION"
+      ]
+    },
+    {
+      "id": "COND-GNSS",
+      "type": "operating_condition",
+      "title": "GNSS outage in an urban canyon",
+      "description": "Illustrative operating context: GNSS outage in an urban canyon. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-GNSS",
+        "HAZ-GNSS"
+      ]
+    },
+    {
+      "id": "FLT-GNSS",
+      "type": "fault",
+      "title": "GNSS outage",
+      "description": "Candidate fault injection: GNSS signal unavailable or erroneous position updates. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-GNSS"
+      ]
+    },
+    {
+      "id": "HAZ-GNSS",
+      "type": "hazard",
+      "title": "A position estimator may continue with stale location",
+      "description": "Hypothesis: gnss signal unavailable or erroneous position updates could contribute to this hazard. Potential consequence: departure from a permitted operating area. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-GNSS"
+      ],
+      "mitigation_ids": [
+        "MIT-GNSS"
+      ],
+      "test_ids": [
+        "TEST-GNSS"
+      ],
+      "related_ids": [
+        "CON-GNSS"
+      ]
+    },
+    {
+      "id": "CON-GNSS",
+      "type": "consequence",
+      "title": "Departure from a permitted operating area",
+      "description": "Potential consequence for review: departure from a permitted operating area. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-GNSS"
+      ]
+    },
+    {
+      "id": "EVD-GNSS",
+      "type": "evidence",
+      "title": "Unverified gnss outage engineering assumption",
+      "description": "Illustrative assumption connecting gnss signal unavailable or erroneous position updates to a position estimator may continue with stale location. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-GNSS",
+      "type": "mitigation",
+      "title": "Proposed response: gnss outage",
+      "description": "Proposed mitigation: Define estimator validity monitoring and an outage operating policy. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-GNSS"
+      ],
+      "related_ids": [
+        "HAZ-GNSS"
+      ]
+    },
+    {
+      "id": "TEST-GNSS",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: gnss outage",
+      "description": "Objective: evaluate the proposed response to gnss outage. Preconditions: an isolated harness and reviewed project criteria. Method: Replay a GNSS outage with ground-truth labels and check estimator validity and mode changes. Actual result: not executed.",
+      "source_ids": [
+        "EVD-GNSS"
+      ],
+      "related_ids": [
+        "MIT-GNSS",
+        "HAZ-GNSS"
+      ]
+    },
+    {
+      "id": "COND-MAP",
+      "type": "operating_condition",
+      "title": "Temporary sidewalk construction with a stale map",
+      "description": "Illustrative operating context: Temporary sidewalk construction with a stale map. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-MAP",
+        "HAZ-MAP"
+      ]
+    },
+    {
+      "id": "FLT-MAP",
+      "type": "fault",
+      "title": "Stale map",
+      "description": "Candidate fault injection: A map omits a new construction barrier or closed path. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-MAP"
+      ]
+    },
+    {
+      "id": "HAZ-MAP",
+      "type": "hazard",
+      "title": "Route planning may lead into an inaccessible walkway",
+      "description": "Hypothesis: a map omits a new construction barrier or closed path could contribute to this hazard. Potential consequence: contact or blockage at a temporary obstacle. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-MAP"
+      ],
+      "mitigation_ids": [
+        "MIT-MAP"
+      ],
+      "test_ids": [
+        "TEST-MAP"
+      ],
+      "related_ids": [
+        "CON-MAP"
+      ]
+    },
+    {
+      "id": "CON-MAP",
+      "type": "consequence",
+      "title": "Contact or blockage at a temporary obstacle",
+      "description": "Potential consequence for review: contact or blockage at a temporary obstacle. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-MAP"
+      ]
+    },
+    {
+      "id": "EVD-MAP",
+      "type": "evidence",
+      "title": "Unverified stale map engineering assumption",
+      "description": "Illustrative assumption connecting a map omits a new construction barrier or closed path to route planning may lead into an inaccessible walkway. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-MAP",
+      "type": "mitigation",
+      "title": "Proposed response: stale map",
+      "description": "Proposed mitigation: Check current route observations against map assumptions and support route rejection. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-MAP"
+      ],
+      "related_ids": [
+        "HAZ-MAP"
+      ]
+    },
+    {
+      "id": "TEST-MAP",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: stale map",
+      "description": "Objective: evaluate the proposed response to stale map. Preconditions: an isolated harness and reviewed project criteria. Method: Introduce a mapped-route closure in a replay scene and check replanning or a stop request. Actual result: not executed.",
+      "source_ids": [
+        "EVD-MAP"
+      ],
+      "related_ids": [
+        "MIT-MAP",
+        "HAZ-MAP"
+      ]
+    },
+    {
+      "id": "COND-NAVIGATION",
+      "type": "operating_condition",
+      "title": "Navigation failure near a narrow passage",
+      "description": "Illustrative operating context: Navigation failure near a narrow passage. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-NAVIGATION",
+        "HAZ-NAVIGATION"
+      ]
+    },
+    {
+      "id": "FLT-NAVIGATION",
+      "type": "fault",
+      "title": "Navigation planner failure",
+      "description": "Candidate fault injection: Navigation planner returns an infeasible path. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-NAVIGATION"
+      ]
+    },
+    {
+      "id": "HAZ-NAVIGATION",
+      "type": "hazard",
+      "title": "The robot may receive a route outside its permitted corridor",
+      "description": "Hypothesis: navigation planner returns an infeasible path could contribute to this hazard. Potential consequence: entry into an unsafe or inaccessible area. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-NAVIGATION"
+      ],
+      "mitigation_ids": [
+        "MIT-NAVIGATION"
+      ],
+      "test_ids": [
+        "TEST-NAVIGATION"
+      ],
+      "related_ids": [
+        "CON-NAVIGATION"
+      ]
+    },
+    {
+      "id": "CON-NAVIGATION",
+      "type": "consequence",
+      "title": "Entry into an unsafe or inaccessible area",
+      "description": "Potential consequence for review: entry into an unsafe or inaccessible area. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-NAVIGATION"
+      ]
+    },
+    {
+      "id": "EVD-NAVIGATION",
+      "type": "evidence",
+      "title": "Unverified navigation planner failure engineering assumption",
+      "description": "Illustrative assumption connecting navigation planner returns an infeasible path to the robot may receive a route outside its permitted corridor. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-NAVIGATION",
+      "type": "mitigation",
+      "title": "Proposed response: navigation planner failure",
+      "description": "Proposed mitigation: Validate path bounds and reject trajectories that violate documented constraints. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-NAVIGATION"
+      ],
+      "related_ids": [
+        "HAZ-NAVIGATION"
+      ]
+    },
+    {
+      "id": "TEST-NAVIGATION",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: navigation planner failure",
+      "description": "Objective: evaluate the proposed response to navigation planner failure. Preconditions: an isolated harness and reviewed project criteria. Method: Submit out-of-corridor trajectories and confirm rejection before command dispatch. Actual result: not executed.",
+      "source_ids": [
+        "EVD-NAVIGATION"
+      ],
+      "related_ids": [
+        "MIT-NAVIGATION",
+        "HAZ-NAVIGATION"
+      ]
+    },
+    {
+      "id": "COND-TRAFFIC",
+      "type": "operating_condition",
+      "title": "Road crossing and curb boundary uncertainty",
+      "description": "Illustrative operating context: Road crossing and curb boundary uncertainty. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-TRAFFIC",
+        "HAZ-TRAFFIC"
+      ]
+    },
+    {
+      "id": "FLT-TRAFFIC",
+      "type": "fault",
+      "title": "Crossing boundary error",
+      "description": "Candidate fault injection: Geofence crossing boundary or curb-edge classification error. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-TRAFFIC"
+      ]
+    },
+    {
+      "id": "HAZ-TRAFFIC",
+      "type": "hazard",
+      "title": "The robot may enter a road crossing without validated permission",
+      "description": "Hypothesis: geofence crossing boundary or curb-edge classification error could contribute to this hazard. Potential consequence: exposure to moving traffic. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-TRAFFIC"
+      ],
+      "mitigation_ids": [
+        "MIT-TRAFFIC"
+      ],
+      "test_ids": [
+        "TEST-TRAFFIC"
+      ],
+      "related_ids": [
+        "CON-TRAFFIC"
+      ]
+    },
+    {
+      "id": "CON-TRAFFIC",
+      "type": "consequence",
+      "title": "Exposure to moving traffic",
+      "description": "Potential consequence for review: exposure to moving traffic. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-TRAFFIC"
+      ]
+    },
+    {
+      "id": "EVD-TRAFFIC",
+      "type": "evidence",
+      "title": "Unverified crossing boundary error engineering assumption",
+      "description": "Illustrative assumption connecting geofence crossing boundary or curb-edge classification error to the robot may enter a road crossing without validated permission. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-TRAFFIC",
+      "type": "mitigation",
+      "title": "Proposed response: crossing boundary error",
+      "description": "Proposed mitigation: Define a reviewed crossing policy and reject entry when required conditions are unverified. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-TRAFFIC"
+      ],
+      "related_ids": [
+        "HAZ-TRAFFIC"
+      ]
+    },
+    {
+      "id": "TEST-TRAFFIC",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: crossing boundary error",
+      "description": "Objective: evaluate the proposed response to crossing boundary error. Preconditions: an isolated harness and reviewed project criteria. Method: Use a bounded map simulation to inject a crossing-boundary error; verify command blocking according to the specified policy. Actual result: not executed.",
+      "source_ids": [
+        "EVD-TRAFFIC"
+      ],
+      "related_ids": [
+        "MIT-TRAFFIC",
+        "HAZ-TRAFFIC"
+      ]
+    },
+    {
+      "id": "COND-CURB",
+      "type": "operating_condition",
+      "title": "Stairs and a curb drop beside the route",
+      "description": "Illustrative operating context: Stairs and a curb drop beside the route. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-CURB",
+        "HAZ-CURB"
+      ]
+    },
+    {
+      "id": "FLT-CURB",
+      "type": "fault",
+      "title": "Curb and drop-off detection failure",
+      "description": "Candidate fault injection: Downward sensor misses stairs or a curb drop. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-CURB"
+      ]
+    },
+    {
+      "id": "HAZ-CURB",
+      "type": "hazard",
+      "title": "The robot may proceed toward an unsupported surface",
+      "description": "Hypothesis: downward sensor misses stairs or a curb drop could contribute to this hazard. Potential consequence: fall or rollover near pedestrians. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-CURB"
+      ],
+      "mitigation_ids": [
+        "MIT-CURB"
+      ],
+      "test_ids": [
+        "TEST-CURB"
+      ],
+      "related_ids": [
+        "CON-CURB"
+      ]
+    },
+    {
+      "id": "CON-CURB",
+      "type": "consequence",
+      "title": "Fall or rollover near pedestrians",
+      "description": "Potential consequence for review: fall or rollover near pedestrians. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-CURB"
+      ]
+    },
+    {
+      "id": "EVD-CURB",
+      "type": "evidence",
+      "title": "Unverified curb and drop-off detection failure engineering assumption",
+      "description": "Illustrative assumption connecting downward sensor misses stairs or a curb drop to the robot may proceed toward an unsupported surface. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-CURB",
+      "type": "mitigation",
+      "title": "Proposed response: curb and drop-off detection failure",
+      "description": "Proposed mitigation: Define downward-sensing coverage and a reviewed drop-off response. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-CURB"
+      ],
+      "related_ids": [
+        "HAZ-CURB"
+      ]
+    },
+    {
+      "id": "TEST-CURB",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: curb and drop-off detection failure",
+      "description": "Objective: evaluate the proposed response to curb and drop-off detection failure. Preconditions: an isolated harness and reviewed project criteria. Method: Replay labelled curb and stair observations; verify the configured invalid-surface response without claiming physical stability. Actual result: not executed.",
+      "source_ids": [
+        "EVD-CURB"
+      ],
+      "related_ids": [
+        "MIT-CURB",
+        "HAZ-CURB"
+      ]
+    },
+    {
+      "id": "COND-BRAKE",
+      "type": "operating_condition",
+      "title": "Brake controller acknowledgement lost",
+      "description": "Illustrative operating context: Brake controller acknowledgement lost. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-BRAKE",
+        "HAZ-BRAKE"
+      ]
+    },
+    {
+      "id": "FLT-BRAKE",
+      "type": "fault",
+      "title": "Brake command failure",
+      "description": "Candidate fault injection: Brake command not acknowledged by the controller. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-BRAKE"
+      ]
+    },
+    {
+      "id": "HAZ-BRAKE",
+      "type": "hazard",
+      "title": "A requested stop may not become an actuator command",
+      "description": "Hypothesis: brake command not acknowledged by the controller could contribute to this hazard. Potential consequence: continued commanded motion after a stop request. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-BRAKE"
+      ],
+      "mitigation_ids": [
+        "MIT-BRAKE"
+      ],
+      "test_ids": [
+        "TEST-BRAKE"
+      ],
+      "related_ids": [
+        "CON-BRAKE"
+      ]
+    },
+    {
+      "id": "CON-BRAKE",
+      "type": "consequence",
+      "title": "Continued commanded motion after a stop request",
+      "description": "Potential consequence for review: continued commanded motion after a stop request. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-BRAKE"
+      ]
+    },
+    {
+      "id": "EVD-BRAKE",
+      "type": "evidence",
+      "title": "Unverified brake command failure engineering assumption",
+      "description": "Illustrative assumption connecting brake command not acknowledged by the controller to a requested stop may not become an actuator command. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-OSHA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-BRAKE",
+      "type": "mitigation",
+      "title": "Proposed response: brake command failure",
+      "description": "Proposed mitigation: Monitor command acknowledgement and define a validated independent protective response. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-BRAKE"
+      ],
+      "related_ids": [
+        "HAZ-BRAKE"
+      ]
+    },
+    {
+      "id": "TEST-BRAKE",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: brake command failure",
+      "description": "Objective: evaluate the proposed response to brake command failure. Preconditions: an isolated harness and reviewed project criteria. Method: Inject a missing brake acknowledgement in a controller harness and record logical response; physical braking requires a separate instrumented test. Actual result: not executed.",
+      "source_ids": [
+        "EVD-BRAKE"
+      ],
+      "related_ids": [
+        "MIT-BRAKE",
+        "HAZ-BRAKE"
+      ]
+    },
+    {
+      "id": "COND-STEERING",
+      "type": "operating_condition",
+      "title": "Steering mismatch in a narrow sidewalk",
+      "description": "Illustrative operating context: Steering mismatch in a narrow sidewalk. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-STEERING",
+        "HAZ-STEERING"
+      ]
+    },
+    {
+      "id": "FLT-STEERING",
+      "type": "fault",
+      "title": "Steering actuator mismatch",
+      "description": "Candidate fault injection: Steering feedback disagrees with the commanded angle. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-STEERING"
+      ]
+    },
+    {
+      "id": "HAZ-STEERING",
+      "type": "hazard",
+      "title": "The commanded route may diverge from observed steering state",
+      "description": "Hypothesis: steering feedback disagrees with the commanded angle could contribute to this hazard. Potential consequence: lateral contact with nearby objects. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-STEERING"
+      ],
+      "mitigation_ids": [
+        "MIT-STEERING"
+      ],
+      "test_ids": [
+        "TEST-STEERING"
+      ],
+      "related_ids": [
+        "CON-STEERING"
+      ]
+    },
+    {
+      "id": "CON-STEERING",
+      "type": "consequence",
+      "title": "Lateral contact with nearby objects",
+      "description": "Potential consequence for review: lateral contact with nearby objects. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-STEERING"
+      ]
+    },
+    {
+      "id": "EVD-STEERING",
+      "type": "evidence",
+      "title": "Unverified steering actuator mismatch engineering assumption",
+      "description": "Illustrative assumption connecting steering feedback disagrees with the commanded angle to the commanded route may diverge from observed steering state. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-OSHA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-STEERING",
+      "type": "mitigation",
+      "title": "Proposed response: steering actuator mismatch",
+      "description": "Proposed mitigation: Validate feedback consistency and prohibit unsupported motion modes. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-STEERING"
+      ],
+      "related_ids": [
+        "HAZ-STEERING"
+      ]
+    },
+    {
+      "id": "TEST-STEERING",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: steering actuator mismatch",
+      "description": "Objective: evaluate the proposed response to steering actuator mismatch. Preconditions: an isolated harness and reviewed project criteria. Method: Inject steering feedback disagreement in a hardware abstraction harness; verify fault latching and commanded protective state. Actual result: not executed.",
+      "source_ids": [
+        "EVD-STEERING"
+      ],
+      "related_ids": [
+        "MIT-STEERING",
+        "HAZ-STEERING"
+      ]
+    },
+    {
+      "id": "COND-WHEEL",
+      "type": "operating_condition",
+      "title": "Wheel encoder fault on a curved route",
+      "description": "Illustrative operating context: Wheel encoder fault on a curved route. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-WHEEL",
+        "HAZ-WHEEL"
+      ]
+    },
+    {
+      "id": "FLT-WHEEL",
+      "type": "fault",
+      "title": "Wheel encoder failure",
+      "description": "Candidate fault injection: Wheel encoder ticks stuck or implausible odometry. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-WHEEL"
+      ]
+    },
+    {
+      "id": "HAZ-WHEEL",
+      "type": "hazard",
+      "title": "The estimated displacement may differ from actual wheel movement",
+      "description": "Hypothesis: wheel encoder ticks stuck or implausible odometry could contribute to this hazard. Potential consequence: unexpected route deviation. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-WHEEL"
+      ],
+      "mitigation_ids": [
+        "MIT-WHEEL"
+      ],
+      "test_ids": [
+        "TEST-WHEEL"
+      ],
+      "related_ids": [
+        "CON-WHEEL"
+      ]
+    },
+    {
+      "id": "CON-WHEEL",
+      "type": "consequence",
+      "title": "Unexpected route deviation",
+      "description": "Potential consequence for review: unexpected route deviation. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-WHEEL"
+      ]
+    },
+    {
+      "id": "EVD-WHEEL",
+      "type": "evidence",
+      "title": "Unverified wheel encoder failure engineering assumption",
+      "description": "Illustrative assumption connecting wheel encoder ticks stuck or implausible odometry to the estimated displacement may differ from actual wheel movement. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-WHEEL",
+      "type": "mitigation",
+      "title": "Proposed response: wheel encoder failure",
+      "description": "Proposed mitigation: Cross-check odometry sources and define plausibility bounds. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-WHEEL"
+      ],
+      "related_ids": [
+        "HAZ-WHEEL"
+      ]
+    },
+    {
+      "id": "TEST-WHEEL",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: wheel encoder failure",
+      "description": "Objective: evaluate the proposed response to wheel encoder failure. Preconditions: an isolated harness and reviewed project criteria. Method: Inject stuck and implausible encoder sequences and check odometry validity and control mode flags. Actual result: not executed.",
+      "source_ids": [
+        "EVD-WHEEL"
+      ],
+      "related_ids": [
+        "MIT-WHEEL",
+        "HAZ-WHEEL"
+      ]
+    },
+    {
+      "id": "COND-BATTERY",
+      "type": "operating_condition",
+      "title": "Low battery during delivery",
+      "description": "Illustrative operating context: Low battery during delivery. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-BATTERY",
+        "HAZ-BATTERY"
+      ]
+    },
+    {
+      "id": "FLT-BATTERY",
+      "type": "fault",
+      "title": "Battery undervoltage",
+      "description": "Candidate fault injection: Battery undervoltage or unexpected power brownout. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-BATTERY"
+      ]
+    },
+    {
+      "id": "HAZ-BATTERY",
+      "type": "hazard",
+      "title": "A controller may reset during operation",
+      "description": "Hypothesis: battery undervoltage or unexpected power brownout could contribute to this hazard. Potential consequence: uncommanded loss of control availability. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-BATTERY"
+      ],
+      "mitigation_ids": [
+        "MIT-BATTERY"
+      ],
+      "test_ids": [
+        "TEST-BATTERY"
+      ],
+      "related_ids": [
+        "CON-BATTERY"
+      ]
+    },
+    {
+      "id": "CON-BATTERY",
+      "type": "consequence",
+      "title": "Uncommanded loss of control availability",
+      "description": "Potential consequence for review: uncommanded loss of control availability. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-BATTERY"
+      ]
+    },
+    {
+      "id": "EVD-BATTERY",
+      "type": "evidence",
+      "title": "Unverified battery undervoltage engineering assumption",
+      "description": "Illustrative assumption connecting battery undervoltage or unexpected power brownout to a controller may reset during operation. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-OSHA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-BATTERY",
+      "type": "mitigation",
+      "title": "Proposed response: battery undervoltage",
+      "description": "Proposed mitigation: Monitor supply margins and define a reviewed low-energy operating response. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-BATTERY"
+      ],
+      "related_ids": [
+        "HAZ-BATTERY"
+      ]
+    },
+    {
+      "id": "TEST-BATTERY",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: battery undervoltage",
+      "description": "Objective: evaluate the proposed response to battery undervoltage. Preconditions: an isolated harness and reviewed project criteria. Method: Use a controlled power-supply test on suitable equipment; record reset and state behavior against approved electrical limits. Actual result: not executed.",
+      "source_ids": [
+        "EVD-BATTERY"
+      ],
+      "related_ids": [
+        "MIT-BATTERY",
+        "HAZ-BATTERY"
+      ]
+    },
+    {
+      "id": "COND-THERMAL",
+      "type": "operating_condition",
+      "title": "High compute temperature under sustained workload",
+      "description": "Illustrative operating context: High compute temperature under sustained workload. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-THERMAL",
+        "HAZ-THERMAL"
+      ]
+    },
+    {
+      "id": "FLT-THERMAL",
+      "type": "fault",
+      "title": "Processing thermal throttling",
+      "description": "Candidate fault injection: Compute thermal throttling extends processing latency. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-THERMAL"
+      ]
+    },
+    {
+      "id": "HAZ-THERMAL",
+      "type": "hazard",
+      "title": "Control may use outdated perception due to a processing backlog",
+      "description": "Hypothesis: compute thermal throttling extends processing latency could contribute to this hazard. Potential consequence: delayed obstacle response command. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-THERMAL"
+      ],
+      "mitigation_ids": [
+        "MIT-THERMAL"
+      ],
+      "test_ids": [
+        "TEST-THERMAL"
+      ],
+      "related_ids": [
+        "CON-THERMAL"
+      ]
+    },
+    {
+      "id": "CON-THERMAL",
+      "type": "consequence",
+      "title": "Delayed obstacle response command",
+      "description": "Potential consequence for review: delayed obstacle response command. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-THERMAL"
+      ]
+    },
+    {
+      "id": "EVD-THERMAL",
+      "type": "evidence",
+      "title": "Unverified processing thermal throttling engineering assumption",
+      "description": "Illustrative assumption connecting compute thermal throttling extends processing latency to control may use outdated perception due to a processing backlog. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-THERMAL",
+      "type": "mitigation",
+      "title": "Proposed response: processing thermal throttling",
+      "description": "Proposed mitigation: Monitor processing deadlines and define a reviewed thermal degraded mode. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-THERMAL"
+      ],
+      "related_ids": [
+        "HAZ-THERMAL"
+      ]
+    },
+    {
+      "id": "TEST-THERMAL",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: processing thermal throttling",
+      "description": "Objective: evaluate the proposed response to processing thermal throttling. Preconditions: an isolated harness and reviewed project criteria. Method: Replay a workload with injected processing delay; log deadline misses and commanded mode, not physical stopping time. Actual result: not executed.",
+      "source_ids": [
+        "EVD-THERMAL"
+      ],
+      "related_ids": [
+        "MIT-THERMAL",
+        "HAZ-THERMAL"
+      ]
+    },
+    {
+      "id": "COND-TIME",
+      "type": "operating_condition",
+      "title": "Unsynchronized sensor clocks near moving pedestrians",
+      "description": "Illustrative operating context: Unsynchronized sensor clocks near moving pedestrians. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-TIME",
+        "HAZ-TIME"
+      ]
+    },
+    {
+      "id": "FLT-TIME",
+      "type": "fault",
+      "title": "Timestamp synchronization failure",
+      "description": "Candidate fault injection: Camera lidar timestamp synchronization offset. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-TIME"
+      ]
+    },
+    {
+      "id": "HAZ-TIME",
+      "type": "hazard",
+      "title": "Sensor fusion may combine observations from different moments",
+      "description": "Hypothesis: camera lidar timestamp synchronization offset could contribute to this hazard. Potential consequence: incorrect obstacle position estimate. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-TIME"
+      ],
+      "mitigation_ids": [
+        "MIT-TIME"
+      ],
+      "test_ids": [
+        "TEST-TIME"
+      ],
+      "related_ids": [
+        "CON-TIME"
+      ]
+    },
+    {
+      "id": "CON-TIME",
+      "type": "consequence",
+      "title": "Incorrect obstacle position estimate",
+      "description": "Potential consequence for review: incorrect obstacle position estimate. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-TIME"
+      ]
+    },
+    {
+      "id": "EVD-TIME",
+      "type": "evidence",
+      "title": "Unverified timestamp synchronization failure engineering assumption",
+      "description": "Illustrative assumption connecting camera lidar timestamp synchronization offset to sensor fusion may combine observations from different moments. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-TIME",
+      "type": "mitigation",
+      "title": "Proposed response: timestamp synchronization failure",
+      "description": "Proposed mitigation: Check timestamp consistency and reject samples outside a reviewed synchronization bound. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-TIME"
+      ],
+      "related_ids": [
+        "HAZ-TIME"
+      ]
+    },
+    {
+      "id": "TEST-TIME",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: timestamp synchronization failure",
+      "description": "Objective: evaluate the proposed response to timestamp synchronization failure. Preconditions: an isolated harness and reviewed project criteria. Method: Replay known timestamp offsets and verify invalid-data handling against the configured synchronization tolerance. Actual result: not executed.",
+      "source_ids": [
+        "EVD-TIME"
+      ],
+      "related_ids": [
+        "MIT-TIME",
+        "HAZ-TIME"
+      ]
+    },
+    {
+      "id": "COND-NETWORK",
+      "type": "operating_condition",
+      "title": "Wi-Fi delay near a coverage boundary",
+      "description": "Illustrative operating context: Wi-Fi delay near a coverage boundary. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-NETWORK",
+        "HAZ-NETWORK"
+      ]
+    },
+    {
+      "id": "FLT-NETWORK",
+      "type": "fault",
+      "title": "Network latency spike",
+      "description": "Candidate fault injection: Wireless network packet delay or high jitter. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-NETWORK"
+      ]
+    },
+    {
+      "id": "HAZ-NETWORK",
+      "type": "hazard",
+      "title": "Remote supervision messages may arrive too late to be current",
+      "description": "Hypothesis: wireless network packet delay or high jitter could contribute to this hazard. Potential consequence: unavailable timely remote intervention. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-NETWORK"
+      ],
+      "mitigation_ids": [
+        "MIT-NETWORK"
+      ],
+      "test_ids": [
+        "TEST-NETWORK"
+      ],
+      "related_ids": [
+        "CON-NETWORK"
+      ]
+    },
+    {
+      "id": "CON-NETWORK",
+      "type": "consequence",
+      "title": "Unavailable timely remote intervention",
+      "description": "Potential consequence for review: unavailable timely remote intervention. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-NETWORK"
+      ]
+    },
+    {
+      "id": "EVD-NETWORK",
+      "type": "evidence",
+      "title": "Unverified network latency spike engineering assumption",
+      "description": "Illustrative assumption connecting wireless network packet delay or high jitter to remote supervision messages may arrive too late to be current. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-NETWORK",
+      "type": "mitigation",
+      "title": "Proposed response: network latency spike",
+      "description": "Proposed mitigation: Measure message age and define locally enforced communication validity rules. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-NETWORK"
+      ],
+      "related_ids": [
+        "HAZ-NETWORK"
+      ]
+    },
+    {
+      "id": "TEST-NETWORK",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: network latency spike",
+      "description": "Objective: evaluate the proposed response to network latency spike. Preconditions: an isolated harness and reviewed project criteria. Method: Inject delayed packets in a software harness and verify stale-message rejection using local monotonic timestamps. Actual result: not executed.",
+      "source_ids": [
+        "EVD-NETWORK"
+      ],
+      "related_ids": [
+        "MIT-NETWORK",
+        "HAZ-NETWORK"
+      ]
+    },
+    {
+      "id": "COND-REPLAY",
+      "type": "operating_condition",
+      "title": "Repeated delayed remote control packets",
+      "description": "Illustrative operating context: Repeated delayed remote control packets. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-REPLAY",
+        "HAZ-REPLAY"
+      ]
+    },
+    {
+      "id": "FLT-REPLAY",
+      "type": "fault",
+      "title": "Replayed control message",
+      "description": "Candidate fault injection: Old authenticated control message is replayed. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-REPLAY"
+      ]
+    },
+    {
+      "id": "HAZ-REPLAY",
+      "type": "hazard",
+      "title": "A stale command may be processed as current intent",
+      "description": "Hypothesis: old authenticated control message is replayed could contribute to this hazard. Potential consequence: unexpected motion command selection. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-REPLAY"
+      ],
+      "mitigation_ids": [
+        "MIT-REPLAY"
+      ],
+      "test_ids": [
+        "TEST-REPLAY"
+      ],
+      "related_ids": [
+        "CON-REPLAY"
+      ]
+    },
+    {
+      "id": "CON-REPLAY",
+      "type": "consequence",
+      "title": "Unexpected motion command selection",
+      "description": "Potential consequence for review: unexpected motion command selection. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-REPLAY"
+      ]
+    },
+    {
+      "id": "EVD-REPLAY",
+      "type": "evidence",
+      "title": "Unverified replayed control message engineering assumption",
+      "description": "Illustrative assumption connecting old authenticated control message is replayed to a stale command may be processed as current intent. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-OSHA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-REPLAY",
+      "type": "mitigation",
+      "title": "Proposed response: replayed control message",
+      "description": "Proposed mitigation: Define sequence freshness and message-age validation within a reviewed security design. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-REPLAY"
+      ],
+      "related_ids": [
+        "HAZ-REPLAY"
+      ]
+    },
+    {
+      "id": "TEST-REPLAY",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: replayed control message",
+      "description": "Objective: evaluate the proposed response to replayed control message. Preconditions: an isolated harness and reviewed project criteria. Method: Replay recorded commands in an isolated harness; verify freshness rejection and audit events without moving hardware. Actual result: not executed.",
+      "source_ids": [
+        "EVD-REPLAY"
+      ],
+      "related_ids": [
+        "MIT-REPLAY",
+        "HAZ-REPLAY"
+      ]
+    },
+    {
+      "id": "COND-ESTOP",
+      "type": "operating_condition",
+      "title": "Emergency-stop communication path interruption",
+      "description": "Illustrative operating context: Emergency-stop communication path interruption. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-ESTOP",
+        "HAZ-ESTOP"
+      ]
+    },
+    {
+      "id": "FLT-ESTOP",
+      "type": "fault",
+      "title": "Emergency-stop signal loss",
+      "description": "Candidate fault injection: Emergency-stop request not propagated to control logic. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-ESTOP"
+      ]
+    },
+    {
+      "id": "HAZ-ESTOP",
+      "type": "hazard",
+      "title": "A protective request may not reach its intended state machine",
+      "description": "Hypothesis: emergency-stop request not propagated to control logic could contribute to this hazard. Potential consequence: motion-command persistence after a protective request. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-ESTOP"
+      ],
+      "mitigation_ids": [
+        "MIT-ESTOP"
+      ],
+      "test_ids": [
+        "TEST-ESTOP"
+      ],
+      "related_ids": [
+        "CON-ESTOP"
+      ]
+    },
+    {
+      "id": "CON-ESTOP",
+      "type": "consequence",
+      "title": "Motion-command persistence after a protective request",
+      "description": "Potential consequence for review: motion-command persistence after a protective request. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-ESTOP"
+      ]
+    },
+    {
+      "id": "EVD-ESTOP",
+      "type": "evidence",
+      "title": "Unverified emergency-stop signal loss engineering assumption",
+      "description": "Illustrative assumption connecting emergency-stop request not propagated to control logic to a protective request may not reach its intended state machine. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-OSHA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-ESTOP",
+      "type": "mitigation",
+      "title": "Proposed response: emergency-stop signal loss",
+      "description": "Proposed mitigation: Specify independently reviewed protective signaling and fault observability. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-ESTOP"
+      ],
+      "related_ids": [
+        "HAZ-ESTOP"
+      ]
+    },
+    {
+      "id": "TEST-ESTOP",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: emergency-stop signal loss",
+      "description": "Objective: evaluate the proposed response to emergency-stop signal loss. Preconditions: an isolated harness and reviewed project criteria. Method: Inject a protective-request path fault in a controller harness and check signal propagation; separate physical validation remains required. Actual result: not executed.",
+      "source_ids": [
+        "EVD-ESTOP"
+      ],
+      "related_ids": [
+        "MIT-ESTOP",
+        "HAZ-ESTOP"
+      ]
+    },
+    {
+      "id": "COND-CARGO",
+      "type": "operating_condition",
+      "title": "Payload shift on an uneven walkway",
+      "description": "Illustrative operating context: Payload shift on an uneven walkway. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-CARGO",
+        "HAZ-CARGO"
+      ]
+    },
+    {
+      "id": "FLT-CARGO",
+      "type": "fault",
+      "title": "Cargo retention failure",
+      "description": "Candidate fault injection: Payload latch open or cargo unexpectedly shifts. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-CARGO"
+      ]
+    },
+    {
+      "id": "HAZ-CARGO",
+      "type": "hazard",
+      "title": "An unsecured payload may protrude or fall",
+      "description": "Hypothesis: payload latch open or cargo unexpectedly shifts could contribute to this hazard. Potential consequence: trip obstacle or contact with a dropped parcel. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-CARGO"
+      ],
+      "mitigation_ids": [
+        "MIT-CARGO"
+      ],
+      "test_ids": [
+        "TEST-CARGO"
+      ],
+      "related_ids": [
+        "CON-CARGO"
+      ]
+    },
+    {
+      "id": "CON-CARGO",
+      "type": "consequence",
+      "title": "Trip obstacle or contact with a dropped parcel",
+      "description": "Potential consequence for review: trip obstacle or contact with a dropped parcel. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-CARGO"
+      ]
+    },
+    {
+      "id": "EVD-CARGO",
+      "type": "evidence",
+      "title": "Unverified cargo retention failure engineering assumption",
+      "description": "Illustrative assumption connecting payload latch open or cargo unexpectedly shifts to an unsecured payload may protrude or fall. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-OSHA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-CARGO",
+      "type": "mitigation",
+      "title": "Proposed response: cargo retention failure",
+      "description": "Proposed mitigation: Define payload retention inspection and monitored latch conditions. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-CARGO"
+      ],
+      "related_ids": [
+        "HAZ-CARGO"
+      ]
+    },
+    {
+      "id": "TEST-CARGO",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: cargo retention failure",
+      "description": "Objective: evaluate the proposed response to cargo retention failure. Preconditions: an isolated harness and reviewed project criteria. Method: Exercise a latch-status harness and review a separately controlled payload-retention test with approved loads. Actual result: not executed.",
+      "source_ids": [
+        "EVD-CARGO"
+      ],
+      "related_ids": [
+        "MIT-CARGO",
+        "HAZ-CARGO"
+      ]
+    },
+    {
+      "id": "COND-CROWD",
+      "type": "operating_condition",
+      "title": "Dense crowd with children and wheelchairs",
+      "description": "Illustrative operating context: Dense crowd with children and wheelchairs. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-CROWD",
+        "HAZ-CROWD"
+      ]
+    },
+    {
+      "id": "FLT-CROWD",
+      "type": "fault",
+      "title": "Crowd occlusion",
+      "description": "Candidate fault injection: Dense pedestrian crowd occludes a child or mobility aid. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-CROWD"
+      ]
+    },
+    {
+      "id": "HAZ-CROWD",
+      "type": "hazard",
+      "title": "The route may be selected through an unobserved occupied region",
+      "description": "Hypothesis: dense pedestrian crowd occludes a child or mobility aid could contribute to this hazard. Potential consequence: contact with an occluded pedestrian. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-CROWD"
+      ],
+      "mitigation_ids": [
+        "MIT-CROWD"
+      ],
+      "test_ids": [
+        "TEST-CROWD"
+      ],
+      "related_ids": [
+        "CON-CROWD"
+      ]
+    },
+    {
+      "id": "CON-CROWD",
+      "type": "consequence",
+      "title": "Contact with an occluded pedestrian",
+      "description": "Potential consequence for review: contact with an occluded pedestrian. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-CROWD"
+      ]
+    },
+    {
+      "id": "EVD-CROWD",
+      "type": "evidence",
+      "title": "Unverified crowd occlusion engineering assumption",
+      "description": "Illustrative assumption connecting dense pedestrian crowd occludes a child or mobility aid to the route may be selected through an unobserved occupied region. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-CROWD",
+      "type": "mitigation",
+      "title": "Proposed response: crowd occlusion",
+      "description": "Proposed mitigation: Represent occlusion uncertainty and define conservative speed and separation policies. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-CROWD"
+      ],
+      "related_ids": [
+        "HAZ-CROWD"
+      ]
+    },
+    {
+      "id": "TEST-CROWD",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: crowd occlusion",
+      "description": "Objective: evaluate the proposed response to crowd occlusion. Preconditions: an isolated harness and reviewed project criteria. Method: Replay annotated crowd scenes and inspect planned commands relative to reviewed occlusion constraints. Actual result: not executed.",
+      "source_ids": [
+        "EVD-CROWD"
+      ],
+      "related_ids": [
+        "MIT-CROWD",
+        "HAZ-CROWD"
+      ]
+    },
+    {
+      "id": "COND-ICE",
+      "type": "operating_condition",
+      "title": "Ice patches and slippery paving on a slope",
+      "description": "Illustrative operating context: Ice patches and slippery paving on a slope. Robot capabilities, thresholds and environmental limits must be supplied by project evidence.",
+      "related_ids": [
+        "FLT-ICE",
+        "HAZ-ICE"
+      ]
+    },
+    {
+      "id": "FLT-ICE",
+      "type": "fault",
+      "title": "Icy surface traction loss",
+      "description": "Candidate fault injection: Ice or slippery surface reduces available wheel traction. This is a proposed test condition, not an observed failure rate.",
+      "related_ids": [
+        "HAZ-ICE"
+      ]
+    },
+    {
+      "id": "HAZ-ICE",
+      "type": "hazard",
+      "title": "A motion command may not produce the intended trajectory",
+      "description": "Hypothesis: ice or slippery surface reduces available wheel traction could contribute to this hazard. Potential consequence: sliding toward people or a route boundary. Requires project-specific engineering review.",
+      "source_ids": [
+        "EVD-ICE"
+      ],
+      "mitigation_ids": [
+        "MIT-ICE"
+      ],
+      "test_ids": [
+        "TEST-ICE"
+      ],
+      "related_ids": [
+        "CON-ICE"
+      ]
+    },
+    {
+      "id": "CON-ICE",
+      "type": "consequence",
+      "title": "Sliding toward people or a route boundary",
+      "description": "Potential consequence for review: sliding toward people or a route boundary. Severity and likelihood are deliberately unassigned.",
+      "related_ids": [
+        "HAZ-ICE"
+      ]
+    },
+    {
+      "id": "EVD-ICE",
+      "type": "evidence",
+      "title": "Unverified icy surface traction loss engineering assumption",
+      "description": "Illustrative assumption connecting ice or slippery surface reduces available wheel traction to a motion command may not produce the intended trajectory. No robot experiment or field observation supports this record yet. The external reference is contextual only.",
+      "source_ids": [
+        "SRC-NHTSA",
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "MIT-ICE",
+      "type": "mitigation",
+      "title": "Proposed response: icy surface traction loss",
+      "description": "Proposed mitigation: Define surface-condition exclusions and traction monitoring based on controlled project tests. Effectiveness has not been demonstrated.",
+      "source_ids": [
+        "EVD-ICE"
+      ],
+      "related_ids": [
+        "HAZ-ICE"
+      ]
+    },
+    {
+      "id": "TEST-ICE",
+      "type": "acceptance_test",
+      "title": "Acceptance-test proposal: icy surface traction loss",
+      "description": "Objective: evaluate the proposed response to icy surface traction loss. Preconditions: an isolated harness and reviewed project criteria. Method: Run a bounded software slip-injection test; physical traction and stopping distance require separate instrumented validation. Actual result: not executed.",
+      "source_ids": [
+        "EVD-ICE"
+      ],
+      "related_ids": [
+        "MIT-ICE",
+        "HAZ-ICE"
+      ]
+    }
+  ]
+}
