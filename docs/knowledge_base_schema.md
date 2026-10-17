@@ -1,5 +1,7 @@
 # Knowledge-base format and activation
 
+Current inference requires schema_version 2.0. The upload-facing Pydantic models are ConstrainedRecord and ConstrainedDataset in knowledge_base/core.py; the current sample is data/constrained_knowledge_base.json. Each record additionally requires source (standard, incident_report or expert_judgment), reviewed_by (nullable until reviewed) and tags containing fault_type and operating_condition lists from the five/four allowed values. Mitigations and acceptance tests require hazard_ids pointing to hazards with reciprocal mitigation_ids/test_ids. Hazards may store severity S1-S3, likelihood L1-L3 and risk_conflict; missing, conflicting or unreviewed risk inputs require human review. The downloaded UI schema describes v2. The legacy format below remains readable for earlier datasets/history, but cannot start new inference.
+
 Download the complete Pydantic-generated JSON schema from Knowledge Base. The canonical schema lives in `knowledge_base/core.py`; a valid sample is in `data/sample_knowledge_base.json` and is downloadable in the UI.
 
 The root requires `schema_version: "1.0"`, `dataset_id`, `dataset_name` and 1–5000 records. Unknown fields are rejected. Files are limited to 5 MiB. Duplicate JSON keys and duplicate record IDs are rejected. Invalid imports never replace active data.

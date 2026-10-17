@@ -18,6 +18,9 @@ def test_pdf_is_deterministic_parseable_and_paginates_long_untrusted_content():
     assert "Synthetic test fixture only" in text
     assert "<tag> & untrusted evidence" in text
     assert "not certification" in text
+    assert 'Out of scope / limitations' in text
+    assert 'not calibrated probabilities' in text
+    assert 'Baseline comparison' in text
 
 
 def test_generate_pdf_qa_artifact(tmp_path):

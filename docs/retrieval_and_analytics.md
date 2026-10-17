@@ -1,5 +1,7 @@
 # Retrieval and proposal analytics upgrade
 
+Historical note: this page describes the earlier 181-record catalogue and lexical measurements. Current constrained v2 generation filters tags before ranking and uses the 10-record draft starter. See architecture.md and implementation_plan.md for current behavior; these historical timings are not current v2 measurements.
+
 Implemented 18 October 2026.
 
 ## Expanded engineering catalogue

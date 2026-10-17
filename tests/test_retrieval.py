@@ -63,9 +63,9 @@ def test_lexical_retrieval_benchmark_is_measured(expanded):
 
 def test_custom_kb_is_preserved_and_starter_is_upgraded(tmp_path, dataset):
     service = Services(tmp_path)
-    assert len(service.dataset().records) == 181
+    assert len(service.dataset().records) == 10
     service.activate_dataset(dataset)
-    assert len(Services(tmp_path).dataset().records) == 181
+    assert len(Services(tmp_path).dataset().records) == 10
     custom = dataset.model_copy(deep=True)
     custom.dataset_name = "User edited dataset"
     service.activate_dataset(custom)

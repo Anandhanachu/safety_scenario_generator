@@ -2,6 +2,10 @@
 
 Development and verification: 17-18 October 2026.
 
+Current validity revision: see [constrained architecture](architecture.md) and [implementation priorities](implementation_plan.md). New runs use v2 record selection, stored expert risk inputs, tag filtering, a no-AI baseline, fixed temperature/seed and one corrective retry. The active starter is 10 draft records, with 24 draft labelled cases and a separate five-case sample. Earlier 181-record search measurements below apply to the legacy catalogue only. Expert approval and live inference/hardware verification remain pending.
+
+The revised suite has 119 automated tests. The baseline was executed on all 24 draft cases three times (72 executions), with recorded evidence and exact-ID metrics. No AI endpoint was invoked during this verification. The report's baseline/limitations sections were rendered and visually inspected.
+
 ## Implemented
 
 - Twelve-page Streamlit workspace with redesigned light/dark styling, all-history proposal totals, real empty states, independent selections and last-check connection indicators.

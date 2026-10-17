@@ -101,6 +101,9 @@ class Store:
             raise ValueError("Scenario not found in this run")
         if decision == "accepted" and not next(e for e in proposal_entries(run) if e["scope"] == scenario_id)["schema_valid"]:
             raise ValueError("Schema-invalid candidates require revision before acceptance")
+        entry = next(e for e in proposal_entries(run) if e['scope'] == scenario_id)
+        if decision == 'accepted' and entry['candidate'].get('needs_human_review'):
+            raise ValueError('Resolve expert-evidence/risk/confidence flags and rerun before acceptance')
         payload = {"decision": decision, "reviewer": reviewer[:200], "notes": notes[:8000]}
         with self.connect() as db:
             db.execute("INSERT INTO reviews VALUES (?,?,?,?,?)", (uuid4().hex, run_id, scenario_id, now(), json.dumps(payload)))

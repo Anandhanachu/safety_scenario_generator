@@ -13,6 +13,31 @@ from backend.schemas import RunRequest, ScenarioInput, Selection
 from backend.services import Services
 from evaluation.benchmark import BenchmarkRunner, draft_dataset
 from models.adapters import BackendError
+from knowledge_base.core import parse_upload
+
+
+@pytest.fixture
+def dataset():
+    # Test-only expert attribution; production sample stays unreviewed.
+    kb = parse_upload((ROOT / "data/constrained_knowledge_base.json").read_bytes())
+    for record in kb.records:
+        record.reviewed_by = "TEST-ONLY"
+        record.review_status = "approved"
+        record.illustrative = False
+    return kb
+
+
+@pytest.fixture
+def model_output():
+    return {"schema_version": "2.0", "outcome": "selected", "selections": [{"hazard_id": "H-1", "mitigation_ids": ["M-1"], "acceptance_test_ids": ["T-1"]}]}
+
+
+@pytest.fixture
+def matrix():
+    from risk_engine.calculator import RiskMatrix
+    value = RiskMatrix.model_validate_json((ROOT / "configs/risk_matrix.example.json").read_bytes())
+    value.illustrative = False
+    return value
 
 
 def wait_for(manager, identity, timeout=5):
@@ -40,7 +65,7 @@ def factory(model_output, failed_backend=None, malformed=False, block=None):
 
 def test_full_comparison_partial_failure_frozen_snapshot(store, dataset, matrix, settings, model_output):
     manager = RunManager(store, factory(model_output))
-    request = RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local", model_id="good"), Selection(backend="qualcomm", model_id="fail")])
+    request = RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local", model_id="good"), Selection(backend="qualcomm", model_id="fail")])
     identity = manager.start(request, dataset, matrix, settings)
     result = wait_for(manager, identity)
     assert result["results"]["laptop_local"]["status"] == "completed"
@@ -56,11 +81,12 @@ def test_full_comparison_partial_failure_frozen_snapshot(store, dataset, matrix,
 def test_invalid_output_preserves_diagnostics_without_raw(store, dataset, matrix, settings, model_output, monkeypatch):
     monkeypatch.setenv("SAFESCENARIO_RETAIN_RAW", "false")
     manager = RunManager(store, factory(model_output, malformed=True))
-    identity = manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local", model_id="test")]), dataset, matrix, settings)
+    identity = manager.start(RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local", model_id="test")]), dataset, matrix, settings)
     result = wait_for(manager, identity)["results"]["laptop_local"]
     assert result["status"] == "failed"
-    assert "Invalid model JSON" in result["error"]
-    assert result["response_bytes"] == 8
+    assert "needs human review" in result["error"]
+    assert len(result["attempts"]) == 2
+    assert result["attempts"][0]["response_bytes"] == 8
     assert "raw_response" not in result
     manager.pool.shutdown()
 
@@ -68,7 +94,7 @@ def test_invalid_output_preserves_diagnostics_without_raw(store, dataset, matrix
 def test_cooperative_cancel_discards_late_result(store, dataset, matrix, settings, model_output):
     block = threading.Event()
     manager = RunManager(store, factory(model_output, block=block))
-    identity = manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local", model_id="test")]), dataset, matrix, settings)
+    identity = manager.start(RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local", model_id="test")]), dataset, matrix, settings)
     assert manager.cancel(identity)["status"] == "cancellation_requested"
     block.set()
     result = wait_for(manager, identity)
@@ -86,9 +112,9 @@ def test_llm_only_uses_no_prompt_evidence(store, dataset, matrix, settings, mode
             seen.append(json.loads(messages[1]["content"]))
             return json.dumps(model_output)
     manager = RunManager(store, lambda b, s: MockAdapter())
-    identity = manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local", model_id="test")], method="llm_only"), dataset, matrix, settings)
-    wait_for(manager, identity)
-    assert seen[0]["evidence_snapshot"] == []
+    with pytest.raises(ValueError, match="retired"):
+        manager.start(RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local", model_id="test")], method="llm_only"), dataset, matrix, settings)
+    assert seen == []
     manager.pool.shutdown()
 
 
@@ -101,7 +127,7 @@ def test_invalid_kb_does_not_replace_active(tmp_path):
     assert services.dataset().version == original
 
 
-def test_rules_only_benchmark_actual_empty_reviewed_candidates(store, dataset, matrix, settings):
+def test_historical_rules_benchmark_uses_reviewed_test_candidates(store, dataset, matrix, settings):
     manager = RunManager(store)
     runner = BenchmarkRunner(manager, store)
     draft = draft_dataset()
@@ -110,7 +136,7 @@ def test_rules_only_benchmark_actual_empty_reviewed_candidates(store, dataset, m
     result = wait_for(runner, identity)
     assert result["status"] == "completed"
     assert len(result["rows"]) == 2
-    assert result["rows"][0]["candidate_ids"] == []
+    assert result["rows"][0]["candidate_ids"] == ['H-1']
     assert store.get(identity)["kind"] == "evaluation"
     runner.pool.shutdown()
     manager.pool.shutdown()
@@ -158,7 +184,7 @@ def test_dashboard_saved_result_review_and_risk_views(tmp_path, monkeypatch, dat
     import ui.dashboard as dashboard
     test_services = Services(tmp_path)
     test_services.manager = RunManager(test_services.store, factory(model_output))
-    identity = test_services.manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local", model_id="test")]), dataset, matrix, settings)
+    identity = test_services.manager.start(RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local", model_id="test")]), dataset, matrix, settings)
     wait_for(test_services.manager, identity)
     monkeypatch.setattr(dashboard, "services", lambda: test_services)
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=20).run()
@@ -172,9 +198,8 @@ def test_dashboard_saved_result_review_and_risk_views(tmp_path, monkeypatch, dat
     assert not app.exception
     assert test_services.store.reviews(identity)[0]["payload"]["reviewer"] == "Test Engineer"
     app.sidebar.radio[0].set_value("Risk Analysis").run()
-    next(x for x in app.button if x.label == "Calculate and record assessment").click().run()
-    assert not app.exception
-    assert test_services.store.list("risk_assessment")[0]["payload"]["assessment"]["risk_score"] is None
+    assert not any(x.label == 'Calculate and record assessment' for x in app.button)
+    assert not test_services.store.list('risk_assessment')
     test_services.manager.pool.shutdown()
 
 
@@ -207,7 +232,7 @@ def test_register_page_reviews_and_counts_across_models(tmp_path, monkeypatch, d
     from backend.analytics import scenario_register, review_counts
     service = Services(tmp_path)
     service.manager = RunManager(service.store, factory(model_output))
-    identity = service.manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local",model_id="test"), Selection(backend="qualcomm",model_id="test")]), dataset,matrix,settings)
+    identity = service.manager.start(RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local",model_id="test"), Selection(backend="qualcomm",model_id="test")]), dataset,matrix,settings)
     wait_for(service.manager, identity)
     monkeypatch.setattr(dashboard, "services", lambda:service)
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=20).run()
@@ -232,14 +257,13 @@ def test_register_page_reviews_and_counts_across_models(tmp_path, monkeypatch, d
 def test_schema_invalid_proposals_remain_in_register(store, dataset, matrix, settings, model_output):
     from backend.analytics import scenario_register
     invalid = json.loads(json.dumps(model_output))
-    invalid["scenarios"][0]["title"] = "Missing mandatory narrative"
-    del invalid["scenarios"][0]["scenario_narrative"]
+    del invalid["selections"][0]["mitigation_ids"]
     manager = RunManager(store, factory(invalid))
-    identity = manager.start(RunRequest(inputs=ScenarioInput(), selections=[Selection(backend="laptop_local",model_id="test")]), dataset,matrix,settings)
+    identity = manager.start(RunRequest(inputs=ScenarioInput(faults=["camera_failure"]), selections=[Selection(backend="laptop_local",model_id="test")]), dataset,matrix,settings)
     finished = wait_for(manager, identity)
     assert finished["results"]["laptop_local"]["status"] == "failed"
     rows = scenario_register(store)
-    assert len(rows) == 1 and rows[0]["title"] == "Missing mandatory narrative"
+    assert len(rows) == 1 and rows[0]["title"] == "Unverified record selection"
     assert not rows[0]["schema_valid"] and rows[0]["decision"] == "pending_review"
     manager.pool.shutdown()
 
@@ -253,6 +277,24 @@ def test_knowledge_search_inspector_returns_actual_matches(tmp_path, monkeypatch
     next(x for x in app.button if x.label == "Search evidence").click().run()
     assert not app.exception
     result = app.session_state["search_inspection"]
-    assert result["results"][0]["record"]["id"] == "FLT-LIDAR"
-    assert result["diagnostics"]["direct_matches"] == 5
+    assert {r['record']['id'] for r in result['results']} == {'H-1', 'M-1', 'T-1', 'SRC-DEMO'}
+    assert 0 < result["diagnostics"]["direct_matches"] <= 5
     assert any(m.label == "Measured search total" for m in app.metric)
+
+
+def test_labelled_evaluation_completed_and_saved_views(tmp_path, monkeypatch):
+    import ui.dashboard as dashboard
+    from evaluation.labelled import LabelledDataset
+    service = Services(tmp_path)
+    labels = LabelledDataset.model_validate_json((ROOT / 'data/sample_cases_5.json').read_bytes())
+    identity = service.benchmarks.start_labelled(labels, [], service.dataset(), service.matrix(), service.settings(), 3)
+    result = wait_for(service.benchmarks, identity)
+    assert result['status'] == 'completed' and len(result['rows']) == 15
+    monkeypatch.setattr(dashboard, 'services', lambda: service)
+    app = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=20).run()
+    app.session_state['active_benchmark'] = identity
+    app.sidebar.radio[0].set_value('Evaluation and Benchmarks').run()
+    assert not app.exception
+    assert len(app.get('plotly_chart')) == 2
+    service.benchmarks.pool.shutdown()
+    service.manager.pool.shutdown()

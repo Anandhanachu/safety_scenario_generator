@@ -15,7 +15,9 @@ from backend.schemas import Generation, RunRequest, ScenarioInput, Selection
 from backend.services import Services
 from backend.analytics import scenario_register, review_counts, performance_rows, proposal_entries, DECISIONS
 from evaluation.benchmark import BenchmarkDataset, draft_dataset
-from knowledge_base.core import Dataset, parse_upload, retrieve, retrieve_with_diagnostics
+from evaluation.labelled import LabelledDataset, baseline_result
+from backend.constrained import FAULT_LABELS, LIMITATIONS
+from knowledge_base.core import Dataset, ConstrainedDataset, parse_upload, retrieve, retrieve_with_diagnostics
 from knowledge_base.benchmark import benchmark_retrieval
 from ui.charts import review_figure, latency_figure, validation_figure, outcome_figure
 from models.adapters import BackendError, discover_files, make_adapter
@@ -30,7 +32,7 @@ PAGES = ["Overview", "Scenario Builder", "Model Studio", "Model Comparison", "Sc
 
 @st.cache_resource
 def services():
-    """Shared services v2: expanded catalogue, cached retrieval and all-history analytics."""
+    """Shared services v3: constrained selections and expert risk inputs."""
     return Services()
 
 
@@ -95,6 +97,8 @@ def error(exc):
 
 
 def scenario_detail(scenario, evidence, decision="pending_review"):
+    if 'confidence' in scenario:
+        st.caption(f"Evidence confidence: {scenario['confidence'] if scenario['confidence'] is not None else 'not measured'} · needs human review: {scenario.get('needs_human_review', True)}")
     st.subheader(scenario["title"])
     st.caption(f"{scenario['scenario_id']} · AI proposal · latest human status: {decision.replace('_', ' ')}")
     st.write(scenario["scenario_narrative"])
@@ -157,7 +161,7 @@ def choose_models(settings, prefix, selectable=True):
             st.caption("Catalogue listing does not confirm successful inference; readiness is checked on execution.")
             use = st.checkbox("Include in run", value=backend == "laptop_local", key=f"{prefix}_use_{backend}") if selectable else True
             if use:
-                params = cfg.get("generation", {})
+                params = {'temperature': 0.0, 'seed': 42, 'max_tokens': settings.get('max_tokens', 1800)}
                 chosen.append(Selection(backend=backend, model_id=selected, generation=Generation.model_validate(params)))
     return chosen
 
@@ -247,7 +251,7 @@ def register_page(s):
         st.json(entry["candidate"])
         st.write(run["results"][row["backend"]].get("error"))
     reviewer = st.text_input("Proposal reviewer", key="register_reviewer")
-    decisions = [d for d in DECISIONS if d != "pending_review" and (entry["schema_valid"] or d != "accepted")]
+    decisions = [d for d in DECISIONS if d != 'pending_review' and (d != 'accepted' or (entry['schema_valid'] and not entry['candidate'].get('needs_human_review')))]
     decision = st.selectbox("Proposal decision", decisions)
     notes = st.text_area("Proposal review notes")
     if st.button("Save proposal decision", disabled=not reviewer.strip()):
@@ -272,8 +276,8 @@ def scenario_builder(s):
         location = a.text_input("Operating context", saved["location"])
         navigation = b.text_input("Navigation mode", saved["navigation_mode"])
         sensors = c.text_input("Sensors (comma separated)", ", ".join(saved["sensors"]))
-        faults_available = [r.title for r in dataset.records if r.type == "fault"]
-        faults = st.multiselect("Faults represented in active KB (maximum 5)", faults_available, default=[f for f in saved["faults"] if f in faults_available], max_selections=5)
+        faults_available = list(FAULT_LABELS)
+        faults = st.multiselect("Fault type (initial scope: one selected fault)", faults_available, default=[f for f in saved["faults"] if f in faults_available][:1], max_selections=1)
         capabilities = st.text_area("Documented robot capabilities (include source identifiers)", saved["documented_capabilities"])
         notes = st.text_area("Additional context / unsupported faults", saved["notes"])
         save = st.form_submit_button("Validate and save input", type="primary")
@@ -294,9 +298,15 @@ def scenario_builder(s):
         st.json(inputs.model_dump())
         st.json(retrieve(dataset, inputs.model_dump_json(), settings["retrieval_limit"], settings["relevance_threshold"]))
     selections = choose_models(settings, "builder")
+    if st.button('Run no-AI baseline'):
+        if dataset.schema_version != '2.0':
+            st.error('Activate a tagged v2 knowledge base first')
+        else:
+            evidence = retrieve(dataset, inputs.model_dump(), settings['retrieval_limit'], settings['relevance_threshold'])
+            st.json(baseline_result(evidence, s.matrix(), settings.get('confidence_threshold', 1.0)).model_dump())
     if st.button("Run selected models", type="primary", disabled=not selections):
         try:
-            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"])
+            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], confidence_threshold=settings.get('confidence_threshold', 1.0))
             st.session_state.active_run = s.manager.start(request, dataset, s.matrix(), settings)
             st.success("Run started. Progress and results appear below and in Model Comparison.")
         except (ValidationError, ValueError) as exc:
@@ -404,6 +414,11 @@ def run_progress(s):
 
 
 def comparison(s):
+    st.caption(LIMITATIONS[-1])
+    latest_evaluations = [r['payload'] for r in s.store.list('evaluation', 10) if r['payload'].get('summary')]
+    if latest_evaluations:
+        st.subheader('Labelled evaluation: baseline and measured models')
+        evaluation_summary(latest_evaluations[0], 'comparison_eval')
     st.caption("Each model receives the same saved input and frozen evidence. Results are measured independently; no automatic quality ranking is applied.")
     selections = choose_models(s.settings(), "comparison")
     if st.button("Run comparison", disabled=not selections, type="primary"):
@@ -439,14 +454,23 @@ def comparison(s):
 
 def knowledge(s):
     dataset = s.dataset()
+    if dataset.schema_version != '2.0':
+        st.warning('Legacy catalogue retained for history. Constrained generation requires reviewed, tagged v2 records.')
+    st.download_button('Download 10-record v2 draft', (ROOT / 'data/constrained_knowledge_base.json').read_bytes(), 'constrained_knowledge_base.json')
+    if st.button('Activate 10-record constrained draft'):
+        s.activate_dataset(parse_upload((ROOT / 'data/constrained_knowledge_base.json').read_bytes()))
+        st.rerun()
     st.caption(f"Active: {dataset.dataset_name} · version {dataset.version} · {len(dataset.records)} records")
     with st.expander("TF-IDF search inspector and measured retrieval benchmark", expanded=True):
-        query = st.text_input("Search engineering evidence", "lidar scan dropout missing range returns")
+        query = st.text_input("Search engineering evidence", "camera failure stale perception controlled stop")
         a, b = st.columns(2)
         search_limit = a.slider("Direct result limit", 1, 40, 5)
         search_threshold = b.slider("Relevance threshold", 0.0, 1.0, 0.05, 0.01)
         if st.button("Search evidence", type="primary"):
-            hits, diagnostics = retrieve_with_diagnostics(dataset, query, search_limit, search_threshold)
+            inputs = ScenarioInput.model_validate(s.store.setting('scenario_input', ScenarioInput(faults=['Camera failure']).model_dump()))
+            if dataset.schema_version == '2.0':
+                inputs = inputs.model_copy(update={'notes': query})
+            hits, diagnostics = retrieve_with_diagnostics(dataset, inputs.model_dump() if dataset.schema_version == '2.0' else query, search_limit, search_threshold)
             st.session_state.search_inspection = {"dataset_version": dataset.version, "results": hits, "diagnostics": diagnostics}
         inspection = st.session_state.get("search_inspection")
         if inspection and inspection["dataset_version"] == dataset.version:
@@ -454,7 +478,7 @@ def knowledge(s):
             cols = st.columns(3)
             cols[0].metric("Measured search total", f"{diagnostics['total_ms']:.2f} ms")
             cols[1].metric("Direct matches", diagnostics["direct_matches"])
-            cols[2].metric("Index", "Reused" if diagnostics["cache_reused"] else "Built")
+            cols[2].metric("Index", 'No eligible records' if not diagnostics['indexed_records'] else "Reused" if diagnostics["cache_reused"] else "Built")
             st.caption("Timing includes content-key calculation and retrieval. First builds additionally fit the sparse word/bigram index. Related records have no invented lexical score.")
             direct = [r for r in inspection["results"] if r["retrieval"] == "tfidf"]
             if direct:
@@ -497,6 +521,11 @@ def knowledge(s):
     if upload:
         try:
             candidate = parse_upload(upload.getvalue())
+            if candidate.schema_version == '1.0':
+                st.warning('Legacy file: missing v2 scope/provenance contract. It can be inspected but cannot run constrained inference.')
+            unresolved = [r.id for r in candidate.records if r.type == 'hazard' and (not r.severity or not r.likelihood or r.risk_conflict or not r.reviewed_by or r.review_status != 'approved' or r.illustrative)]
+            if unresolved:
+                st.warning('Risk requires expert review for: ' + ', '.join(unresolved))
             st.success(f"Schema and references valid: {candidate.dataset_name} · {len(candidate.records)} records · version {candidate.version}")
             st.json(dict(Counter(r.type for r in candidate.records)))
             st.dataframe([r.model_dump() for r in candidate.records[:50]], use_container_width=True)
@@ -509,7 +538,7 @@ def knowledge(s):
             error(exc)
             st.download_button("Download validation failure", json_bytes({"valid": False, "errors": str(exc)[:12000]}), "kb-validation-errors.json")
     a, b = st.columns(2)
-    a.download_button("Download JSON schema", json_bytes(Dataset.model_json_schema()), "knowledge-base.schema.json", "application/json")
+    a.download_button("Download JSON schema", json_bytes(ConstrainedDataset.model_json_schema()), "knowledge-base.schema.json", "application/json")
     b.download_button("Download illustrative sample", (ROOT / "data/sample_knowledge_base.json").read_bytes(), "sample-knowledge-base.json", "application/json")
     query = st.text_input("Search records")
     kind = st.selectbox("Record type", ["all"] + sorted({r.type for r in dataset.records}))
@@ -554,6 +583,10 @@ def risk_analysis(s):
     key = st.selectbox("Hazard", list(entries))
     scenario, hazard = entries[key]
     st.write(hazard["description"])
+    if run['snapshot'].get('prompt_version') == '2.0-record-selection':
+        st.caption('Severity and likelihood come from the frozen expert record. Correct the KB and rerun to change them. Risk categories are engineering rankings, not calibrated probabilities.')
+        st.json(scenario['risk_assessments'][hazard['hazard_id']])
+        return
     matrix = RiskMatrix.model_validate(run["snapshot"]["risk_matrix"])
     st.json(matrix.model_dump())
     st.caption("Use the matrix frozen for this run. Severity and likelihood require a named reviewer, rationale, and approved non-illustrative evidence.")
@@ -601,41 +634,70 @@ def benchmark_progress(s):
     st.write(f"Benchmark {job['status']} · {len(job['rows'])} results")
     if job["status"] == "running" and st.button("Cancel benchmark"):
         s.benchmarks.cancel(identity)
-    st.json(job)
+    if job.get('error'):
+        st.error(job['error'])
     if job["status"] != "running":
+        evaluation_summary(job, f'active_{identity}')
         st.download_button("Export benchmark JSON", json_bytes(job), f"benchmark-{identity}.json")
         st.download_button("Export benchmark CSV", csv_bytes([{**{k: v for k, v in row.items() if k != "metrics"}, "metrics": json.dumps(row.get("metrics"))} for row in job["rows"]]), f"benchmark-{identity}.csv")
+        if job['rows']:
+            with st.expander('Inspect a measured case execution'):
+                selected = st.selectbox('Case execution', range(len(job['rows'])), format_func=lambda i: f"{job['rows'][i]['case_id']} · {job['rows'][i].get('model', {}).get('backend', job['rows'][i].get('backend'))} · repeat {job['rows'][i].get('repeat', 1)}")
+                st.json(job['rows'][selected])
 
 
 def evaluation_page(s):
-    dataset = draft_dataset()
-    st.warning("The included 24 cases are illustrative drafts, not carefully reviewed labels. Import and attribute a reviewed dataset for defensible evaluation.")
+    dataset = LabelledDataset.model_validate_json((ROOT / 'data/labelled_cases_24.json').read_bytes())
+    st.warning('The 24 labelled cases are illustrative drafts awaiting a domain expert. Draft scores validate software behavior only.')
     st.download_button("Download 24-case draft dataset", json_bytes(dataset.model_dump()), "benchmark-draft-24.json")
-    st.download_button("Download benchmark schema", json_bytes(BenchmarkDataset.model_json_schema()), "benchmark.schema.json")
+    st.download_button("Download benchmark schema", json_bytes(LabelledDataset.model_json_schema()), "benchmark.schema.json")
     upload = st.file_uploader("Reviewed benchmark JSON (maximum 5 MiB)", type=["json"], key="benchmark_upload")
     valid_dataset = True
     if upload:
         try:
             if upload.size > 5 * 1024 * 1024:
                 raise ValueError("Dataset exceeds 5 MiB")
-            dataset = BenchmarkDataset.model_validate_json(upload.getvalue())
+            dataset = LabelledDataset.model_validate_json(upload.getvalue())
         except (ValueError, ValidationError) as exc:
             valid_dataset = False
             error(exc)
-    count = st.number_input("Cases to execute", 1, len(dataset.cases), min(3, len(dataset.cases)))
-    methods = st.multiselect("Methods", ["rules_only", "llm_only", "full_pipeline"], default=["rules_only"])
-    selections = choose_models(s.settings(), "benchmark") if any(m != "rules_only" for m in methods) else []
+    repeats = st.number_input('Repetitions per case', 3, 5, 3)
+    include_models = st.checkbox('Include configured AI models (baseline always included)')
+    selections = choose_models(s.settings(), 'benchmark') if include_models else []
     confirm = st.checkbox("Execute selected cases and models; cloud requests may incur account charges")
-    if st.button("Run benchmark", disabled=not confirm or not valid_dataset or not methods or (any(m != "rules_only" for m in methods) and not selections)):
-        subset = dataset.model_copy(update={"cases": dataset.cases[:count]})
+    if st.button("Run benchmark", disabled=not confirm or not valid_dataset or (include_models and not selections)):
         try:
-            st.session_state.active_benchmark = s.benchmarks.start(subset, selections, methods, s.dataset(), s.matrix(), s.settings())
+            st.session_state.active_benchmark = s.benchmarks.start_labelled(dataset, selections, s.dataset(), s.matrix(), s.settings(), repeats)
         except ValueError as exc:
             error(exc)
-    st.caption("Coverage uses exact expected hazard IDs or cited hazard record IDs. Counts are not quality rankings. Undefined denominators yield null. Unsupported-claim rates require human annotation and remain unavailable.")
+    st.caption('Precision and recall use exact IDs; empty denominators are not measured. Confidence measures valid record linkage. ' + LIMITATIONS[-1])
     benchmark_progress(s)
     with st.expander("Saved evaluations"):
-        st.json(s.store.list("evaluation", 10))
+        saved = s.store.list('evaluation', 10)
+        if saved:
+            identity = st.selectbox('Saved evaluation', [r['id'] for r in saved])
+            payload = s.store.get(identity)['payload']
+            evaluation_summary(payload, f'saved_{identity}')
+            st.download_button('Download saved evaluation JSON', json_bytes(payload), f'evaluation-{identity}.json')
+
+
+def evaluation_summary(job, key='summary'):
+    labels = job.get('labels', {})
+    st.caption(f"Label set: {labels.get('version', 'not recorded')} · " + (f"reviewed by {labels.get('reviewed_by')}" if labels.get('reviewed') else 'illustrative draft awaiting expert review; scores are software checks'))
+    rows = []
+    for summary in job.get('summary', []):
+        rows.append({k: (v['mean'] if v['mean'] is not None else 'not measured') if isinstance(v, dict) else v for k, v in summary.items()})
+    for backend in LABELS:
+        if not any(r['backend'] == backend for r in rows):
+            fields = {field for row in rows for field in row} | {'model', 'executions'}
+            rows.append({**{field: 'not measured' for field in fields}, 'backend': backend})
+    st.dataframe(rows, use_container_width=True, key=f'evaluation_table_{key}')
+    chart_rows = [{'Model': f"{r['backend']} / {r['model']}", 'Metric': k, 'Mean': v['mean'], 'Stddev': v['stddev']}
+                  for r in job.get('summary', []) for k, v in r.items() if isinstance(v, dict) and k.endswith(('_precision', '_recall')) and v['mean'] is not None]
+    if chart_rows:
+        st.plotly_chart(px.bar(chart_rows, x='Model', y='Mean', color='Metric', barmode='group', error_y='Stddev', range_y=[0, 1]), use_container_width=True, key=f'evaluation_chart_{key}')
+    with st.expander('Measured mean, standard deviation and range'):
+        st.json(job.get('summary', []))
 
 
 def history(s):
@@ -656,7 +718,8 @@ def history(s):
         st.download_button("Export individual scenario", json_bytes({"scenario": entries[key], "configuration": run["snapshot"], "review_scope": key, "human_reviews": s.store.reviews(run["id"])}), f"scenario-{run['id']}.json")
         st.download_button("Export scenario CSV", csv_bytes([{k: json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v for k, v in entries[key].items()}]), f"scenario-{run['id']}.csv")
         reviewer = st.text_input("Reviewer name")
-        decision = st.selectbox("Engineering decision", ["accepted", "revision_requested", "rejected", "evidence_insufficient", "additional_testing"])
+        choices = ['revision_requested', 'rejected', 'evidence_insufficient', 'additional_testing'] if entries[key].get('needs_human_review') else ['accepted', 'revision_requested', 'rejected', 'evidence_insufficient', 'additional_testing']
+        decision = st.selectbox('Engineering decision', choices)
         notes = st.text_area("Review notes / mitigation and test link assessment")
         if st.button("Save human review", disabled=not reviewer.strip()):
             try:
@@ -748,7 +811,12 @@ def settings_page(s):
             selected[backend] = st.text_input("Selected model ID (revalidated on execution)", settings[backend].get("model_id", ""), key=f"configured_{backend}")
             a, b = st.columns(2)
             current = settings[backend].get("generation", {})
-            params[backend] = {"temperature": a.number_input("Temperature", 0.0, 2.0, float(current.get("temperature", 0.2)), key=f"temp_{backend}"), "max_tokens": b.number_input("Maximum generated tokens", 64, 8192, int(current.get("max_tokens", 1800)), key=f"tokens_{backend}")}
+            a.caption('Temperature 0 · seed 42 · fixed for every backend; runtime support unverified until tested')
+            params[backend] = {'temperature': 0.0, 'seed': 42, 'max_tokens': settings.get('max_tokens', 1800)}
+            settings[backend]['parameter_size'] = a.text_input('Parameter size (verified metadata only; leave blank if unavailable)', settings[backend].get('parameter_size') or '', key=f'parameters_{backend}') or None
+            settings[backend]['quantization'] = b.text_input('Quantization (verified metadata only; leave blank if unavailable)', settings[backend].get('quantization') or '', key=f'quantization_{backend}') or None
+        max_tokens = st.number_input('Shared maximum generated tokens', 64, 8192, settings.get('max_tokens', 1800))
+        confidence_threshold = st.number_input('Evidence confidence review threshold', 0.0, 1.0, float(settings.get('confidence_threshold', 1.0)), 0.05)
         directories = st.text_area("Permitted local model directories (one absolute path per line)", "\n".join(settings.get("model_dirs", [])))
         limit = st.number_input("TF-IDF result limit", 1, 40, settings["retrieval_limit"])
         threshold = st.number_input("Minimum relevance", 0.0, 1.0, float(settings["relevance_threshold"]), 0.01)
@@ -761,8 +829,8 @@ def settings_page(s):
             roots = [str(Path(d.strip()).expanduser().resolve()) for d in directories.splitlines() if d.strip()]
             if any(not Path(d).is_dir() for d in roots):
                 raise ValueError("Each permitted model directory must exist")
-            updated = {b: {"base_url": endpoints[b], "model_id": selected[b], "generation": params[b]} for b in LABELS}
-            updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold)
+            updated = {b: {"base_url": endpoints[b], "model_id": selected[b], "generation": {**params[b], 'max_tokens': max_tokens}, 'parameter_size': settings[b].get('parameter_size'), 'quantization': settings[b].get('quantization')} for b in LABELS}
+            updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold, max_tokens=max_tokens, confidence_threshold=confidence_threshold)
             s.store.set_setting("preferences", updated)
             for backend in LABELS:
                 st.session_state.pop(f"catalogue_{backend}", None)
@@ -819,6 +887,9 @@ def main():
         st.caption(f"Model: {selected or 'not selected'}")
         st.caption("Availability: " + ("reachable at last check" if st.session_state.get(f"reachable_{active_backend}") else "not checked / setup required"))
     theme(dark)
+    with st.expander('Out of scope / limitations'):
+        for limitation in LIMITATIONS:
+            st.write(limitation)
     subtitle = {"Overview":"A complete view of AI proposals, engineering decisions and measured model performance.",
                 "Model Comparison":"Compare measured latency, validation outcomes and human review across your inference backends.",
                 "Scenario Register":"Every identifiable AI proposal, its latest decision and its full review audit trail.",

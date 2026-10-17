@@ -33,6 +33,21 @@ class Classification(Strict):
     origin: Literal["human"] = "human"
 
 
+def stored_risk(matrix: RiskMatrix, record: dict):
+    """New runs use only frozen expert KB inputs; the model cannot classify risk."""
+    base = {'severity': record.get('severity'), 'likelihood': record.get('likelihood'), 'risk_score': None,
+            'risk_level': None, 'status': 'requires_review', 'matrix_version': matrix.version,
+            'explanation': 'Missing, conflicting, or unreviewed expert risk inputs. Engineering ranking, not a calibrated probability.'}
+    severity, likelihood = base['severity'], base['likelihood']
+    if (severity not in matrix.severity or likelihood not in matrix.likelihood or record.get('risk_conflict')
+            or not record.get('reviewed_by') or record.get('review_status') != 'approved' or record.get('illustrative', True)):
+        return base
+    score = matrix.values[severity][likelihood]
+    level = 'high' if score >= matrix.high_min else 'medium' if score >= matrix.medium_min else 'low'
+    return {**base, 'risk_score': score, 'risk_level': level, 'status': 'requires_review' if matrix.illustrative else 'calculated',
+            'explanation': f"Expert {record['reviewed_by']} stored {severity}, {likelihood} in {record['id']}; matrix {matrix.version}[{severity}][{likelihood}] = {score}; high >= {matrix.high_min}, medium >= {matrix.medium_min}; category {level}. Engineering ranking, not a calibrated probability."}
+
+
 def calculate(matrix: RiskMatrix, classification: Classification | None, evidence: list[dict]):
     base = {"severity": None, "likelihood": None, "risk_score": None, "risk_level": None,
             "matrix_version": matrix.version, "method": "configured ordinal matrix lookup",

@@ -34,7 +34,7 @@ def pdf_bytes(payload):
         if isinstance(value, (dict, list)):
             text = json.dumps(value, ensure_ascii=True, sort_keys=True, indent=2)
         else:
-            text = "Unavailable" if value is None else str(value)
+            text = "not measured" if value is None else str(value)
         story.append(p(label, "ReportLabel"))
         # Paragraph chunks prevent oversized unsplittable table cells and keep long logs flowing.
         for start in range(0, max(1, len(text)), 3000):
@@ -81,6 +81,10 @@ def pdf_bytes(payload):
     field("Software simulations", payload.get("software_simulations", []))
     story.append(p("No simulation results attached means no simulated test was associated with this report. A proposed acceptance test is not an executed test. Physical robot performance and MCU-only timing are unavailable unless separately measured and recorded."))
     field("Timestamped pipeline stages", run.get("progress", {}))
+    section('7. Baseline comparison')
+    field('No-AI baseline on identical evidence', payload.get('baseline_comparison'))
+    section('8. Out of scope / limitations')
+    field('Limitations', payload.get('limitations', []))
 
     def footer(canvas, doc):
         canvas.saveState()

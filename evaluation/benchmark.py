@@ -80,6 +80,37 @@ class BenchmarkRunner:
         self.jobs, self.lock = {}, threading.RLock()
         self.pool = ThreadPoolExecutor(max_workers=1)
 
+    def start_labelled(self, labels, selections, kb, matrix, settings, repeats=3):
+        from evaluation.labelled import evaluate
+        from backend.constrained import ModelDetails
+        from models.adapters import make_adapter
+        labels.validate_kb(kb)
+        with self.lock:
+            if any(j['status'] == 'running' for j in self.jobs.values()):
+                raise ValueError('A benchmark is already running')
+            identity = uuid4().hex
+            self.jobs[identity] = {'id': identity, 'status': 'running', 'rows': [], 'cancel': threading.Event()}
+        def run():
+            try:
+                models = []
+                for selection in selections:
+                    cfg = settings[selection.backend]
+                    adapter = make_adapter(selection.backend, settings)
+                    models.append((ModelDetails(backend=selection.backend, name=selection.model_id,
+                                   parameter_size=cfg.get('parameter_size'), quantization=cfg.get('quantization')), adapter))
+                result = evaluate(labels, kb, matrix, models, repeats, settings['retrieval_limit'], settings['relevance_threshold'],
+                                  settings.get('confidence_threshold', 1.0), self.jobs[identity]['cancel'], settings.get('max_tokens', 1800))
+                with self.lock:
+                    self.jobs[identity].update(result)
+            except Exception:
+                with self.lock:
+                    self.jobs[identity].update(status='failed', error='Evaluation failed; verify labels, evidence and backend configuration')
+            finally:
+                with self.lock:
+                    self.store.save('evaluation', {k: v for k, v in self.jobs[identity].items() if k != 'cancel'}, identity)
+        self.pool.submit(run)
+        return identity
+
     def start(self, dataset, selections, methods, kb, matrix, settings):
         if not methods or any(m not in {"rules_only", "llm_only", "full_pipeline"} for m in methods):
             raise ValueError("Choose a supported benchmark method")

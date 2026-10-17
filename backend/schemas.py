@@ -47,7 +47,8 @@ class ScenarioInput(Strict):
 
 
 class Generation(Strict):
-    temperature: float = Field(default=0.2, ge=0, le=2)
+    temperature: float = Field(default=0.0, ge=0, le=0)
+    seed: Literal[42] = 42
     max_tokens: int = Field(default=1800, ge=64, le=8192)
 
 
@@ -85,10 +86,13 @@ class RunRequest(Strict):
     selections: list[Selection] = Field(min_length=1, max_length=3)
     retrieval_limit: int = Field(default=12, ge=1, le=40)
     relevance_threshold: float = Field(default=0.05, ge=0, le=1)
+    confidence_threshold: float = Field(default=1.0, ge=0, le=1)
     method: Literal["full_pipeline", "llm_only"] = "full_pipeline"
 
     @model_validator(mode="after")
     def unique_backends(self):
         if len({s.backend for s in self.selections}) != len(self.selections):
             raise ValueError("Choose at most one model per backend")
+        if len({s.generation.max_tokens for s in self.selections}) > 1:
+            raise ValueError('Fair comparison requires identical token limits')
         return self

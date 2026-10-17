@@ -1,0 +1,264 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "constrained-draft-10",
+  "dataset_name": "Constrained illustrative draft - 10 records, expert review required",
+  "records": [
+    {
+      "id": "SRC-DEMO",
+      "type": "source",
+      "title": "Draft engineering assumptions",
+      "description": "Illustrative engineering assumptions awaiting domain expert review.",
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure",
+          "communication_loss",
+          "reduced_traction",
+          "processing_delay",
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      }
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure",
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "H-1",
+      "type": "hazard",
+      "title": "Stale obstacle perception",
+      "description": "Camera failure or processing delay can leave obstacle perception stale.",
+      "source_ids": [
+        "SRC-DEMO"
+      ],
+      "mitigation_ids": [
+        "M-1"
+      ],
+      "test_ids": [
+        "T-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure",
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "M-1",
+      "type": "mitigation",
+      "title": "Controlled stop on unavailable or stale perception.",
+      "description": "Controlled stop on unavailable or stale perception.",
+      "hazard_ids": [
+        "H-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure",
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "T-1",
+      "type": "acceptance_test",
+      "title": "Inject unavailable or stale perception and check a controlled stop.",
+      "description": "Inject unavailable or stale perception and check a controlled stop.",
+      "hazard_ids": [
+        "H-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "H-2",
+      "type": "hazard",
+      "title": "Loss of remote supervision",
+      "description": "Communication loss can interrupt remote supervision.",
+      "source_ids": [
+        "SRC-DEMO"
+      ],
+      "mitigation_ids": [
+        "M-2"
+      ],
+      "test_ids": [
+        "T-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "M-2",
+      "type": "mitigation",
+      "title": "Controlled stop when communication watchdog expires.",
+      "description": "Controlled stop when communication watchdog expires.",
+      "hazard_ids": [
+        "H-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry",
+          "night_dry",
+          "rain",
+          "reduced_visibility"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "T-2",
+      "type": "acceptance_test",
+      "title": "Interrupt communication and check watchdog controlled stop.",
+      "description": "Interrupt communication and check watchdog controlled stop.",
+      "hazard_ids": [
+        "H-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "H-3",
+      "type": "hazard",
+      "title": "Insufficient braking traction",
+      "description": "Reduced traction in rain can increase stopping distance.",
+      "source_ids": [
+        "SRC-DEMO"
+      ],
+      "mitigation_ids": [
+        "M-3"
+      ],
+      "test_ids": [
+        "T-3"
+      ],
+      "severity": "S3",
+      "likelihood": "L3"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "M-3",
+      "type": "mitigation",
+      "title": "Restrict operation when braking traction is insufficient.",
+      "description": "Restrict operation when braking traction is insufficient.",
+      "hazard_ids": [
+        "H-3"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "review_status": "pending_review",
+      "illustrative": true,
+      "id": "T-3",
+      "type": "acceptance_test",
+      "title": "Check stopping behavior in the specified reduced traction condition.",
+      "description": "Check stopping behavior in the specified reduced traction condition.",
+      "hazard_ids": [
+        "H-3"
+      ]
+    }
+  ]
+}

@@ -12,6 +12,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 from backend.schemas import Strict
+from backend.constrained import Tags, scope
 
 TYPES = ("operating_condition", "fault", "hazard", "consequence", "evidence", "source", "mitigation", "acceptance_test", "risk_criteria")
 REF_TYPES = {"source_ids": {"source", "evidence"}, "mitigation_ids": {"mitigation"}, "test_ids": {"acceptance_test"}}
@@ -29,10 +30,16 @@ class Record(Strict):
     review_status: Literal["pending_review", "approved", "rejected"] = "pending_review"
     source: str | None = Field(default=None, max_length=2000)
     illustrative: bool = True
+    reviewed_by: str | None = Field(default=None, min_length=1, max_length=200)
+    tags: Tags | None = None
+    hazard_ids: list[str] = Field(default_factory=list, max_length=100)
+    severity: Literal['S1', 'S2', 'S3'] | None = None
+    likelihood: Literal['L1', 'L2', 'L3'] | None = None
+    risk_conflict: bool = False
 
 
 class Dataset(Strict):
-    schema_version: Literal["1.0"]
+    schema_version: Literal["1.0", "2.0"]
     dataset_id: str = Field(min_length=1, max_length=100)
     dataset_name: str = Field(min_length=1, max_length=200)
     records: list[Record] = Field(min_length=1, max_length=5000)
@@ -43,6 +50,22 @@ class Dataset(Strict):
         if len(index) != len(self.records):
             raise ValueError("Duplicate record IDs")
         for r in self.records:
+            if self.schema_version == '2.0':
+                if r.source not in {'standard', 'incident_report', 'expert_judgment'} or r.tags is None:
+                    raise ValueError(f'{r.id}: v2 requires source standard/incident_report/expert_judgment and fault/condition tags')
+                if r.review_status == 'approved' and not r.reviewed_by:
+                    raise ValueError(f'{r.id}: approved records require reviewed_by')
+                if r.type in {'mitigation', 'acceptance_test'} and not r.hazard_ids:
+                    raise ValueError(f'{r.id}: mitigation/acceptance test requires hazard_ids')
+            for hazard_id in r.hazard_ids:
+                if hazard_id not in index or index[hazard_id].type != 'hazard':
+                    raise ValueError(f'{r.id}: hazard_ids references missing/non-hazard {hazard_id}')
+                if self.schema_version == '2.0' and r.type in {'mitigation', 'acceptance_test'}:
+                    forward = index[hazard_id].mitigation_ids if r.type == 'mitigation' else index[hazard_id].test_ids
+                    if r.id not in forward:
+                        raise ValueError(f'{r.id}: hazard {hazard_id} lacks reciprocal link')
+            if self.schema_version == '2.0' and r.type != 'hazard' and (r.severity or r.likelihood):
+                raise ValueError(f'{r.id}: expert risk inputs belong on hazard records only')
             for field in (*REF_TYPES, "related_ids"):
                 for ref in getattr(r, field):
                     if ref not in index:
@@ -56,6 +79,18 @@ class Dataset(Strict):
         return hashlib.sha256(json.dumps(self.model_dump(), sort_keys=True).encode()).hexdigest()[:16]
 
 
+class ConstrainedRecord(Record):
+    """Upload-facing v2 schema: provenance and scope tags are required."""
+    source: Literal['standard', 'incident_report', 'expert_judgment']
+    reviewed_by: str | None
+    tags: Tags
+
+
+class ConstrainedDataset(Dataset):
+    schema_version: Literal['2.0']
+    records: list[ConstrainedRecord] = Field(min_length=1, max_length=5000)
+
+
 def parse_upload(raw: bytes) -> Dataset:
     if len(raw) > 5 * 1024 * 1024:
         raise ValueError("Knowledge base exceeds 5 MiB")
@@ -67,10 +102,12 @@ def parse_upload(raw: bytes) -> Dataset:
                 raise ValueError(f"Duplicate JSON key: {key}")
             result[key] = value
         return result
-    return Dataset.model_validate(json.loads(raw, object_pairs_hook=pairs))
+    decoded = json.loads(raw, object_pairs_hook=pairs)
+    contract = ConstrainedDataset if isinstance(decoded, dict) and decoded.get('schema_version') == '2.0' else Dataset
+    return contract.model_validate(decoded)
 
 
-RETRIEVAL_VERSION = "tfidf-word-bigram-v2"
+RETRIEVAL_VERSION = "tfidf-word-bigram-v3-filtered"
 _cache, _cache_lock = OrderedDict(), threading.RLock()
 
 
@@ -100,7 +137,7 @@ def query_text(query):
             if isinstance(value, dict):
                 return [part for v in value.values() for part in values(v)]
             return []
-        return " ".join(values(query))[:16000]
+        return " ".join(values(query)).replace('_', ' ')[:16000]
     raise ValueError("Query must be text or structured operating inputs")
 
 
@@ -111,7 +148,7 @@ class RetrievalIndex:
         self.by_id = {r["id"]: r for r in records}
         self.vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), sublinear_tf=True,
                                           strip_accents="unicode", dtype=np.float32, max_features=100000)
-        corpus = [f"{r['id'].replace('-', ' ')} {r['title']} {r['description']}" for r in records]
+        corpus = [f"{r['id'].replace('-', ' ')} {r['title']} {r['description']} {json.dumps(r.get('tags') or {}).replace('_', ' ')}" for r in records]
         try:
             self.matrix = self.vectorizer.fit_transform(corpus)
         except ValueError:
@@ -136,6 +173,19 @@ def retrieve_with_diagnostics(dataset, query, limit=12, threshold=0.05):
     if not 1 <= limit <= 40 or not 0 <= threshold <= 1:
         raise ValueError("Retrieval limit must be 1-40 and threshold 0-1")
     start = time.perf_counter()
+    original_count = len(dataset.records)
+    # v2 never silently falls back to unfiltered legacy records.
+    if dataset.schema_version == '2.0':
+        structured = json.loads(query) if isinstance(query, str) and query.lstrip().startswith('{') else query
+        from backend.schemas import ScenarioInput
+        selected_scope = scope(ScenarioInput.model_validate(structured)) if isinstance(structured, dict) else scope(structured) if isinstance(structured, ScenarioInput) else None
+        filtered = [] if selected_scope is None else [r for r in dataset.records if r.tags and selected_scope[0] in r.tags.fault_type and selected_scope[1] in r.tags.operating_condition]
+        if not filtered:
+            return [], {'version': RETRIEVAL_VERSION, 'cache_reused': False, 'index_build_ms': 0.0, 'query_ms': 0.0,
+                        'normalized_query': query_text(query), 'indexed_records': 0, 'eligible_records': 0, 'original_records': original_count,
+                        'direct_matches': 0, 'relationship_matches': 0, 'total_ms': round((time.perf_counter()-start)*1000, 3), 'reason': 'Out of scope or no matching tags'}
+        # Cross references were validated against the full dataset at upload.
+        dataset = dataset.model_copy(update={'records': filtered})
     index, reused = get_index(dataset)
     search = query_text(query)
     query_start = time.perf_counter()
@@ -149,10 +199,11 @@ def retrieve_with_diagnostics(dataset, query, limit=12, threshold=0.05):
     for entry in list(result):
         record = index.by_id[entry["record"]["id"]]
         for ref in record["source_ids"] + record["mitigation_ids"] + record["test_ids"] + record["related_ids"]:
-            if ref not in known and len(result) < 100:
+            if dataset.schema_version == '1.0' and ref in index.by_id and ref not in known and len(result) < 100:
                 result.append({"record": json.loads(json.dumps(index.by_id[ref])), "score": None, "retrieval": f"relationship:{record['id']}"})
                 known.add(ref)
     return result, {"version": RETRIEVAL_VERSION, "cache_reused": reused, "indexed_records": len(index.records),
+                    "original_records": original_count, "eligible_records": len(index.records),
                     "index_build_ms": round(index.build_ms, 3), "query_ms": round((time.perf_counter()-query_start)*1000, 3),
                     "total_ms": round((time.perf_counter()-start)*1000, 3), "normalized_query": search,
                     "direct_matches": len(selected), "relationship_matches": len(result)-len(selected)}
