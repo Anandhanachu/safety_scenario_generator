@@ -69,7 +69,7 @@ def test_id_enums_and_prose_forbidden(evidence):
     schema = output_schema(evidence)
     assert schema['$defs']['Choice']['properties']['hazard_id']['enum'] == ['H-1']
     data = json.loads(selected(evidence))
-    data['confidence'] = 1.0
+    data['citation_link_validity'] = 1.0
     with pytest.raises(ValidationError): SelectionOutput.model_validate(data)
 
 
@@ -77,7 +77,7 @@ def test_retry_once_then_success(evidence, matrix):
     adapter = Responses('{broken', selected(evidence))
     result = execute(adapter, ModelDetails(backend='test', name='mock'), ScenarioInput(faults=['camera_failure']), evidence, matrix)
     assert result.output and len(result.attempts) == 2
-    assert result.confidence == 1.0 and result.needs_human_review and not result.accepted
+    assert result.citation_link_validity == 1.0 and result.needs_human_review and not result.accepted
     assert adapter.calls[0][1] == {'temperature': 0.0, 'seed': 42, 'max_tokens': 1800}
     assert 'Validation errors' in adapter.calls[1][0][-1]['content']
     assert adapter.calls[0][0] == adapter.calls[1][0][:-1]
@@ -89,7 +89,7 @@ def test_final_invalid_never_accepted(evidence, matrix):
     adapter = Responses(json.dumps(raw), json.dumps(raw))
     result = execute(adapter, ModelDetails(backend='test', name='mock'), ScenarioInput(), evidence, matrix)
     assert result.output is None and len(adapter.calls) == 2
-    assert result.confidence == pytest.approx(2 / 3)
+    assert result.citation_link_validity == pytest.approx(2 / 3)
     assert result.needs_human_review and not result.accepted
 
 
@@ -97,7 +97,7 @@ def test_wrong_hazard_link_counts_as_unsupported(kb, matrix):
     evidence = [{'record': r.model_dump(), 'score': 1.0} for r in kb.records]
     data = SelectionOutput(schema_version='2.0', outcome='selected', selections=[{'hazard_id': 'H-1', 'mitigation_ids': ['M-2'], 'acceptance_test_ids': ['T-1']}])
     check = verify_selection(data, evidence, matrix)
-    assert not check['valid'] and check['confidence'] == pytest.approx(2 / 3)
+    assert not check['valid'] and check['citation_link_validity'] == pytest.approx(2 / 3)
 
 
 def test_transport_failure_not_retried(evidence, matrix):
@@ -127,17 +127,17 @@ def test_expert_risk_only_and_conflicts(kb, matrix):
 
 
 def test_baseline_and_all_labels_measured(kb, matrix):
-    labels = LabelledDataset.model_validate_json((ROOT / 'data/labelled_cases_24.json').read_bytes())
+    labels = LabelledDataset.model_validate_json((ROOT / 'data/labelled_cases_25.json').read_bytes())
     assert 20 <= len(labels.cases) <= 30
     assert sum(c.expected_outcome == 'insufficient_evidence' for c in labels.cases) >= 3
     result = evaluate(labels, kb, matrix, repeats=3)
-    assert len(result['rows']) == 72
+    assert len(result['rows']) == 75
     summary = result['summary'][0]
     assert summary['hazards_recall']['mean'] == 1.0
     assert summary['mitigations_precision']['mean'] == 1.0
     assert summary['acceptance_tests_recall']['mean'] == 1.0
     assert summary['insufficient_evidence_correct']['mean'] == 1.0
-    assert summary['risk_correct']['mean'] == 0.0  # Draft expert inputs cannot produce approved risk.
+    assert summary['risk_category_exact_match_rate']['mean'] == 0.0
     assert not labels.reviewed
     with pytest.raises(ValueError): evaluate(labels, kb, matrix, repeats=1)
 
@@ -175,7 +175,7 @@ def test_review_gate_and_report_fields(store, evidence, matrix):
     rows = comparison_rows(run)
     assert len(rows) == 2
     for row in rows:
-        for key in ('retrieved_evidence', 'verification', 'risk_calculation_steps', 'human_review_flags', 'settings', 'confidence', 'baseline_comparison', 'limitations'):
+        for key in ('retrieved_evidence', 'verification', 'risk_calculation_steps', 'human_review_flags', 'settings', 'citation_link_validity', 'baseline_comparison', 'limitations'):
             assert key in row
     assert 'not measured' in csv_bytes(rows).decode('utf-8-sig')
     assert report(run)['limitations']

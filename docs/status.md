@@ -2,9 +2,9 @@
 
 Development and verification: 17-18 October 2026.
 
-Current validity revision: see [constrained architecture](architecture.md) and [implementation priorities](implementation_plan.md). New runs use v2 record selection, stored expert risk inputs, tag filtering, a no-AI baseline, fixed temperature/seed and one corrective retry. The active starter is 10 draft records, with 24 draft labelled cases and a separate five-case sample. Earlier 181-record search measurements below apply to the legacy catalogue only. Expert approval and live inference/hardware verification remain pending.
+Current review revision: see [constrained architecture](architecture.md). New runs use record-only model output, citation_link_validity, separate expert support review, expert risk inputs and a 25-case preliminary set. Experiments include all four modes and retain failures/timeouts, requested/applied settings, risk exact match/ordinal error/confusion matrices and unique-case counts. Earlier catalogue/search measurements below are historical. Expert approval and live inference/hardware verification remain pending.
 
-The revised suite has 119 automated tests. The baseline was executed on all 24 draft cases three times (72 executions), with recorded evidence and exact-ID metrics. No AI endpoint was invoked during this verification. The report's baseline/limitations sections were rendered and visually inspected.
+The revised suite has 138 automated tests. A live app verification recorded 300 rows (25 cases × 3 repetitions × 4 modes): 75 completed baseline runs and 225 failed rows for unconfigured AI models. No AI request was attempted. Mock-transport tests cover all three adapter setting reports and timeouts; they do not establish actual compatibility. JSON/CSV/PDF exports and the comparison view were checked; the PDF was rendered and visually inspected.
 
 ## Implemented
 

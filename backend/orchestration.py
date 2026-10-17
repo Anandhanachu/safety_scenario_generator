@@ -35,7 +35,7 @@ class RunManager:
             raise ValueError('Activate a validated v2 tagged knowledge base before constrained generation. Existing legacy history is retained.')
         if request.method != 'full_pipeline':
             raise ValueError('Constrained generation requires the shared retrieved evidence; llm_only is retired')
-        deterministic = baseline_result(evidence, matrix, request.confidence_threshold, request.selections[0].generation.max_tokens).model_dump()
+        deterministic = baseline_result(evidence, matrix, request.citation_link_validity_threshold, request.selections[0].generation.max_tokens).model_dump()
         deterministic['latency_ms'] += retrieval_diagnostics['total_ms']
         snapshot = {"schema_version": "1.0", "created": now(), "request": request.model_dump(),
                     "knowledge_base_version": dataset.version, "knowledge_base": dataset.model_dump(),
@@ -85,11 +85,14 @@ class RunManager:
             measured = execute(adapter, ModelDetails(backend=selection.backend, name=selection.model_id,
                                parameter_size=cfg.get('parameter_size'), quantization=cfg.get('quantization')),
                                inputs, job['snapshot']['evidence'], matrix, selection.generation.max_tokens,
-                               job['snapshot']['request']['confidence_threshold'], job['cancel'])
+                               job['snapshot']['request']['citation_link_validity_threshold'], job['cancel'])
             result.update(constrained=measured.model_dump(), model_details=measured.model.model_dump(),
                           generation_latency_ms=measured.latency_ms, schema_valid=measured.output is not None,
                           scenarios=scenario_views(measured, inputs), needs_human_review=measured.needs_human_review,
-                          confidence=measured.confidence, attempts=measured.attempts)
+                          citation_link_validity=measured.citation_link_validity, attempts=measured.attempts)
+            result['reviewed_support_rate'] = measured.reviewed_support_rate
+            result['requested_settings'] = measured.requested_settings
+            result['applied_settings'] = measured.applied_settings
             result['candidate_inventory'] = measured.attempts[-1].get('candidate_inventory', [])
             result['declared_candidate_count'] = len(result['scenarios']) or len(result['candidate_inventory'])
             result['status'] = 'completed' if measured.output is not None else 'failed'

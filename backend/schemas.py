@@ -86,7 +86,7 @@ class RunRequest(Strict):
     selections: list[Selection] = Field(min_length=1, max_length=3)
     retrieval_limit: int = Field(default=12, ge=1, le=40)
     relevance_threshold: float = Field(default=0.05, ge=0, le=1)
-    confidence_threshold: float = Field(default=1.0, ge=0, le=1)
+    citation_link_validity_threshold: float = Field(default=1.0, ge=0, le=1)
     method: Literal["full_pipeline", "llm_only"] = "full_pipeline"
 
     @model_validator(mode="after")

@@ -24,6 +24,7 @@ def dataset():
         record.reviewed_by = "TEST-ONLY"
         record.review_status = "approved"
         record.illustrative = False
+        record.expert_support_review = 'supported'
     return kb
 
 
@@ -289,12 +290,26 @@ def test_labelled_evaluation_completed_and_saved_views(tmp_path, monkeypatch):
     labels = LabelledDataset.model_validate_json((ROOT / 'data/sample_cases_5.json').read_bytes())
     identity = service.benchmarks.start_labelled(labels, [], service.dataset(), service.matrix(), service.settings(), 3)
     result = wait_for(service.benchmarks, identity)
-    assert result['status'] == 'completed' and len(result['rows']) == 15
+    assert result['status'] == 'completed' and len(result['rows']) == 60
     monkeypatch.setattr(dashboard, 'services', lambda: service)
     app = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=20).run()
     app.session_state['active_benchmark'] = identity
     app.sidebar.radio[0].set_value('Evaluation and Benchmarks').run()
     assert not app.exception
+    assert len(app.get('plotly_chart')) == 4
+    app.sidebar.radio[0].set_value('Model Comparison').run()
+    assert not app.exception
     assert len(app.get('plotly_chart')) == 2
     service.benchmarks.pool.shutdown()
     service.manager.pool.shutdown()
+
+
+def test_archived_evaluation_does_not_require_new_metadata(tmp_path, monkeypatch):
+    import ui.dashboard as dashboard
+    service = Services(tmp_path)
+    service.store.save('evaluation', {'status': 'completed', 'rows': [], 'summary': [{'backend': 'baseline', 'model': 'legacy', 'executions': 3, 'failures': 0, 'hazards_recall': {'mean': 1.0, 'stddev': 0.0, 'min': 1.0, 'max': 1.0}}]})
+    monkeypatch.setattr(dashboard, 'services', lambda: service)
+    app = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=20).run()
+    app.sidebar.radio[0].set_value('Evaluation and Benchmarks').run()
+    assert not app.exception
+    assert any(b.label == 'Download archived evaluation JSON' for b in app.get('download_button'))

@@ -22,7 +22,9 @@ from knowledge_base.benchmark import benchmark_retrieval
 from ui.charts import review_figure, latency_figure, validation_figure, outcome_figure
 from models.adapters import BackendError, discover_files, make_adapter
 from reporting.exports import comparison_rows, csv_bytes, json_bytes, report
+from reporting.exports import experiment_report, experiment_csv
 from reporting.pdf_export import pdf_bytes
+from reporting.pdf_export import experiment_pdf_bytes
 from risk_engine.calculator import Classification, RiskMatrix, calculate
 from simulation.engine import SimulationInput, simulate
 
@@ -32,7 +34,7 @@ PAGES = ["Overview", "Scenario Builder", "Model Studio", "Model Comparison", "Sc
 
 @st.cache_resource
 def services():
-    """Shared services v3: constrained selections and expert risk inputs."""
+    """Shared services v4: citation validity, expert support and failure-inclusive experiments."""
     return Services()
 
 
@@ -97,8 +99,8 @@ def error(exc):
 
 
 def scenario_detail(scenario, evidence, decision="pending_review"):
-    if 'confidence' in scenario:
-        st.caption(f"Evidence confidence: {scenario['confidence'] if scenario['confidence'] is not None else 'not measured'} · needs human review: {scenario.get('needs_human_review', True)}")
+    if 'citation_link_validity' in scenario:
+        st.caption(f"citation_link_validity: {scenario['citation_link_validity'] if scenario['citation_link_validity'] is not None else 'not measured'} · reviewed support rate: {scenario.get('reviewed_support_rate') if scenario.get('reviewed_support_rate') is not None else 'not measured'} · needs human review: {scenario.get('needs_human_review', True)}")
     st.subheader(scenario["title"])
     st.caption(f"{scenario['scenario_id']} · AI proposal · latest human status: {decision.replace('_', ' ')}")
     st.write(scenario["scenario_narrative"])
@@ -303,10 +305,10 @@ def scenario_builder(s):
             st.error('Activate a tagged v2 knowledge base first')
         else:
             evidence = retrieve(dataset, inputs.model_dump(), settings['retrieval_limit'], settings['relevance_threshold'])
-            st.json(baseline_result(evidence, s.matrix(), settings.get('confidence_threshold', 1.0)).model_dump())
+            st.json(baseline_result(evidence, s.matrix(), settings.get('citation_link_validity_threshold', 1.0)).model_dump())
     if st.button("Run selected models", type="primary", disabled=not selections):
         try:
-            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], confidence_threshold=settings.get('confidence_threshold', 1.0))
+            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0))
             st.session_state.active_run = s.manager.start(request, dataset, s.matrix(), settings)
             st.success("Run started. Progress and results appear below and in Model Comparison.")
         except (ValidationError, ValueError) as exc:
@@ -638,8 +640,7 @@ def benchmark_progress(s):
         st.error(job['error'])
     if job["status"] != "running":
         evaluation_summary(job, f'active_{identity}')
-        st.download_button("Export benchmark JSON", json_bytes(job), f"benchmark-{identity}.json")
-        st.download_button("Export benchmark CSV", csv_bytes([{**{k: v for k, v in row.items() if k != "metrics"}, "metrics": json.dumps(row.get("metrics"))} for row in job["rows"]]), f"benchmark-{identity}.csv")
+        experiment_downloads(job, identity, 'active')
         if job['rows']:
             with st.expander('Inspect a measured case execution'):
                 selected = st.selectbox('Case execution', range(len(job['rows'])), format_func=lambda i: f"{job['rows'][i]['case_id']} · {job['rows'][i].get('model', {}).get('backend', job['rows'][i].get('backend'))} · repeat {job['rows'][i].get('repeat', 1)}")
@@ -647,9 +648,9 @@ def benchmark_progress(s):
 
 
 def evaluation_page(s):
-    dataset = LabelledDataset.model_validate_json((ROOT / 'data/labelled_cases_24.json').read_bytes())
-    st.warning('The 24 labelled cases are illustrative drafts awaiting a domain expert. Draft scores validate software behavior only.')
-    st.download_button("Download 24-case draft dataset", json_bytes(dataset.model_dump()), "benchmark-draft-24.json")
+    dataset = LabelledDataset.model_validate_json((ROOT / 'data/labelled_cases_25.json').read_bytes())
+    st.warning('The 25 labelled cases are preliminary drafts awaiting expert review and dates. Repeated executions do not increase the case count.')
+    st.download_button("Download 25-case draft dataset", json_bytes(dataset.model_dump()), "benchmark-draft-25.json")
     st.download_button("Download benchmark schema", json_bytes(LabelledDataset.model_json_schema()), "benchmark.schema.json")
     upload = st.file_uploader("Reviewed benchmark JSON (maximum 5 MiB)", type=["json"], key="benchmark_upload")
     valid_dataset = True
@@ -662,15 +663,15 @@ def evaluation_page(s):
             valid_dataset = False
             error(exc)
     repeats = st.number_input('Repetitions per case', 3, 5, 3)
-    include_models = st.checkbox('Include configured AI models (baseline always included)')
-    selections = choose_models(s.settings(), 'benchmark') if include_models else []
+    st.caption('Every experiment includes baseline, laptop, UNO Q and Qualcomm. Unconfigured adapters and timeouts count as failed runs.')
+    selections = []
     confirm = st.checkbox("Execute selected cases and models; cloud requests may incur account charges")
-    if st.button("Run benchmark", disabled=not confirm or not valid_dataset or (include_models and not selections)):
+    if st.button("Run benchmark", disabled=not confirm or not valid_dataset):
         try:
             st.session_state.active_benchmark = s.benchmarks.start_labelled(dataset, selections, s.dataset(), s.matrix(), s.settings(), repeats)
         except ValueError as exc:
             error(exc)
-    st.caption('Precision and recall use exact IDs; empty denominators are not measured. Confidence measures valid record linkage. ' + LIMITATIONS[-1])
+    st.caption('Precision and recall use exact IDs; empty denominators are not measured. Citation link validity measures valid record linkage. ' + LIMITATIONS[-1])
     benchmark_progress(s)
     with st.expander("Saved evaluations"):
         saved = s.store.list('evaluation', 10)
@@ -678,25 +679,50 @@ def evaluation_page(s):
             identity = st.selectbox('Saved evaluation', [r['id'] for r in saved])
             payload = s.store.get(identity)['payload']
             evaluation_summary(payload, f'saved_{identity}')
-            st.download_button('Download saved evaluation JSON', json_bytes(payload), f'evaluation-{identity}.json')
+            experiment_downloads(payload, identity, 'saved')
+
+
+def experiment_downloads(job, identity, prefix):
+    if 'case_count' not in job:
+        st.caption('Archived evaluation format: new risk metrics and case-count metadata were not measured. Rerun the current cases to generate revised reports.')
+        st.download_button('Download archived evaluation JSON', json_bytes(job), f'archived-{identity}.json', key=f'{prefix}_archived_{identity}')
+        return
+    st.download_button('Export experiment JSON', json_bytes(experiment_report(job)), f'experiment-{identity}.json', key=f'{prefix}_json_{identity}')
+    st.download_button('Export experiment CSV', experiment_csv(job), f'experiment-{identity}.csv', key=f'{prefix}_csv_{identity}')
+    if st.button('Prepare experiment PDF', key=f'{prefix}_pdf_prepare_{identity}'):
+        st.session_state[f'experiment_pdf_{identity}'] = experiment_pdf_bytes(job)
+    prepared = st.session_state.get(f'experiment_pdf_{identity}')
+    if prepared:
+        st.download_button('Download experiment PDF', prepared, f'experiment-{identity}.pdf', 'application/pdf', key=f'{prefix}_pdf_{identity}')
 
 
 def evaluation_summary(job, key='summary'):
     labels = job.get('labels', {})
-    st.caption(f"Label set: {labels.get('version', 'not recorded')} · " + (f"reviewed by {labels.get('reviewed_by')}" if labels.get('reviewed') else 'illustrative draft awaiting expert review; scores are software checks'))
-    rows = []
+    st.caption(f"Label set: {labels.get('version', 'not recorded')} · reviewer: {labels.get('reviewer') or labels.get('reviewed_by') or 'not reviewed'} · reviewed date: {labels.get('reviewed_date') or 'not reviewed'}")
+    st.caption('citation_link_validity counts valid ID links only. Reviewed support rate counts supported claims among expert-reviewed claims. Applied settings require a runtime report; unknown values are not measured.')
+    rows, chart_rows = [], []
     for summary in job.get('summary', []):
-        rows.append({k: (v['mean'] if v['mean'] is not None else 'not measured') if isinstance(v, dict) else v for k, v in summary.items()})
+        row = {k: summary.get(k) for k in ('backend', 'model', 'case_count', 'label', 'executions', 'failures')}
+        for name, metric in summary.items():
+            if not isinstance(metric, dict) or 'mean' not in metric:
+                continue
+            value = lambda x: 'not measured' if x is None else f'{x:.4f}'
+            n = metric.get('case_count', summary.get('case_count', 'not measured'))
+            row[name] = f"{value(metric['mean'])} ± {value(metric['stddev'])} [{value(metric['min'])}, {value(metric['max'])}] | n={n} cases | {metric.get('label', 'preliminary')}"
+            if metric['mean'] is not None and (name.endswith(('_precision', '_recall', '_correct')) or name in {'risk_category_exact_match_rate', 'decision_accuracy'}):
+                chart_rows.append({'Model': f"{summary['backend']} / {summary['model']}", 'Metric': f"{name} (n={n} cases; {metric.get('label', 'preliminary')})", 'Mean': metric['mean'], 'Stddev': metric['stddev']})
+        rows.append(row)
     for backend in LABELS:
         if not any(r['backend'] == backend for r in rows):
             fields = {field for row in rows for field in row} | {'model', 'executions'}
             rows.append({**{field: 'not measured' for field in fields}, 'backend': backend})
     st.dataframe(rows, use_container_width=True, key=f'evaluation_table_{key}')
-    chart_rows = [{'Model': f"{r['backend']} / {r['model']}", 'Metric': k, 'Mean': v['mean'], 'Stddev': v['stddev']}
-                  for r in job.get('summary', []) for k, v in r.items() if isinstance(v, dict) and k.endswith(('_precision', '_recall')) and v['mean'] is not None]
     if chart_rows:
-        st.plotly_chart(px.bar(chart_rows, x='Model', y='Mean', color='Metric', barmode='group', error_y='Stddev', range_y=[0, 1]), use_container_width=True, key=f'evaluation_chart_{key}')
-    with st.expander('Measured mean, standard deviation and range'):
+        st.plotly_chart(px.bar(chart_rows, x='Model', y='Mean', color='Metric', barmode='group', error_y='Stddev', range_y=[0, 1], title=f"{job.get('label', 'archived').title()} accuracy metrics (unique case counts in legend)"), use_container_width=True, key=f'evaluation_chart_{key}')
+    latencies = [{'Backend': r['model']['backend'], 'Status': r.get('status', 'not measured'), 'Milliseconds': r['execution_latency_ms'], 'Case': r['case_id']} for r in job.get('rows', []) if r.get('execution_latency_ms') is not None]
+    if latencies:
+        st.plotly_chart(px.box(latencies, x='Backend', y='Milliseconds', color='Status', points='all', hover_data=['Case'], title=f"{job.get('label', 'archived').title()} run duration, including failures (n={job.get('case_count', 'not measured')} cases)"), use_container_width=True, key=f'latency_distribution_{key}')
+    with st.expander('Risk confusion matrix and measured ranges'):
         st.json(job.get('summary', []))
 
 
@@ -816,7 +842,7 @@ def settings_page(s):
             settings[backend]['parameter_size'] = a.text_input('Parameter size (verified metadata only; leave blank if unavailable)', settings[backend].get('parameter_size') or '', key=f'parameters_{backend}') or None
             settings[backend]['quantization'] = b.text_input('Quantization (verified metadata only; leave blank if unavailable)', settings[backend].get('quantization') or '', key=f'quantization_{backend}') or None
         max_tokens = st.number_input('Shared maximum generated tokens', 64, 8192, settings.get('max_tokens', 1800))
-        confidence_threshold = st.number_input('Evidence confidence review threshold', 0.0, 1.0, float(settings.get('confidence_threshold', 1.0)), 0.05)
+        citation_link_validity_threshold = st.number_input('citation_link_validity threshold for human review', 0.0, 1.0, float(settings.get('citation_link_validity_threshold', 1.0)), 0.05)
         directories = st.text_area("Permitted local model directories (one absolute path per line)", "\n".join(settings.get("model_dirs", [])))
         limit = st.number_input("TF-IDF result limit", 1, 40, settings["retrieval_limit"])
         threshold = st.number_input("Minimum relevance", 0.0, 1.0, float(settings["relevance_threshold"]), 0.01)
@@ -830,7 +856,7 @@ def settings_page(s):
             if any(not Path(d).is_dir() for d in roots):
                 raise ValueError("Each permitted model directory must exist")
             updated = {b: {"base_url": endpoints[b], "model_id": selected[b], "generation": {**params[b], 'max_tokens': max_tokens}, 'parameter_size': settings[b].get('parameter_size'), 'quantization': settings[b].get('quantization')} for b in LABELS}
-            updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold, max_tokens=max_tokens, confidence_threshold=confidence_threshold)
+            updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold, max_tokens=max_tokens, citation_link_validity_threshold=citation_link_validity_threshold)
             s.store.set_setting("preferences", updated)
             for backend in LABELS:
                 st.session_state.pop(f"catalogue_{backend}", None)
@@ -869,6 +895,9 @@ def settings_page(s):
             st.session_state.pop("active_benchmark", None)
             st.session_state.pop("retrieval_benchmark", None)
             st.session_state.pop("pdf_report", None)
+            for key in list(st.session_state):
+                if key.startswith('experiment_pdf_'):
+                    st.session_state.pop(key, None)
             st.success("Saved history deleted. This cannot be undone; datasets and settings retained.")
 
 

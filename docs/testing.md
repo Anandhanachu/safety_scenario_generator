@@ -1,37 +1,19 @@
-# Verification methodology
+# Testing and evaluation
 
-Run `python -m pytest -q` from the repository in the installed virtual environment. Fixtures construct synthetic outputs exclusively inside `tests/`; HTTP adapters use `httpx.MockTransport`, so no automated test consumes cloud quota or claims a physical board connection.
+Run `python -m pytest -q`. The review revision contains 138 tests. These use synthetic adapters and explicitly test-only expert approvals; no successful hardware/cloud inference is claimed.
 
-Coverage includes valid/invalid/oversized knowledge uploads, duplicate keys and IDs, typed/broken references, lexical retrieval and empty evidence, strict input/output schemas, missing and unapproved risk evidence, deterministic risk cells, missing severity/likelihood, model-assigned risk rejection, input conflicts, duplicates, invalid mitigation/test links, persistence restoration, scoped separate human reviews, deterministic exports and formula escaping, simulation pass/fail/inconclusive outcomes, authentication failures, rate limits, malformed catalogues, local/board disconnections, unavailable models, timeouts, response model consistency and cancellation. Integration tests preserve successful peer results during a failed comparison and verify LLM-only prompt differences. Streamlit AppTest opens all eleven pages and toggles the theme.
+The current label file is `data/labelled_cases_25.json`. It contains 25 preliminary, unreviewed cases: seven insufficient-evidence cases, two missing severity/likelihood cases and two conflicting-evidence cases. Risk fault fixtures copy retrieved records and remove one input or set the expert conflict flag; source KB records are not mutated. Reviewer and reviewed_date stay null until real review.
 
-Application startup is checked with actual local HTTP health responses and a browser inspection of the empty dashboard. These checks prove local startup and surrounding pipeline behavior, not real model compatibility, live provider success, robot safety or firmware correctness. See `docs/status.md` for recorded results and remaining external tests.
+`evaluate_predictions()` measures exact risk-category match, ordinal distance (low=0, medium=1, high=2), review-required correctness and a risk/outcome confusion matrix. Missing/conflicting cases pass only with a human-review flag and no risk category. Tests cover each independently and reject unresolved risk without a review flag.
 
-The expansion adds tests for cache reuse and content invalidation, snapshot mutation isolation, structured-query normalization, lexical benchmarks, expanded KB category coverage, preserving custom datasets, all-history counting beyond 200 runs, latest-decision audit trails, duplicate AI identifiers, schema-invalid proposal inventories, model-latency aggregation, interactive register reviews and the real search-inspector flow. The complete suite currently contains 98 passing tests. Measured relevance/speed and synthetic load checks are described in `docs/retrieval_and_analytics.md`.
+`run_experiment()` runs baseline, laptop, UNO Q and Qualcomm 3-5 times per case with shared prompts, evidence, schema and requested settings. All failures, timeouts, unconfigured backends and invalid outputs remain rows. Exact-match/review/abstention denominators include failures as incorrect. Undefined precision/ordinal distance/support rates remain not measured; eligible and measured case counts show coverage. No maximum ordinal error is invented for missing predictions.
 
-## Evaluation methods
+Every statistic has unique case_count, eligible_case_count, statistic sample_count, mean, population standard deviation, minimum and maximum. Accuracy statistics average per-repetition scores; latency statistics use actual run-duration samples. Repeated executions do not create independent cases. Each metric is preliminary when its measured case count is below 30. Confusion matrices include failed decisions, raw execution counts and per-cell repeat statistics.
 
-The included 24 cases cover 2 times of day × 3 weather states × 4 faults. They are **draft illustrative labels**, not reviewed ground truth. Download the JSON, review expected hazard IDs, acceptable evidence, required mitigations and expected review outcomes, attribute the reviewer and import the reviewed dataset. Exact ID matching is deliberately transparent: a generated hazard is counted as relevant if its `hazard_id` or a cited hazard-record ID matches an expected ID. This can miss paraphrases or be gamed by irrelevant citation; it is not a semantic accuracy score.
+Adapter mock-transport tests distinguish requested settings from explicit runtime applied/unsupported reports. A successful response without settings telemetry does not establish settings were applied. UNO Q forwards its runtime report. Explicit unsupported fields become not supported; unavailable telemetry is not measured. These tests validate software behavior, not target compatibility.
 
-- Rules-only: enumerate reviewed non-illustrative hazard records from the same deterministic retrieval. This baseline does not generate narratives and has no comparable LLM/schema timing metrics. With the bundled unreviewed sample, this legitimately yields no reviewed candidates.
-- LLM-only: send identical operating conditions and output schema with an empty evidence context. Keep a frozen reference snapshot for downstream checks; the method difference is recorded.
-- Full pipeline: send the shared retrieved evidence and run the same verification/risk pipeline.
+citation_link_validity tests cover correct and incorrect record links. Separate expert_support_review tests cover supported, unsupported and not_reviewed records, including the reviewed-support denominator. Unsupported records stay visible for human review; no model output can set expert judgments or descriptive prose.
 
-Each inference-backed evaluation row links its immutable run containing the full configuration, model IDs, versions, timings and errors. Rules rows record the retrieved candidate IDs and KB version. Dataset version, review status and timestamps are retained at the benchmark level. Failures preserve partial rows.
+JSON/CSV/PDF export tests retain failures, settings, evidence, review flags, counts, uncertainty of unavailable measurements and preliminary labels. Streamlit tests cover all pages, the minimal comparison table, grouped accuracy chart, latency distribution, and archived evaluations missing new metadata. Generated PDF layout is rendered and inspected.
 
-## Metric definitions
-
-| Metric | Numerator / denominator |
-| --- | --- |
-| Expected hazard coverage | Distinct expected IDs matched / distinct expected IDs |
-| Relevant hazard count | Count of generated hazards with an exact expected-ID match (count only) |
-| Valid evidence-ID rate | References resolving to allowed evidence types in frozen snapshot / all generated evidence references |
-| Acceptable evidence rate | References on the case's acceptable list / all generated evidence references |
-| Required mitigation coverage | Distinct required mitigations returned / distinct required mitigations |
-| Valid mitigation-reference rate | References resolving to mitigation records / all mitigation references |
-| Valid acceptance-test-reference rate | References resolving to test records / all test references |
-| Schema-valid output rate | Valid structured outputs / attempted output for each row |
-| Duplicate scenario rate | Near-duplicate scenarios flagged / parsed scenarios |
-| Backend failure rate | Failed executions / attempted execution for each row |
-| Generation/pipeline latency | Actual measured duration in milliseconds, not an accuracy metric |
-
-Every defined rate includes numerator, denominator and value; an empty denominator yields null. The automatic unsupported-assurance heuristics produce flags, **not** an unsupported-claim rate. A defensible rate requires human claim-level annotations; annotation tooling and rate calculation are not implemented. Human review outcomes remain separate; expected-versus-observed review agreement is not automatically scored. No model ranking is based on speed or quantity alone.
+Earlier 181-record lexical timing results and the 24-case format are historical fixtures. They do not establish current semantic safety accuracy. Review the KB, risk policy and labels with a domain expert before making substantive accuracy claims.

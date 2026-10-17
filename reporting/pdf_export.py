@@ -100,3 +100,61 @@ def pdf_bytes(payload):
                             topMargin=18*mm, bottomMargin=22*mm, title="SafeScenario AI engineering review", invariant=1)
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
     return stream.getvalue()
+
+
+def experiment_pdf_bytes(experiment):
+    """Compact summaries plus complete per-trial audit; descriptions come only from KB data."""
+    stream = io.BytesIO()
+    styles = getSampleStyleSheet()
+    styles['BodyText'].fontSize, styles['BodyText'].leading = 8, 11
+    story = []
+
+    def text(value, style='BodyText'):
+        story.append(Paragraph(escape(printable(value)), styles[style]))
+
+    def detail(label, value):
+        from reporting.exports import display_measurements
+        value = display_measurements(value)
+        text(label, 'Heading3')
+        encoded = json.dumps(value, ensure_ascii=True, sort_keys=True) if isinstance(value, (dict, list)) else str(value)
+        for start in range(0, max(1, len(encoded)), 1800):
+            text(encoded[start:start+1800])
+
+    text('SafeScenario AI experiment', 'Title')
+    text(f"{experiment.get('label', 'preliminary')} | unique cases n={experiment.get('case_count', 'not measured')}", 'Heading2')
+    text('Repeated runs do not increase the independent case count. Unavailable measurements are not measured. Runtime-reported applied settings do not independently verify hardware or model compatibility.')
+    detail('Label reviewer and date', {k: experiment.get('labels', {}).get(k) for k in ('version', 'reviewer', 'reviewed_date', 'reviewed')})
+    detail('Requested experiment settings', experiment.get('settings', {}))
+    for summary in experiment.get('summary', []):
+        text(f"{summary['backend']} / {summary['model']} | {summary['label']} | n={summary['case_count']}", 'Heading2')
+        text(f"Executions {summary['executions']}; failed runs {summary['failures']}")
+        for name, metric in summary.items():
+            if isinstance(metric, dict) and 'mean' in metric:
+                show = lambda value: 'not measured' if value is None else str(round(value, 6))
+                text(f"{name}: mean {show(metric['mean'])}; SD {show(metric['stddev'])}; min-max {show(metric['min'])} to {show(metric['max'])}; n={metric['case_count']} cases ({metric['label']}); eligible cases={metric['eligible_case_count']}")
+        detail(f"Risk/outcome confusion matrix | n={summary['case_count']} cases", summary.get('confusion_matrix', {}))
+    text('Per-case evidence (shared by adapters and repetitions)', 'Heading2')
+    seen = set()
+    for row in experiment.get('rows', []):
+        if row['case_id'] not in seen:
+            detail(row['case_id'], row['evidence'])
+            seen.add(row['case_id'])
+    text('Measured run audit (failed runs retained)', 'Heading2')
+    for row in experiment.get('rows', []):
+        result = row.get('result') or {}
+        detail(f"{row['case_id']} / {row['model']['backend']} / repeat {row['repeat']}",
+               {k: row.get(k) for k in ('model', 'status', 'requested_settings', 'applied_settings', 'execution_latency_ms', 'error', 'metrics', 'expected_decision', 'predicted_decision', 'human_review_flag')})
+        detail('Verification, expert support and risk calculation', {k: result.get(k, 'not measured') for k in ('verification', 'risk', 'citation_link_validity', 'reviewed_support_rate')})
+    limitations = [Paragraph('Out of scope / limitations', styles['Heading2'])]
+    limitations.extend(Paragraph(escape(printable(item)), styles['BodyText']) for item in experiment.get('limitations', []))
+    story.append(KeepTogether(limitations))
+
+    def footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica', 8)
+        canvas.drawString(18*mm, 10*mm, 'SafeScenario AI | Experiment report')
+        canvas.drawRightString(192*mm, 10*mm, f'Page {doc.page}')
+        canvas.restoreState()
+
+    SimpleDocTemplate(stream, pagesize=(210*mm, 297*mm), rightMargin=18*mm, leftMargin=18*mm, topMargin=18*mm, bottomMargin=18*mm, invariant=1).build(story, onFirstPage=footer, onLaterPages=footer)
+    return stream.getvalue()

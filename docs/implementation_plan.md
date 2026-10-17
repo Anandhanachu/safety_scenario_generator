@@ -6,7 +6,7 @@
 4. Validate KB uploads: require v2 source categories and tags, unique IDs, allowed ranges and reciprocal hazard links. Preserve old/custom datasets and reject new invalid activations.
 5. Constrain generation: enumerated record IDs only, canonical record text, shared temperature 0/seed 42/schema/evidence/token limit, one corrective retry and a hard stop on invalid output.
 6. Add measured evaluation: 3-5 repetitions, separate precision/recall for three record types, insufficient-evidence correctness, risk correctness, measured latency, mean/stddev/range, backend/model/size/quantization metadata.
-7. Surface review decisions: confidence, unresolved risk and unreviewed evidence prevent acceptance; publish baseline comparisons, full evidence and limitations in all report formats.
+7. Surface review decisions: citation_link_validity, unresolved risk and unreviewed evidence prevent acceptance; publish baseline comparisons, full evidence and limitations in all report formats.
 8. Verify real integrations: independently test each configured runtime with the shared request contract and fixed seed, record returned model identity and measured timings, and keep unsupported capabilities explicit. Credentials, hardware and expert sign-off are external prerequisites.
 
 ## Run the reproducible draft baseline
@@ -20,7 +20,7 @@ The CLI prints complete JSON to stdout. It sends no model requests by default. A
 ## Files for expert review
 
 - data/constrained_knowledge_base.json: 10 v2 records; all illustrative and pending review. Example severity/likelihood values must be checked and attributed by a domain expert.
-- data/labelled_cases_24.json: 24 draft labelled cases, including seven insufficient-evidence cases. Review expected IDs, context and risk targets independently before expert approval.
+- data/labelled_cases_25.json: 25 preliminary draft cases: seven insufficient-evidence, two missing-risk-input and two conflicting-risk-input cases. Review expected IDs, reviewer/date metadata and risk targets independently before expert approval.
 - data/sample_cases_5.json: five compact examples, including one insufficient-evidence case.
 - configs/risk_matrix.example.json: illustrative ordinal matrix requiring project-policy approval.
 

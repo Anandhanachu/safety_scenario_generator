@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 import threading
 import time
+import math
 
 import httpx
 
@@ -24,6 +25,25 @@ class Adapter(ABC):
     def __init__(self, base_url, backend, token="", timeout=120, transport=None):
         self.base_url, self.backend, self.token = base_url, backend, token
         self.timeout, self.transport = timeout, transport
+        self.applied_settings = {k: 'not measured' for k in ('temperature', 'seed', 'max_tokens')}
+
+    def record_settings(self, data):
+        """Only explicit runtime reports establish applied/unsupported settings."""
+        if not isinstance(data, dict):
+            return
+        applied = data.get('applied_settings', {})
+        unsupported = data.get('unsupported_settings', [])
+        for key in self.applied_settings:
+            value = applied.get(key) if isinstance(applied, dict) else None
+            if value == 'not supported' or isinstance(unsupported, list) and key in unsupported:
+                self.applied_settings[key] = 'not supported'
+            elif type(value) in (int, float) and math.isfinite(value):
+                self.applied_settings[key] = value
+
+    def generate_with_settings(self, model_id, messages, generation, cancel=None):
+        self.applied_settings = {k: 'not measured' for k in ('temperature', 'seed', 'max_tokens')}
+        output = self.generate_scenarios(model_id, messages, generation, cancel)
+        return {'output': output, 'requested_settings': dict(generation), 'applied_settings': dict(self.applied_settings)}
 
     def request(self, method, path, **kwargs):
         if not self.base_url:
@@ -41,6 +61,10 @@ class Adapter(ABC):
             if response.status_code == 429:
                 raise BackendError("Rate limited: retry later; request was not automatically repeated")
             if not 200 <= response.status_code < 300:
+                try:
+                    self.record_settings(response.json())
+                except ValueError:
+                    pass
                 raise BackendError(f"Backend HTTP {response.status_code}; check service configuration")
             if len(response.content) > 5 * 1024 * 1024:
                 raise BackendError("Backend response exceeds 5 MiB")
@@ -121,6 +145,7 @@ class ChatAdapter(Adapter):
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled before inference")
         data = self.request("POST", "/v1/chat/completions", json={"model": model_id, "messages": messages, "stream": False, **generation})
+        self.record_settings(data)
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled locally; remote inference may have completed")
         return content_from_response(data, model_id)
@@ -138,6 +163,7 @@ class QualcommAdapter(ChatAdapter):
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled before inference")
         data = self.request("POST", "/v2/chat/completions", json={"model": model_id, "messages": messages, "stream": False, **generation})
+        self.record_settings(data)
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled locally; hosted inference may have completed and may be billed")
         return content_from_response(data, model_id)
@@ -177,6 +203,7 @@ class UnoAdapter(Adapter):
                 raise Cancelled("Board cancellation requested; runtime may finish in background")
             status = self.get_job_status(job_id)
             if status.get("status") == "completed":
+                self.record_settings(status)
                 if not isinstance(status.get("output"), str):
                     raise BackendError("Malformed board inference result")
                 return status["output"]

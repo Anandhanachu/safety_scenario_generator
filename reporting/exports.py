@@ -16,7 +16,10 @@ def comparison_rows(run):
                      "schema_valid": result.get("schema_valid", False),
                      'parameter_size': result.get('model_details', {}).get('parameter_size') or 'not measured',
                      'quantization': result.get('model_details', {}).get('quantization') or 'not measured',
-                     'confidence': result.get('confidence'), 'needs_human_review': result.get('needs_human_review'),
+                     'citation_link_validity': result.get('citation_link_validity'), 'needs_human_review': result.get('needs_human_review'),
+                     'reviewed_support_rate': result.get('reviewed_support_rate'),
+                     'requested_settings': json.dumps(result.get('requested_settings', {})),
+                     'applied_settings': json.dumps(result.get('applied_settings', {})),
                      'settings': json.dumps(result.get('constrained', {}).get('settings', result.get('run_settings', {}))),
                      'human_review_flags': json.dumps(result.get('constrained', {}).get('verification', {}).get('human_review_flags', [])),
                      'retrieved_evidence': json.dumps(run.get('snapshot', {}).get('evidence', [])),
@@ -37,7 +40,10 @@ def comparison_rows(run):
         count = len((baseline.get('output') or {}).get('selections', []))
         rows.append({'backend': 'baseline', 'model_id': 'TF-IDF + stored risk matrix', 'status': 'completed', 'schema_valid': True,
                      'generation_latency_ms': None, 'total_pipeline_latency_ms': baseline['latency_ms'], 'candidate_scenarios': count,
-                     'valid_scenarios': count if baseline['verification']['valid'] else 0, 'confidence': baseline['confidence'],
+                     'valid_scenarios': count if baseline['verification']['valid'] else 0, 'citation_link_validity': baseline['citation_link_validity'],
+                     'reviewed_support_rate': baseline.get('reviewed_support_rate'),
+                     'requested_settings': json.dumps(baseline.get('requested_settings', {})),
+                     'applied_settings': json.dumps(baseline.get('applied_settings', {})),
                      'needs_human_review': baseline['needs_human_review'], 'parameter_size': 'not applicable', 'quantization': 'not applicable',
                      'settings': json.dumps(baseline['settings']), 'retrieved_evidence': json.dumps(baseline['evidence']),
                      'verification': json.dumps(baseline['verification']), 'risk_calculation_steps': json.dumps(baseline['risk']),
@@ -70,3 +76,32 @@ def report(run, reviews=(), risk_assessments=(), simulations=()):
             "notice": "Unreviewed AI proposals; illustrative records and software simulation are labelled. This report is not certification or formal safety approval.",
             "run": run, 'limitations': LIMITATIONS, 'baseline_comparison': run.get('snapshot', {}).get('baseline_comparison'), "comparison": comparison_rows(run), "human_reviews": reviews, "proposal_review_summary": review_counts(outcomes),
             "human_risk_assessments": list(risk_assessments), "software_simulations": list(simulations)}
+
+
+def experiment_report(experiment):
+    """Complete JSON report; per-run records retain failures and requested/applied settings."""
+    return display_measurements({'report_schema': 'experiment-2.0', 'title': f"SafeScenario AI {experiment.get('label', 'preliminary')} experiment",
+            'notice': 'Case counts refer to unique cases, not repeated executions. Results with n < 30 are preliminary. Applied settings are runtime reports; missing values are not measured.',
+            **experiment})
+
+
+def display_measurements(value):
+    """Render unavailable metrics explicitly; preserve null risk categories and label fields."""
+    unavailable = {'mean', 'stddev', 'min', 'max', 'parameter_size', 'quantization', 'latency_ms',
+                   'citation_link_validity', 'reviewed_support_rate', 'ordinal_distance_error', 'risk_category_exact_match_rate'}
+    if isinstance(value, dict):
+        return {k: 'not measured' if v is None and k in unavailable else display_measurements(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [display_measurements(v) for v in value]
+    return value
+
+
+def experiment_csv(experiment):
+    rows = []
+    summaries = {s['backend']: s for s in experiment.get('summary', [])}
+    for row in display_measurements(experiment.get('rows', [])):
+        backend = row.get('model', {}).get('backend', row.get('backend'))
+        summary = summaries.get(backend, {})
+        rows.append({**row, 'case_count': summary.get('case_count', 'not measured'), 'label': summary.get('label', 'archived'),
+                     'aggregate_metrics_with_case_counts': display_measurements(summary)})
+    return csv_bytes(rows)

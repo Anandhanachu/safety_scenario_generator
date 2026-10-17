@@ -36,6 +36,13 @@ class Record(Strict):
     severity: Literal['S1', 'S2', 'S3'] | None = None
     likelihood: Literal['L1', 'L2', 'L3'] | None = None
     risk_conflict: bool = False
+    expert_support_review: Literal['supported', 'unsupported', 'not_reviewed'] = 'not_reviewed'
+
+    @model_validator(mode='after')
+    def support_attribution(self):
+        if self.expert_support_review != 'not_reviewed' and not self.reviewed_by:
+            raise ValueError(f'{self.id}: expert_support_review requires reviewed_by attribution')
+        return self
 
 
 class Dataset(Strict):

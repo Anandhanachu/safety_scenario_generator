@@ -1,0 +1,468 @@
+{
+  "version": "preliminary-risk-labels-25-v2",
+  "reviewed": false,
+  "reviewed_by": null,
+  "knowledge_base_id": "constrained-draft-10",
+  "cases": [
+    {
+      "id": "CASE-1",
+      "fault_type": "camera_failure",
+      "operating_condition": "day_dry",
+      "query": "camera failure day dry",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-2",
+      "fault_type": "camera_failure",
+      "operating_condition": "night_dry",
+      "query": "camera failure night dry",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-3",
+      "fault_type": "camera_failure",
+      "operating_condition": "rain",
+      "query": "camera failure rain",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-4",
+      "fault_type": "camera_failure",
+      "operating_condition": "reduced_visibility",
+      "query": "camera failure reduced visibility",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-5",
+      "fault_type": "communication_loss",
+      "operating_condition": "day_dry",
+      "query": "communication loss day dry",
+      "expected_hazard_ids": [
+        "H-2"
+      ],
+      "expected_mitigation_ids": [
+        "M-2"
+      ],
+      "expected_test_ids": [
+        "T-2"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-6",
+      "fault_type": "communication_loss",
+      "operating_condition": "night_dry",
+      "query": "communication loss night dry",
+      "expected_hazard_ids": [
+        "H-2"
+      ],
+      "expected_mitigation_ids": [
+        "M-2"
+      ],
+      "expected_test_ids": [
+        "T-2"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-7",
+      "fault_type": "communication_loss",
+      "operating_condition": "rain",
+      "query": "communication loss rain",
+      "expected_hazard_ids": [
+        "H-2"
+      ],
+      "expected_mitigation_ids": [
+        "M-2"
+      ],
+      "expected_test_ids": [
+        "T-2"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-8",
+      "fault_type": "communication_loss",
+      "operating_condition": "reduced_visibility",
+      "query": "communication loss reduced visibility",
+      "expected_hazard_ids": [
+        "H-2"
+      ],
+      "expected_mitigation_ids": [
+        "M-2"
+      ],
+      "expected_test_ids": [
+        "T-2"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-9",
+      "fault_type": "reduced_traction",
+      "operating_condition": "day_dry",
+      "query": "reduced traction day dry",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-10",
+      "fault_type": "reduced_traction",
+      "operating_condition": "night_dry",
+      "query": "reduced traction night dry",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-11",
+      "fault_type": "reduced_traction",
+      "operating_condition": "rain",
+      "query": "reduced traction rain",
+      "expected_hazard_ids": [
+        "H-3"
+      ],
+      "expected_mitigation_ids": [
+        "M-3"
+      ],
+      "expected_test_ids": [
+        "T-3"
+      ],
+      "expected_risk_category": "high",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-12",
+      "fault_type": "reduced_traction",
+      "operating_condition": "reduced_visibility",
+      "query": "reduced traction reduced visibility",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-13",
+      "fault_type": "processing_delay",
+      "operating_condition": "day_dry",
+      "query": "processing delay day dry",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-14",
+      "fault_type": "processing_delay",
+      "operating_condition": "night_dry",
+      "query": "processing delay night dry",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-15",
+      "fault_type": "processing_delay",
+      "operating_condition": "rain",
+      "query": "processing delay rain",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-16",
+      "fault_type": "processing_delay",
+      "operating_condition": "reduced_visibility",
+      "query": "processing delay reduced visibility",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-17",
+      "fault_type": "lidar_failure",
+      "operating_condition": "day_dry",
+      "query": "lidar failure day dry",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-18",
+      "fault_type": "lidar_failure",
+      "operating_condition": "night_dry",
+      "query": "lidar failure night dry",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-19",
+      "fault_type": "lidar_failure",
+      "operating_condition": "rain",
+      "query": "lidar failure rain",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-20",
+      "fault_type": "lidar_failure",
+      "operating_condition": "reduced_visibility",
+      "query": "lidar failure reduced visibility",
+      "expected_hazard_ids": [],
+      "expected_mitigation_ids": [],
+      "expected_test_ids": [],
+      "expected_risk_category": null,
+      "expected_outcome": "insufficient_evidence",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    },
+    {
+      "id": "CASE-21",
+      "fault_type": "camera_failure",
+      "operating_condition": "day_dry",
+      "query": "Camera failure with missing severity input",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": null,
+      "expected_outcome": "needs_review",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "missing_severity"
+    },
+    {
+      "id": "CASE-22",
+      "fault_type": "camera_failure",
+      "operating_condition": "day_dry",
+      "query": "Camera failure with missing likelihood input",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": null,
+      "expected_outcome": "needs_review",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "missing_likelihood"
+    },
+    {
+      "id": "CASE-23",
+      "fault_type": "camera_failure",
+      "operating_condition": "day_dry",
+      "query": "Camera failure with conflicting expert evidence",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": null,
+      "expected_outcome": "needs_review",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "conflicting_evidence"
+    },
+    {
+      "id": "CASE-24",
+      "fault_type": "communication_loss",
+      "operating_condition": "day_dry",
+      "query": "Communication loss with conflicting expert evidence",
+      "expected_hazard_ids": [
+        "H-2"
+      ],
+      "expected_mitigation_ids": [
+        "M-2"
+      ],
+      "expected_test_ids": [
+        "T-2"
+      ],
+      "expected_risk_category": null,
+      "expected_outcome": "needs_review",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "conflicting_evidence"
+    },
+    {
+      "id": "CASE-25",
+      "fault_type": "camera_failure",
+      "operating_condition": "day_dry",
+      "query": "Camera failure approaching a stationary obstacle in daylight",
+      "expected_hazard_ids": [
+        "H-1"
+      ],
+      "expected_mitigation_ids": [
+        "M-1"
+      ],
+      "expected_test_ids": [
+        "T-1"
+      ],
+      "expected_risk_category": "medium",
+      "expected_outcome": "selected",
+      "reviewer": null,
+      "reviewed_date": null,
+      "risk_input_issue": "none"
+    }
+  ],
+  "reviewer": null,
+  "reviewed_date": null
+}

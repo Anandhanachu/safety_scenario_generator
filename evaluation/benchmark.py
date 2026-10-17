@@ -81,9 +81,7 @@ class BenchmarkRunner:
         self.pool = ThreadPoolExecutor(max_workers=1)
 
     def start_labelled(self, labels, selections, kb, matrix, settings, repeats=3):
-        from evaluation.labelled import evaluate
-        from backend.constrained import ModelDetails
-        from models.adapters import make_adapter
+        from evaluation.labelled import run_experiment
         labels.validate_kb(kb)
         with self.lock:
             if any(j['status'] == 'running' for j in self.jobs.values()):
@@ -92,14 +90,13 @@ class BenchmarkRunner:
             self.jobs[identity] = {'id': identity, 'status': 'running', 'rows': [], 'cancel': threading.Event()}
         def run():
             try:
-                models = []
+                frozen_settings = copy.deepcopy(settings)
                 for selection in selections:
-                    cfg = settings[selection.backend]
-                    adapter = make_adapter(selection.backend, settings)
-                    models.append((ModelDetails(backend=selection.backend, name=selection.model_id,
-                                   parameter_size=cfg.get('parameter_size'), quantization=cfg.get('quantization')), adapter))
-                result = evaluate(labels, kb, matrix, models, repeats, settings['retrieval_limit'], settings['relevance_threshold'],
-                                  settings.get('confidence_threshold', 1.0), self.jobs[identity]['cancel'], settings.get('max_tokens', 1800))
+                    frozen_settings[selection.backend]['model_id'] = selection.model_id
+                result = run_experiment(labels, kb, matrix, frozen_settings, repeats,
+                                        limit=settings['retrieval_limit'], threshold=settings['relevance_threshold'],
+                                        citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0),
+                                        cancel=self.jobs[identity]['cancel'], max_tokens=settings.get('max_tokens', 1800))
                 with self.lock:
                     self.jobs[identity].update(result)
             except Exception:

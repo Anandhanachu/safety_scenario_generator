@@ -110,9 +110,12 @@ def execute(identity, request):
     try:
         adapter = runtime()
         adapter.validate_configuration(request.model_id)
-        output = adapter.generate_scenarios(request.model_id, [m.model_dump() for m in request.messages], request.generation.model_dump(), jobs[identity]["cancel"])
+        requested = request.generation.model_dump()
+        response = adapter.generate_with_settings(request.model_id, [m.model_dump() for m in request.messages], requested, jobs[identity]['cancel']) if hasattr(adapter, 'generate_with_settings') else {'output': adapter.generate_scenarios(request.model_id, [m.model_dump() for m in request.messages], requested, jobs[identity]['cancel']), 'applied_settings': {k: 'not measured' for k in requested}}
+        output = response['output']
         with lock:
             jobs[identity].update(status="cancelled" if jobs[identity]["cancel"].is_set() else "completed", output=None if jobs[identity]["cancel"].is_set() else output)
+            jobs[identity].update(requested_settings=requested, applied_settings=response['applied_settings'])
     except Cancelled:
         with lock:
             jobs[identity].update(status="cancelled")
