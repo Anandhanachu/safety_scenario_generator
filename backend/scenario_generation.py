@@ -53,7 +53,9 @@ def draft_messages(inputs, evidence, limit):
         {'role': 'system', 'content': (
             'Write as many DISTINCT evidence-supported safety scenarios as possible, up to the supplied limit. '
             'Return JSON only: schema_version 3.0 and scenarios. Each scenario has scenario_id, title (a display label only), '
-            'and statements [{record_id,text}]. Write a scenario by combining a hazard, its linked mitigations and acceptance tests. '
+            'and statements [{record_id,text}]. Every scenario MUST contain a complete linked group: at least one hazard, '
+            'at least one mitigation linked from that hazard, and at least one acceptance test linked from that hazard. '
+            'For a single-hazard group, emit exactly those three records before attempting another scenario. '
             'For automatic acceptance each statement must copy the COMPLETE description of its cited retrieved record exactly. '
             'Do not invent hazards, consequences, timings, risk values or robot capabilities. Do not pad the count with duplicates. '
             'The supplied inputs are the scenario context, automatically attached by the application. '
@@ -173,6 +175,32 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
             if len(batch.scenarios) > limit:
                 raise ValueError('Draft batch exceeds requested scenario limit')
             scenarios = screen_drafts(batch.scenarios, inputs, evidence, matrix, threshold)
+            # Small local models commonly return a partially cited version of a
+            # valid group. Recover the deterministic KB group so valid evidence
+            # is not lost, while retaining every rejected AI draft for audit.
+            # This path never invents text or IDs and is explicitly labelled as
+            # system recovery in the UI/export.
+            if not any(item.get('system_decision') == 'accepted' for item in scenarios):
+                usable = [item for item in evidence
+                          if item['record'].get('expert_support_review') != 'unsupported'
+                          and item['record'].get('review_status') != 'rejected']
+                recovered = baseline(usable)
+                if recovered.selections and len(scenarios) < limit:
+                    refs = []
+                    for choice in recovered.selections:
+                        refs.extend([choice.hazard_id, *choice.mitigation_ids, *choice.acceptance_test_ids])
+                    records = {item['record']['id']: item['record'] for item in evidence}
+                    recovery = {
+                        'scenario_id': 'SYSTEM-RECOVERY-1',
+                        'title': 'Knowledge-base linked scenario',
+                        'statements': [{'record_id': ref, 'text': records[ref]['description'].strip()} for ref in refs],
+                    }
+                    recovered_items = screen_drafts([recovery], inputs, evidence, matrix, threshold)
+                    if recovered_items:
+                        recovered_items[0]['origin'] = 'deterministic_kb_recovery'
+                        recovered_items[0]['screening_reasons'].insert(
+                            0, 'System recovered a complete linked KB group after AI drafts were incomplete')
+                        scenarios.extend(recovered_items)
             attempts.append({**metadata, 'valid': True})
             break
         except ValueError as exc:

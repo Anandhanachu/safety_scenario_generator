@@ -163,6 +163,27 @@ def test_batch_retry_and_partial_success(draft_evidence, matrix):
     assert len(result['attempts']) == 2
 
 
+def test_incomplete_ai_drafts_recover_complete_kb_group(draft_evidence, matrix):
+    class PartialAdapter:
+        def generate_scenarios(self, model, messages, settings, cancel):
+            evidence = json.loads(messages[1]['content'])['evidence']
+            # Simulate Qwen omitting the mitigation and acceptance-test IDs.
+            item = evidence[0]
+            return json.dumps({'schema_version': '3.0', 'scenarios': [{
+                'scenario_id': 'PARTIAL-1', 'title': 'Incomplete draft',
+                'statements': [{'record_id': item['record']['id'], 'text': item['record']['description']}],
+            }]})
+
+    result = generate_drafts(PartialAdapter(), 'TEST', ScenarioInput(faults=['Camera failure']),
+                             draft_evidence, matrix,
+                             {'temperature': 0., 'seed': 42, 'max_tokens': 2000}, 10)
+    assert result['valid_scenarios'] == 1
+    assert result['scenarios'][0]['system_decision'] == 'rejected'
+    recovery = result['scenarios'][1]
+    assert recovery['origin'] == 'deterministic_kb_recovery'
+    assert recovery['system_decision'] == 'accepted'
+
+
 def test_new_pipeline_and_engineer_interface(tmp_path, monkeypatch):
     import ui.dashboard as dashboard
     service = Services(tmp_path)
