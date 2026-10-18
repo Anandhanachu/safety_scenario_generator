@@ -66,6 +66,21 @@ def test_timeout():
         adapter.list_models()
 
 
+def test_make_adapter_uses_configured_backend_timeout(monkeypatch):
+    monkeypatch.setenv("SAFESCENARIO_BACKEND_TIMEOUT_SECONDS", "480")
+    from models.adapters import make_adapter
+
+    adapter = make_adapter("laptop_local", {"laptop_local": {"base_url": "http://127.0.0.1:8080"}})
+    assert adapter.timeout == 480
+
+
+def test_backend_timeout_is_bounded(monkeypatch):
+    from models.adapters import backend_timeout_seconds
+
+    monkeypatch.setenv("SAFESCENARIO_BACKEND_TIMEOUT_SECONDS", "9999")
+    assert backend_timeout_seconds() == 900
+
+
 def test_unavailable_model():
     adapter = ChatAdapter("http://127.0.0.1:8080", "laptop_local", transport=mock_transport(lambda r: httpx.Response(200, json={"data": []})))
     with pytest.raises(BackendError, match="not available"):

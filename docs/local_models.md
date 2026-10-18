@@ -16,7 +16,7 @@ Start your installed server (replace the paths with your actual executable and m
 
 Use a context size the model and device can support. The output schema and evidence consume context; lower retrieval counts if necessary. The server must expose `GET /v1/models` and `POST /v1/chat/completions` with `model`, `messages`, `stream:false`, `temperature` and `max_tokens`, returning the selected model ID and text completion. Non-chat model endpoints are not compatible.
 
-1. Set `LAPTOP_BASE_URL=http://127.0.0.1:8080` in `.env`, or save it in Settings.
+1. Set `LAPTOP_BASE_URL=http://127.0.0.1:8080` in `.env`, or save it in Settings. The default backend request timeout is 300 seconds. Set `SAFESCENARIO_BACKEND_TIMEOUT_SECONDS` to a value from 30 to 900 seconds if local generation needs more time.
 2. Optionally configure existing permitted model directories. Scan/register files in Model Studio. Scanned files remain explicitly runtime-unverified.
 3. Refresh the laptop catalogue in Model Studio and save the exact model ID returned by the server.
 4. Click **Test real scenario inference**, then inspect progress, strict output checks and any runtime errors. A failed JSON response is preserved as diagnostic hash/size/errors; enable raw retention only if needed.

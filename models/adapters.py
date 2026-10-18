@@ -19,6 +19,19 @@ class Cancelled(BackendError):
     pass
 
 
+DEFAULT_BACKEND_TIMEOUT_SECONDS = 300
+
+
+def backend_timeout_seconds():
+    """Return the bounded HTTP/job timeout used by configured backends."""
+    raw = os.getenv("SAFESCENARIO_BACKEND_TIMEOUT_SECONDS", str(DEFAULT_BACKEND_TIMEOUT_SECONDS))
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_BACKEND_TIMEOUT_SECONDS
+    return max(30, min(value, 900))
+
+
 class Adapter(ABC):
     capabilities = {"list_models": True, "inference": True, "load": False, "unload": False, "cancel_remote": False}
 
@@ -218,7 +231,7 @@ def make_adapter(backend, settings, transport=None):
     cfg = settings[backend]
     classes = {"laptop_local": ChatAdapter, "qualcomm": QualcommAdapter, "uno_q": UnoAdapter}
     token = os.getenv({"qualcomm": "QUALCOMM_API_KEY", "uno_q": "UNO_Q_TOKEN"}.get(backend, "LAPTOP_API_KEY"), "")
-    return classes[backend](cfg["base_url"], backend, token, transport=transport)
+    return classes[backend](cfg["base_url"], backend, token, timeout=backend_timeout_seconds(), transport=transport)
 
 
 def discover_files(directories):
