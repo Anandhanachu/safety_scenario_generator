@@ -10,7 +10,7 @@ from knowledge_base.core import parse_upload, retrieve_with_diagnostics
 
 def test_all_fault_combinations_and_conditions(matrix):
     kb = parse_upload((ROOT / 'data/multi_fault_knowledge_base.json').read_bytes())
-    assert len(kb.records) == 120
+    assert len(kb.records) == 180
     cases = 0
     for count in (1, 2, 3):
         for faults in combinations(FAULT_LABELS.values(), count):
@@ -34,6 +34,8 @@ def test_all_fault_combinations_and_conditions(matrix):
                 assert result['risk_score'] == max(s['risk_assessments'][h['hazard_id']]['risk_score']
                                                   for s in scenarios for h in s['hazards'])
                 assert result['uncovered_faults'] == []
+                if context in ({'weather': 'rain'}, {'visibility': 'reduced'}):
+                    assert result['risk_score'] == 9 and result['risk_level'] == 'high'
                 assert len(evidence) <= 12
                 cases += 1
     assert cases == 100

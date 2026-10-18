@@ -25,6 +25,10 @@ class Services:
         starter = parse_upload((ROOT / 'data/constrained_knowledge_base.json').read_bytes())
         if self.dataset().version == starter.version:
             self.activate_dataset(parse_upload((ROOT / 'data/multi_fault_knowledge_base.json').read_bytes()))
+        # Upgrade only the previous untouched bundled 120-record demo. Custom
+        # uploads and edited copies are intentionally never replaced.
+        if self.dataset().version == 'ceeff9d314c2bed7':
+            self.activate_dataset(parse_upload((ROOT / 'data/multi_fault_knowledge_base.json').read_bytes()))
 
     def settings(self):
         return self.store.setting("preferences", defaults())

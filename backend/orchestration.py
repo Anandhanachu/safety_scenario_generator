@@ -17,7 +17,7 @@ from evaluation.labelled import baseline_result
 from backend.scenario_generation import generate_drafts
 
 PROMPT_VERSION = "2.0-record-selection"
-IMPLEMENTATION_VERSION = '2026.10.18-evidence-4'
+IMPLEMENTATION_VERSION = '2026.10.18-demo-5'
 
 
 def prompt_messages(inputs, evidence):

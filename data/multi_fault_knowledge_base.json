@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
-  "dataset_id": "multi-fault-draft-120",
-  "dataset_name": "120 illustrative records covering five faults and four condition buckets",
+  "dataset_id": "multi-fault-draft-180",
+  "dataset_name": "Illustrative multi-fault safety knowledge base (3 scenarios per profile)",
   "records": [
     {
       "source": "expert_judgment",
@@ -312,7 +312,7 @@
         "T-camera_failure-rain-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -383,7 +383,7 @@
         "T-camera_failure-rain-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -454,7 +454,7 @@
         "T-camera_failure-reduced_visibility-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -525,7 +525,7 @@
         "T-camera_failure-reduced_visibility-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -880,7 +880,7 @@
         "T-communication_loss-rain-1"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -951,7 +951,7 @@
         "T-communication_loss-rain-2"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -1022,7 +1022,7 @@
         "T-communication_loss-reduced_visibility-1"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -1093,7 +1093,7 @@
         "T-communication_loss-reduced_visibility-2"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -1448,7 +1448,7 @@
         "T-reduced_traction-rain-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -1519,7 +1519,7 @@
         "T-reduced_traction-rain-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -1590,7 +1590,7 @@
         "T-reduced_traction-reduced_visibility-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -1661,7 +1661,7 @@
         "T-reduced_traction-reduced_visibility-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2016,7 +2016,7 @@
         "T-processing_delay-rain-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2087,7 +2087,7 @@
         "T-processing_delay-rain-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2158,7 +2158,7 @@
         "T-processing_delay-reduced_visibility-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2229,7 +2229,7 @@
         "T-processing_delay-reduced_visibility-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2584,7 +2584,7 @@
         "T-lidar_failure-rain-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2655,7 +2655,7 @@
         "T-lidar_failure-rain-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2726,7 +2726,7 @@
         "T-lidar_failure-reduced_visibility-1"
       ],
       "severity": "S3",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2797,7 +2797,7 @@
         "T-lidar_failure-reduced_visibility-2"
       ],
       "severity": "S2",
-      "likelihood": "L2"
+      "likelihood": "L3"
     },
     {
       "source": "expert_judgment",
@@ -2842,6 +2842,1786 @@
       "hazard_ids": [
         "H-lidar_failure-reduced_visibility-2"
       ]
+    },
+    {
+      "id": "H-camera_failure-day_dry-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian detection (day dry)",
+      "description": "Camera failure can prevent reliable pedestrian detection. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-camera_failure-day_dry-3"
+      ],
+      "test_ids": [
+        "T-camera_failure-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-camera_failure-day_dry-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian detection.",
+      "description": "Stop before continuing without reliable pedestrian detection. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-camera_failure-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection.",
+      "description": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-camera_failure-night_dry-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian detection (night dry)",
+      "description": "Camera failure can prevent reliable pedestrian detection. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-camera_failure-night_dry-3"
+      ],
+      "test_ids": [
+        "T-camera_failure-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-camera_failure-night_dry-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian detection.",
+      "description": "Stop before continuing without reliable pedestrian detection. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-camera_failure-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection.",
+      "description": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-camera_failure-rain-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian detection (rain)",
+      "description": "Camera failure can prevent reliable pedestrian detection. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-camera_failure-rain-3"
+      ],
+      "test_ids": [
+        "T-camera_failure-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-camera_failure-rain-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian detection.",
+      "description": "Stop before continuing without reliable pedestrian detection. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-camera_failure-rain-3",
+      "type": "acceptance_test",
+      "title": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection.",
+      "description": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-camera_failure-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian detection (reduced visibility)",
+      "description": "Camera failure can prevent reliable pedestrian detection. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-camera_failure-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-camera_failure-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-camera_failure-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian detection.",
+      "description": "Stop before continuing without reliable pedestrian detection. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-camera_failure-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection.",
+      "description": "Inject camera unavailability and verify the product stops before continuing without reliable pedestrian detection. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-camera_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-communication_loss-day_dry-3",
+      "type": "hazard",
+      "title": "Unavailable remote status reporting (day dry)",
+      "description": "Communication loss can prevent safety-relevant status from reaching remote supervision. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-communication_loss-day_dry-3"
+      ],
+      "test_ids": [
+        "T-communication_loss-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-communication_loss-day_dry-3",
+      "type": "mitigation",
+      "title": "Enter the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Enter the documented safe state when safety-relevant status cannot be reported. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-communication_loss-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-communication_loss-night_dry-3",
+      "type": "hazard",
+      "title": "Unavailable remote status reporting (night dry)",
+      "description": "Communication loss can prevent safety-relevant status from reaching remote supervision. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-communication_loss-night_dry-3"
+      ],
+      "test_ids": [
+        "T-communication_loss-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-communication_loss-night_dry-3",
+      "type": "mitigation",
+      "title": "Enter the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Enter the documented safe state when safety-relevant status cannot be reported. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-communication_loss-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-communication_loss-rain-3",
+      "type": "hazard",
+      "title": "Unavailable remote status reporting (rain)",
+      "description": "Communication loss can prevent safety-relevant status from reaching remote supervision. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-communication_loss-rain-3"
+      ],
+      "test_ids": [
+        "T-communication_loss-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-communication_loss-rain-3",
+      "type": "mitigation",
+      "title": "Enter the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Enter the documented safe state when safety-relevant status cannot be reported. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-communication_loss-rain-3",
+      "type": "acceptance_test",
+      "title": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-communication_loss-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Unavailable remote status reporting (reduced visibility)",
+      "description": "Communication loss can prevent safety-relevant status from reaching remote supervision. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-communication_loss-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-communication_loss-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-communication_loss-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Enter the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Enter the documented safe state when safety-relevant status cannot be reported. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-communication_loss-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported.",
+      "description": "Interrupt communication and verify the product enters the documented safe state when safety-relevant status cannot be reported. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-communication_loss-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-reduced_traction-day_dry-3",
+      "type": "hazard",
+      "title": "Loss of directional control (day dry)",
+      "description": "Reduced traction can prevent the product from maintaining the intended travel direction. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-reduced_traction-day_dry-3"
+      ],
+      "test_ids": [
+        "T-reduced_traction-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-reduced_traction-day_dry-3",
+      "type": "mitigation",
+      "title": "Reduce motion and stop when directional control cannot be maintained.",
+      "description": "Reduce motion and stop when directional control cannot be maintained. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-reduced_traction-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained.",
+      "description": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-reduced_traction-night_dry-3",
+      "type": "hazard",
+      "title": "Loss of directional control (night dry)",
+      "description": "Reduced traction can prevent the product from maintaining the intended travel direction. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-reduced_traction-night_dry-3"
+      ],
+      "test_ids": [
+        "T-reduced_traction-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-reduced_traction-night_dry-3",
+      "type": "mitigation",
+      "title": "Reduce motion and stop when directional control cannot be maintained.",
+      "description": "Reduce motion and stop when directional control cannot be maintained. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-reduced_traction-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained.",
+      "description": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-reduced_traction-rain-3",
+      "type": "hazard",
+      "title": "Loss of directional control (rain)",
+      "description": "Reduced traction can prevent the product from maintaining the intended travel direction. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-reduced_traction-rain-3"
+      ],
+      "test_ids": [
+        "T-reduced_traction-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-reduced_traction-rain-3",
+      "type": "mitigation",
+      "title": "Reduce motion and stop when directional control cannot be maintained.",
+      "description": "Reduce motion and stop when directional control cannot be maintained. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-reduced_traction-rain-3",
+      "type": "acceptance_test",
+      "title": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained.",
+      "description": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-reduced_traction-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Loss of directional control (reduced visibility)",
+      "description": "Reduced traction can prevent the product from maintaining the intended travel direction. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-reduced_traction-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-reduced_traction-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-reduced_traction-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Reduce motion and stop when directional control cannot be maintained.",
+      "description": "Reduce motion and stop when directional control cannot be maintained. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-reduced_traction-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained.",
+      "description": "Apply reduced traction and verify the product reduces motion and stops when directional control cannot be maintained. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-reduced_traction-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-processing_delay-day_dry-3",
+      "type": "hazard",
+      "title": "Stale motion command execution (day dry)",
+      "description": "Processing delay can cause a motion command to be executed after its safe operating context has changed. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-processing_delay-day_dry-3"
+      ],
+      "test_ids": [
+        "T-processing_delay-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-processing_delay-day_dry-3",
+      "type": "mitigation",
+      "title": "Reject stale motion commands and enter the documented safe state.",
+      "description": "Reject stale motion commands and enter the documented safe state. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-processing_delay-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered.",
+      "description": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-processing_delay-night_dry-3",
+      "type": "hazard",
+      "title": "Stale motion command execution (night dry)",
+      "description": "Processing delay can cause a motion command to be executed after its safe operating context has changed. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-processing_delay-night_dry-3"
+      ],
+      "test_ids": [
+        "T-processing_delay-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-processing_delay-night_dry-3",
+      "type": "mitigation",
+      "title": "Reject stale motion commands and enter the documented safe state.",
+      "description": "Reject stale motion commands and enter the documented safe state. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-processing_delay-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered.",
+      "description": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-processing_delay-rain-3",
+      "type": "hazard",
+      "title": "Stale motion command execution (rain)",
+      "description": "Processing delay can cause a motion command to be executed after its safe operating context has changed. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-processing_delay-rain-3"
+      ],
+      "test_ids": [
+        "T-processing_delay-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-processing_delay-rain-3",
+      "type": "mitigation",
+      "title": "Reject stale motion commands and enter the documented safe state.",
+      "description": "Reject stale motion commands and enter the documented safe state. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-processing_delay-rain-3",
+      "type": "acceptance_test",
+      "title": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered.",
+      "description": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-processing_delay-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Stale motion command execution (reduced visibility)",
+      "description": "Processing delay can cause a motion command to be executed after its safe operating context has changed. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-processing_delay-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-processing_delay-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-processing_delay-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Reject stale motion commands and enter the documented safe state.",
+      "description": "Reject stale motion commands and enter the documented safe state. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-processing_delay-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered.",
+      "description": "Inject processing delay and verify stale motion commands are rejected and the documented safe state is entered. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-processing_delay-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-lidar_failure-day_dry-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian range estimation (day dry)",
+      "description": "Lidar failure can prevent reliable estimation of pedestrian distance. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-lidar_failure-day_dry-3"
+      ],
+      "test_ids": [
+        "T-lidar_failure-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-lidar_failure-day_dry-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian range estimation.",
+      "description": "Stop before continuing without reliable pedestrian range estimation. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-lidar_failure-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation.",
+      "description": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-lidar_failure-night_dry-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian range estimation (night dry)",
+      "description": "Lidar failure can prevent reliable estimation of pedestrian distance. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-lidar_failure-night_dry-3"
+      ],
+      "test_ids": [
+        "T-lidar_failure-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-lidar_failure-night_dry-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian range estimation.",
+      "description": "Stop before continuing without reliable pedestrian range estimation. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-lidar_failure-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation.",
+      "description": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-lidar_failure-rain-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian range estimation (rain)",
+      "description": "Lidar failure can prevent reliable estimation of pedestrian distance. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-lidar_failure-rain-3"
+      ],
+      "test_ids": [
+        "T-lidar_failure-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-lidar_failure-rain-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian range estimation.",
+      "description": "Stop before continuing without reliable pedestrian range estimation. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-lidar_failure-rain-3",
+      "type": "acceptance_test",
+      "title": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation.",
+      "description": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-lidar_failure-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Unavailable pedestrian range estimation (reduced visibility)",
+      "description": "Lidar failure can prevent reliable estimation of pedestrian distance. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-lidar_failure-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-lidar_failure-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-lidar_failure-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Stop before continuing without reliable pedestrian range estimation.",
+      "description": "Stop before continuing without reliable pedestrian range estimation. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-lidar_failure-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation.",
+      "description": "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-lidar_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
     }
   ]
 }

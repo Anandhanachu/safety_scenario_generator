@@ -224,41 +224,62 @@ def choose_models(settings, prefix, selectable=True):
 
 def overview(s):
     runs = s.store.list("run")
-    rows = scenario_register(s.store)
+    latest = runs[0]['payload'] if runs else None
+    rows = scenario_register(s.store, latest['id']) if latest else []
     counts = review_counts(rows)
+    calculated = recalculate(latest, s.store.reviews(latest['id'])) if latest else {}
+    risk_values = [value for value in calculated.values() if value.get('risk_score') is not None]
+    highest = max(risk_values, key=lambda value: value['risk_score']) if risk_values else None
     cols = st.columns(5)
-    follow_up = sum(counts[d] for d in ("revision_requested", "evidence_insufficient", "additional_testing"))
-    for col, label, value in zip(cols, ["AI scenarios proposed", "Accepted", "Rejected", "Pending review", "Needs follow-up"], [counts["proposed"], counts["accepted"], counts["rejected"], counts["pending_review"], follow_up]):
+    system_accepted = sum(value['system_accepted'] for value in calculated.values())
+    system_rejected = sum(value['system_rejected'] for value in calculated.values())
+    included = sum(len(value['included']) for value in calculated.values())
+    for col, label, value in zip(cols,
+        ["Latest run proposals", "Automatic KB accepted", "Automatic KB rejected", "Included in risk", "Current risk"],
+        [counts["proposed"], system_accepted, system_rejected, included,
+         (highest['risk_level'].upper() + f" · {highest['risk_score']}") if highest else "NOT AVAILABLE"]):
         col.metric(label, value)
-    cols = st.columns(4)
-    cols[0].metric("KB records", len(s.dataset().records))
-    cols[1].metric("Validation passed", sum(r["validation_passed"] for r in rows))
-    cols[2].metric("Validation flagged / unparsed", sum(not r["validation_passed"] for r in rows))
-    cols[3].metric("Backends reachable at last check", sum(st.session_state.get(f"reachable_{b}", False) for b in LABELS))
-    st.caption("Scenario totals cover all persisted runs. Each proposal contributes once using its latest human decision. Validation checks do not accept or reject a scenario.")
-    st.markdown('<div class="workflow-band"><span class="workflow-chip">01 · Configure models</span><span class="workflow-chip">02 · Build a scenario</span><span class="workflow-chip">03 · Compare evidence</span><span class="workflow-chip">04 · Record a decision</span></div>', unsafe_allow_html=True)
-    decisions, performance, activity = st.tabs(["Review outcomes", "Model performance", "Recent activity"])
-    with decisions:
+    st.caption("These figures describe the newest saved run, not mixed totals from older implementations. Risk is calculated before engineer review from the included, automatically screened scenarios.")
+    st.markdown('<div class="workflow-band"><span class="workflow-chip">01 · Define operating conditions</span><span class="workflow-chip">02 · Retrieve TF-IDF evidence</span><span class="workflow-chip">03 · AI proposes + KB screens</span><span class="workflow-chip">04 · Rule-based risk</span><span class="workflow-chip">05 · Engineer removes + recalculates</span></div>', unsafe_allow_html=True)
+    current, backends, history = st.tabs(["Current run", "Backend status", "History and performance"])
+    with current:
+        if latest:
+            st.caption(f"Run {latest['id']} · build {latest.get('snapshot', {}).get('implementation_version') or 'historical'} · {latest.get('finished') or latest.get('snapshot', {}).get('created')}")
+            risk_selection_panel(latest, s.store.reviews(latest['id']))
+        else:
+            st.markdown('<div class="empty-panel"><strong>No run yet</strong><p>Build an operating scenario, select a model and run it. TF-IDF evidence, automatic screening and risk will then appear here.</p></div>', unsafe_allow_html=True)
+    with backends:
+        status_rows = []
+        for backend, label in LABELS.items():
+            latest_result = next((run['payload']['results'][backend] for run in runs if backend in run['payload'].get('results', {})), None)
+            successful = next((run['payload']['results'][backend] for run in runs
+                               if backend in run['payload'].get('results', {}) and run['payload']['results'][backend].get('status') == 'completed'), None)
+            status_rows.append({
+                'backend': label,
+                'token / endpoint': 'catalogue connected' if st.session_state.get(f'reachable_{backend}', False) else 'not checked in this session',
+                'inference': 'verified by saved run' if successful else 'not verified',
+                'latest model': latest_result.get('model_id') if latest_result else 'not run',
+                'latest result': latest_result.get('status') if latest_result else 'not run',
+                'latest error': latest_result.get('error', '') if latest_result else '',
+            })
+        st.dataframe(status_rows, use_container_width=True, hide_index=True)
+        st.caption("A configured token or a successful model catalogue request does not prove inference. Only a completed saved run is marked inference verified.")
+    with history:
         a, b = st.columns(2)
         with a:
-            st.subheader("Engineering review pipeline")
-            if rows:
-                st.plotly_chart(review_figure(rows, st.session_state.dark), use_container_width=True)
-            else:
-                st.markdown('<div class="empty-panel"><strong>Your scenario review pipeline starts here</strong><p>Generated proposals will appear with accepted, rejected and pending decisions. No scenarios have been generated yet.</p></div>', unsafe_allow_html=True)
+            st.subheader("All saved engineer decisions")
+            historical_rows = scenario_register(s.store)
+            if historical_rows:
+                st.plotly_chart(review_figure(historical_rows, st.session_state.dark), use_container_width=True)
         with b:
             st.subheader("Knowledge coverage")
             categories = Counter(r.type.replace("_", " ") for r in s.dataset().records)
             figure = px.bar(x=list(categories.values()), y=list(categories), orientation="h", labels={"x":"Records", "y":""}, color_discrete_sequence=["#6366f1"])
             from ui.charts import polish
             st.plotly_chart(polish(figure, st.session_state.dark), use_container_width=True)
-    with performance:
         performance_panel(s)
-    with activity:
         if runs:
             st.dataframe([{"created": r["created"], "run_id": r["id"], "status": r["payload"]["status"], "backends": ", ".join(r["payload"]["results"])} for r in runs[:15]], use_container_width=True)
-        else:
-            st.info("No executions yet. Configure a runtime in Settings, refresh models in Model Studio, then use Scenario Builder.")
 
 
 def performance_panel(s):
@@ -276,13 +297,10 @@ def performance_panel(s):
 
 
 def draft_controls(prefix):
-    mode = st.radio('Generation workflow', ['scenario_drafts', 'record_selection'],
-                    format_func=lambda value: 'AI writes scenarios → KB screening → engineer review' if value == 'scenario_drafts' else 'Record selection (earlier workflow)',
-                    key=f'{prefix}_generation_mode')
-    limit = st.number_input('Maximum distinct scenarios per model', 1, 20, 10, key=f'{prefix}_scenario_limit', disabled=mode != 'scenario_drafts')
-    if mode == 'scenario_drafts':
-        st.caption('AI combines cited hazard, mitigation and test statements. Automatic acceptance requires exact KB description matches and valid links. Unsupported wording and duplicate record combinations are rejected. Coverage, evidence and the token limit determine how many scenarios can be produced.')
-    return {'generation_mode': mode, 'max_scenarios': limit}
+    st.markdown('**Current workflow: AI proposals → automatic KB screening → rule-based risk → engineer review**')
+    limit = st.number_input('Maximum distinct AI scenarios per model', 1, 20, 10, key=f'{prefix}_scenario_limit')
+    st.caption('AI drafts scenarios from retrieved records. Exact citations and links are screened automatically; risk is calculated from accepted scenarios before the engineer removes any unwanted scenarios.')
+    return {'generation_mode': 'scenario_drafts', 'max_scenarios': limit}
 
 
 def risk_selection_panel(run, reviews, backend=None):
@@ -312,7 +330,9 @@ def risk_selection_panel(run, reviews, backend=None):
             for step in value.get('calculation_steps', []):
                 st.write(step)
             if value.get('uncovered_faults'):
-                st.warning(value['coverage_note'] + '. The displayed risk covers the remaining included scenarios only.')
+                suffix = (' No risk is shown because no accepted scenario covers the selected fault.'
+                          if not value['included'] else ' The displayed risk covers the other included scenarios only.')
+                st.warning(value['coverage_note'] + '.' + suffix)
             st.caption('Combined faults use the highest included hazard score. Undocumented interactions do not receive an invented risk multiplier.')
     st.dataframe([{'backend': LABELS.get(key, key), 'proposed': value['proposed'],
                    'system accepted': value['system_accepted'], 'system rejected': value['system_rejected'],
@@ -882,7 +902,7 @@ def benchmark_progress(s):
 
 
 def evaluation_page(s):
-    label_file = 'multi_fault_cases_25.json' if s.dataset().dataset_id == 'multi-fault-draft-120' else 'labelled_cases_25.json'
+    label_file = 'multi_fault_cases_25.json' if s.dataset().dataset_id in {'multi-fault-draft-120', 'multi-fault-draft-180'} else 'labelled_cases_25.json'
     dataset = LabelledDataset.model_validate_json((ROOT / 'data' / label_file).read_bytes())
     st.warning('The 25 labelled cases are preliminary drafts awaiting expert review and dates. Repeated executions do not increase the case count.')
     st.download_button("Download 25-case draft dataset", json_bytes(dataset.model_dump()), "benchmark-draft-25.json")

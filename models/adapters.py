@@ -135,6 +135,41 @@ class Adapter(ABC):
     def generate_scenarios(self, model_id, messages, generation, cancel=None): ...
 
 
+def _text_content(value):
+    """Decode documented Imagine/OpenAI text containers, never binary parts."""
+    if isinstance(value, str):
+        return value if value.strip() else None
+    if not isinstance(value, dict):
+        return None
+    if set(value) == {'String'}:
+        return _text_content(value['String'])
+    if set(value) == {'Vec'} and isinstance(value['Vec'], list) and all(isinstance(v, str) for v in value['Vec']):
+        joined = ''.join(value['Vec'])
+        return joined if joined.strip() else None
+    # ChatDeltaContent may be a Message or an otherwise unconstrained object.
+    if 'content' in value:
+        return _text_content(value['content'])
+    if set(value) == {'Text'} and isinstance(value['Text'], dict):
+        return _text_content(value['Text'].get('text'))
+    if set(value) == {'MultiModal'} and isinstance(value['MultiModal'], list):
+        parts = [_text_content(part) for part in value['MultiModal']]
+        joined = ''.join(part for part in parts if part)
+        return joined if joined.strip() else None
+    return None
+
+
+def _response_shape(data):
+    """Return non-content diagnostics safe to retain in failed run history."""
+    if not isinstance(data, dict):
+        return type(data).__name__
+    choices = data.get('choices')
+    first = choices[0] if isinstance(choices, list) and choices else None
+    keys = sorted(first) if isinstance(first, dict) else []
+    nested = {key: sorted(first[key]) for key in ('message', 'delta')
+              if isinstance(first, dict) and isinstance(first.get(key), dict)}
+    return f"top={sorted(data)}; choice={keys}; nested={nested}"
+
+
 def content_from_response(data, expected_model):
     if not isinstance(data, dict) or data.get("model") != expected_model:
         raise BackendError("Backend returned a missing or inconsistent model identifier")
@@ -144,25 +179,15 @@ def content_from_response(data, expected_model):
             raise BackendError("Model output truncated or filtered; adjust supported generation settings")
         # Imagine OpenAPI documents delta even for its non-streaming response.
         content = None
-        for part in (choice.get('message'), choice.get('delta')):
-            value = part.get('content') if isinstance(part, dict) else None
-            # Imagine's Content schema is a tagged union, unlike a plain
-            # OpenAI string. Only documented text forms are accepted.
-            if isinstance(value, dict):
-                if set(value) == {'String'}:
-                    value = value['String']
-                elif set(value) == {'Vec'} and isinstance(value['Vec'], list) and all(isinstance(v, str) for v in value['Vec']):
-                    value = ''.join(value['Vec'])
-                else:
-                    value = None
-            if isinstance(value, str) and value.strip():
-                content = value
+        for part in (choice.get('message'), choice.get('delta'), choice.get('text')):
+            content = _text_content(part)
+            if content:
                 break
         if not isinstance(content, str) or not content.strip():
             raise ValueError()
         return content
     except (KeyError, IndexError, TypeError, ValueError, AttributeError):
-        raise BackendError("Malformed chat-completion response: missing text content") from None
+        raise BackendError("Malformed chat-completion response: missing text content; " + _response_shape(data)) from None
 
 
 class ChatAdapter(Adapter):
@@ -221,7 +246,16 @@ class QualcommAdapter(ChatAdapter):
     def generate_scenarios(self, model_id, messages, generation, cancel=None):
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled before inference")
-        data = self.request("POST", "/v2/chat/completions", json={"model": model_id, "messages": messages, "stream": False, **generation})
+        # Imagine's published SamplingParams do not include seed. Keep it in
+        # requested settings for fair-run reporting, but do not send an
+        # undocumented field. Greedy decoding is requested explicitly.
+        supported = {key: value for key, value in generation.items() if key in {'temperature', 'max_tokens'}}
+        self.requested_runtime_options = {'do_sample': False}
+        if 'seed' in generation:
+            self.applied_settings['seed'] = 'not supported'
+        data = self.request("POST", "/v2/chat/completions",
+                            json={"model": model_id, "messages": messages, "stream": False,
+                                  **supported, **self.requested_runtime_options})
         self.record_settings(data)
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled locally; hosted inference may have completed and may be billed")

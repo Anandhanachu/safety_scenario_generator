@@ -27,7 +27,7 @@ def test_imagine_catalogue_and_documented_chat():
         if request.method == "GET":
             return httpx.Response(200, json={"chat": ["mock-model"], "embedding": ["mock-embedding"]})
         payload = json.loads(request.content)
-        assert payload["model"] == "mock-model" and payload["stream"] is False
+        assert payload["model"] == "mock-model" and payload["stream"] is False and payload['do_sample'] is False
         return httpx.Response(200, json={"model": "mock-model", "choices": [{"delta": {"content": "{}"}, "finish_reason": "stop"}]})
     adapter = QualcommAdapter("https://aisuite.cirrascale.com/apis", "qualcomm", "test-only", transport=mock_transport(handler))
     assert len(adapter.list_models()) == 2
@@ -51,6 +51,26 @@ def test_imagine_non_text_union_remains_an_error():
     response = {'model': 'test', 'choices': [{'delta': {'content': {'MultiModal': []}}}]}
     with pytest.raises(BackendError, match='missing text content'):
         content_from_response(response, 'test')
+
+
+@pytest.mark.parametrize('choice', [
+    {'delta': {'String': '{"ok":true}'}},
+    {'message': {'content': {'MultiModal': [{'Text': {'text': '{"ok":true}'}}]}}},
+    {'text': '{"ok":true}'},
+])
+def test_imagine_documented_response_variants(choice):
+    response = {'model': 'test', 'choices': [{**choice, 'finish_reason': 'stop'}]}
+    assert content_from_response(response, 'test') == '{"ok":true}'
+
+
+def test_qualcomm_does_not_send_undocumented_seed():
+    def handler(request):
+        payload = json.loads(request.content)
+        assert 'seed' not in payload
+        return httpx.Response(200, json={'model': 'test', 'choices': [{'delta': {'content': '{}'}, 'finish_reason': 'stop'}]})
+    adapter = QualcommAdapter('https://aisuite.cirrascale.com/apis', 'qualcomm', 'token', transport=mock_transport(handler))
+    measured = adapter.generate_with_settings('test', [], {'temperature': 0, 'seed': 42, 'max_tokens': 64})
+    assert measured['applied_settings']['seed'] == 'not supported'
 
 
 @pytest.mark.parametrize("data", [{"data": {}}, {"chat": "bad"}, [], {"chat": [4]}])

@@ -51,7 +51,7 @@ The seed is requested identically from all providers; honoring it and determinis
 ## Out of scope / limitations
 
 Initial fault types: camera_failure, communication_loss, reduced_traction, processing_delay, lidar_failure.
-Initial conditions: day_dry, night_dry, rain, reduced_visibility. Multiple simultaneous faults, other faults and wet-without-rain are outside scope and produce no eligible evidence.
+Initial conditions: day_dry, night_dry, rain, reduced_visibility. One to three of the five supported faults can be selected; other faults and undocumented fault interactions remain outside scope. Wet input conservatively uses the rain evidence bucket.
 
 Risk categories are engineering rankings, not calibrated probabilities. Citation link validity measures record linkage, not truth or real-world safety. Expert attribution is an audit field, not an identity-verification service; KB content and labels still require domain review.
 
