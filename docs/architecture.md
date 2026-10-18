@@ -38,7 +38,7 @@ Streamlit and the authenticated FastAPI API share Pydantic contracts, TF-IDF ret
 | KB upload models | `knowledge_base/core.py`: ConstrainedRecord, ConstrainedDataset |
 | Fixed selection, run result and model metadata | `backend/constrained.py`: Choice, SelectionOutput, ModelDetails, RunResult |
 | Verification, retry and canonical rendering | `backend/constrained.py`: verify_selection, execute, scenario_views |
-| Expert risk lookup and explanation | `risk_engine/calculator.py`: stored_risk |
+| Rule-based risk lookup and explanation | `risk_engine/calculator.py`: stored_risk calculates from KB severity and likelihood before scenario review; pending inputs are labelled provisional |
 | Filtered TF-IDF with scores and timings | `knowledge_base/core.py`: retrieve_with_diagnostics |
 | Labels, baseline and repeated evaluation | `evaluation/labelled.py` |
 | Background jobs and immutable snapshots | `backend/orchestration.py`, `evaluation/benchmark.py` |

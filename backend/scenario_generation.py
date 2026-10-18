@@ -262,13 +262,25 @@ def recalculate(run, reviews=()):
         group['human_review_flags'] = sorted(set(group.get('human_review_flags', [])))
         group['hazard_ids'] = sorted(group['hazard_ids'])
         group['risk'] = {ref: stored_risk(RiskMatrix.model_validate(matrix_data), index.get(ref, {})) for ref in group['hazard_ids']} if matrix_data else {}
-        unresolved = [ref for ref, risk in group['risk'].items() if risk['status'] != 'calculated']
+        unresolved = [ref for ref, risk in group['risk'].items() if risk['risk_score'] is None]
         group['unresolved_hazards'] = unresolved
-        known = [risk for risk in group['risk'].values() if risk['status'] == 'calculated']
+        known = [risk for risk in group['risk'].values() if risk['risk_score'] is not None]
         worst = max(known, key=lambda risk: risk['risk_score']) if known else None
         resolved = bool(worst and not unresolved and matrix_data)
         group['risk_level'] = worst['risk_level'] if resolved else None
         group['risk_score'] = worst['risk_score'] if resolved else None
-        group['status'] = 'calculated' if resolved else 'requires_review' if group['included'] else 'no_included_scenarios'
-        group['explanation'] = 'Worst included hazard from frozen KB expert inputs; repeated hazards counted once. Exclusions change analysis coverage, not physical safety. No scenarios means no risk estimate, not low risk. Citation/support fractions count statement occurrences in included scenarios.'
+        provisional = bool(resolved and any(risk.get('provisional') for risk in known))
+        group['status'] = ('provisional_needs_engineer_review' if provisional else 'calculated') if resolved else 'risk_input_missing' if group['included'] else 'no_included_scenarios'
+        group['engineer_review_required'] = bool(group['included'])
+        group['calculation_steps'] = ([
+            f"Included {len(group['included'])} system-accepted scenario(s) after engineer exclusions.",
+            f"Used {len(group['hazard_ids'])} unique hazard(s); repeated hazards count once.",
+            f"Selected the highest included matrix score: {group['risk_score']} ({group['risk_level']}).",
+        ] if resolved else [
+            'No risk result is available because no scenario remains included.' if not group['included']
+            else 'Risk could not be calculated because at least one included hazard has missing or conflicting KB inputs.'
+        ])
+        group['explanation'] = ('The rule-based system calculates risk before engineer review from KB severity and likelihood. '
+                                'The overall result is the highest risk among included unique hazards. Removing a scenario changes '
+                                'the included hazards and recalculates this result. Engineering ranking, not a calibrated probability.')
     return groups

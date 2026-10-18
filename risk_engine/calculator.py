@@ -1,4 +1,4 @@
-"""Ordinal ranking only. Classifications must be recorded by a human with source evidence."""
+"""Deterministic ordinal risk ranking from knowledge-base inputs."""
 from typing import Literal
 from pydantic import Field, model_validator
 from backend.schemas import Strict
@@ -34,18 +34,25 @@ class Classification(Strict):
 
 
 def stored_risk(matrix: RiskMatrix, record: dict):
-    """New runs use only frozen expert KB inputs; the model cannot classify risk."""
+    """Calculate before scenario review; the model never supplies risk inputs."""
     base = {'severity': record.get('severity'), 'likelihood': record.get('likelihood'), 'risk_score': None,
-            'risk_level': None, 'status': 'requires_review', 'matrix_version': matrix.version,
-            'explanation': 'Missing, conflicting, or unreviewed expert risk inputs. Engineering ranking, not a calibrated probability.'}
+            'risk_level': None, 'status': 'unavailable', 'matrix_version': matrix.version,
+            'provisional': False, 'engineer_review_required': True,
+            'explanation': 'Risk cannot be calculated because severity or likelihood is missing, outside the matrix, or conflicting.'}
     severity, likelihood = base['severity'], base['likelihood']
-    if (severity not in matrix.severity or likelihood not in matrix.likelihood or record.get('risk_conflict')
-            or not record.get('reviewed_by') or record.get('review_status') != 'approved' or record.get('illustrative', True)):
+    if severity not in matrix.severity or likelihood not in matrix.likelihood or record.get('risk_conflict'):
         return base
     score = matrix.values[severity][likelihood]
     level = 'high' if score >= matrix.high_min else 'medium' if score >= matrix.medium_min else 'low'
-    return {**base, 'risk_score': score, 'risk_level': level, 'status': 'requires_review' if matrix.illustrative else 'calculated',
-            'explanation': f"Expert {record['reviewed_by']} stored {severity}, {likelihood} in {record['id']}; matrix {matrix.version}[{severity}][{likelihood}] = {score}; high >= {matrix.high_min}, medium >= {matrix.medium_min}; category {level}. Engineering ranking, not a calibrated probability."}
+    approved = bool(record.get('reviewed_by') and record.get('review_status') == 'approved'
+                    and not record.get('illustrative', True) and not matrix.illustrative)
+    status = 'calculated' if approved else 'provisional_needs_engineer_review'
+    reason = 'approved KB inputs' if approved else 'inputs that are still marked illustrative or pending review'
+    return {**base, 'risk_score': score, 'risk_level': level, 'status': status,
+            'provisional': not approved, 'engineer_review_required': not approved,
+            'explanation': (f"KB record {record.get('id', 'unknown')} stores severity {severity} and likelihood {likelihood}. "
+                            f"Matrix {matrix.version}[{severity}][{likelihood}] = {score}, which is {level}. "
+                            f"This result uses {reason}. It is an engineering ranking, not a calibrated probability.")}
 
 
 def calculate(matrix: RiskMatrix, classification: Classification | None, evidence: list[dict]):

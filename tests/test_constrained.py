@@ -114,9 +114,12 @@ def test_cancel_never_sends(evidence, matrix):
     assert adapter.calls == []
 
 
-def test_expert_risk_only_and_conflicts(kb, matrix):
+def test_kb_risk_is_provisional_until_expert_review_and_conflicts_stay_blank(kb, matrix):
     hazard = kb.records[1].model_dump()
-    assert stored_risk(matrix, hazard)['risk_score'] is None
+    provisional = stored_risk(matrix, hazard)
+    assert provisional['risk_score'] == 6 and provisional['risk_level'] == 'medium'
+    assert provisional['status'] == 'provisional_needs_engineer_review'
+    assert provisional['provisional']
     hazard.update(reviewed_by='TEST-ONLY', review_status='approved', illustrative=False)
     matrix = matrix.model_copy(update={'illustrative': False})
     risk = stored_risk(matrix, hazard)
@@ -137,7 +140,7 @@ def test_baseline_and_all_labels_measured(kb, matrix):
     assert summary['mitigations_precision']['mean'] == 1.0
     assert summary['acceptance_tests_recall']['mean'] == 1.0
     assert summary['insufficient_evidence_correct']['mean'] == 1.0
-    assert summary['risk_category_exact_match_rate']['mean'] == 0.0
+    assert summary['risk_category_exact_match_rate']['mean'] == 1.0
     assert not labels.reviewed
     with pytest.raises(ValueError): evaluate(labels, kb, matrix, repeats=1)
 

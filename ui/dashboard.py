@@ -290,16 +290,34 @@ def risk_selection_panel(run, reviews, backend=None):
         results = {backend: results[backend]} if backend in results else {}
     if not results:
         return
-    st.subheader('Scenarios included in risk calculation')
-    st.caption('System-accepted scenarios start included. Engineer rejection or follow-up excludes them immediately. Risk is the worst included hazard; repeated hazards count once. Automatic acceptance is a text/link check, with separate evidence-review flags.')
+    st.subheader('Risk calculated from accepted scenarios')
+    st.caption('The rule-based system calculates risk immediately from severity and likelihood stored in the knowledge base. AI does not assign risk. Engineer review happens afterward: rejecting or excluding a scenario removes it and recalculates the result.')
+    for key, value in results.items():
+        with st.container(border=True):
+            st.markdown(f"**{LABELS.get(key, key)}**")
+            a, b, c, d = st.columns(4)
+            a.metric('Included scenarios', len(value['included']))
+            b.metric('Engineer excluded', len(value['engineer_excluded']))
+            c.metric('Overall risk', (value['risk_level'] or 'not available').upper())
+            d.metric('Risk score', value['risk_score'] if value['risk_score'] is not None else 'not available')
+            if value['status'] == 'provisional_needs_engineer_review':
+                st.warning('Provisional risk is available now. Complete the engineer review below and remove any unwanted scenarios; the result will recalculate automatically.')
+            elif value['status'] == 'risk_input_missing':
+                st.error('Risk cannot be calculated because severity or likelihood is missing or conflicting in the knowledge base.')
+            elif value['status'] == 'no_included_scenarios':
+                st.info('No scenarios remain in the calculation. This means no risk result, not low risk.')
+            else:
+                st.success('Risk calculated from approved knowledge-base inputs.')
+            for step in value.get('calculation_steps', []):
+                st.write(step)
     st.dataframe([{'backend': LABELS.get(key, key), 'proposed': value['proposed'],
                    'system accepted': value['system_accepted'], 'system rejected': value['system_rejected'],
                    'engineer excluded': len(value['engineer_excluded']), 'included scenarios': len(value['included']),
                    'unique hazards': len(value['hazard_ids']), 'risk': value['risk_level'] or 'unassigned',
                    'citation validity': value['citation_link_validity'], 'reviewed support': value['reviewed_support_rate'],
-                   'score': value['risk_score'], 'status': value['status']} for key, value in results.items()],
+                   'score': value['risk_score'], 'status': value['status'].replace('_', ' ')} for key, value in results.items()],
                  use_container_width=True, hide_index=True)
-    with st.expander('Included scenario IDs, exclusions and calculation steps'):
+    with st.expander('Technical details: included IDs, exclusions and KB risk records'):
         st.json(results)
 
 
@@ -339,6 +357,8 @@ def register_page(s):
                         "type": record.get("type"),
                         "title": record.get("title"),
                         "tfidf_score": item.get("score"),
+                        "severity": record.get("severity") or "not applicable",
+                        "likelihood": record.get("likelihood") or "not applicable",
                         "record_review": record.get("review_status"),
                         "expert_support": record.get("expert_support_review", "not_reviewed"),
                         "reviewed_by": record.get("reviewed_by") or "not reviewed",
@@ -417,7 +437,7 @@ def register_page(s):
                     scoped_row = next((row for row in rows if row["run_id"] == saved["id"] and row["review_scope"] == entry["scope"]), None)
                     current = scoped_row["decision"] if scoped_row else "pending_review"
                     st.markdown(f"**Reviewing:** {LABELS.get(selected_backend, selected_backend)} · {selected_result.get('model_id', 'unrecorded')} · {entry['scope']}")
-                    st.caption(f"Current decision: {current.replace('_', ' ')}. Acceptance is available only after all technical and evidence-review flags are resolved.")
+                    st.caption(f"Current decision: {current.replace('_', ' ')}. The provisional risk below is calculated before this review. Reject or request follow-up to remove this scenario from the calculation; the result updates immediately.")
                     reviewer = st.text_input("Engineer / reviewer name", key=f"register_reviewer_{saved['id']}_{entry['scope']}")
                     decisions = [d for d in DECISIONS if d != "pending_review" and (d != "accepted" or (entry["schema_valid"] and entry['candidate'].get('system_decision') != 'rejected' and not entry["candidate"].get("needs_human_review")))]
                     decision = st.selectbox("Engineering decision", decisions, format_func=lambda value: value.replace("_", " ").title(), key=f"register_decision_{saved['id']}_{entry['scope']}")
