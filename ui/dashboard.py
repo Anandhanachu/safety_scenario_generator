@@ -22,7 +22,7 @@ from backend.constrained import FAULT_LABELS, LIMITATIONS
 from backend.scenario_generation import recalculate
 from knowledge_base.core import Dataset, ConstrainedDataset, parse_upload, retrieve, retrieve_with_diagnostics
 from knowledge_base.benchmark import benchmark_retrieval
-from ui.charts import review_figure, latency_figure, validation_figure, outcome_figure
+from ui.charts import review_figure, latency_figure, validation_figure, outcome_figure, unified_benchmark_figure
 from models.adapters import BackendError, discover_files, make_adapter
 from reporting.exports import comparison_rows, csv_bytes, json_bytes, report
 from reporting.exports import experiment_report, experiment_csv
@@ -33,7 +33,8 @@ from simulation.engine import SimulationInput, simulate
 
 LABELS = {"laptop_local": "Laptop local", "qualcomm": "Qualcomm cloud", "uno_q": "Arduino UNO Q"}
 ALL_BACKENDS = "all_backends"
-PAGES = ["Overview", "Scenario Builder", "Model Studio", "Model Comparison", "Scenario Register", "Knowledge Base", "Risk Analysis", "Test Simulation", "Evaluation and Benchmarks", "Reports and History", "Device Control", "Settings"]
+PAGES = ["Overview", "Scenario Builder", "Model Studio", "Model Comparison", "Scenario Register", "Knowledge Base", "Risk Analysis", "Evaluation and Benchmarks", "Reports and History", "Device Control", "Settings"]
+
 
 
 @st.cache_resource
@@ -43,60 +44,70 @@ def services():
 
 
 def theme(dark):
-    bg, surface, text, muted, border = ("#101827", "#182235", "#e5edf8", "#adbdd3", "#34445d") if dark else ("#f5f7fb", "#ffffff", "#17233b", "#52627a", "#dbe2ee")
-    sidebar_surface, sidebar_text, sidebar_hover, sidebar_selected = (("#111c32", "#d8e2f3", "#213352", "#33467b") if dark
-                                                                  else ("#ffffff", "#17233b", "#eef2ff", "#e0e7ff"))
+    bg, surface, text, muted, border = ("#0f172a", "#1e293b", "#f1f5f9", "#94a3b8", "#334155") if dark else ("#f6f8fc", "#ffffff", "#0f172a", "#64748b", "#e2e8f0")
+    sidebar_surface, sidebar_text, sidebar_hover, sidebar_selected = (("#0b1120", "#cbd5e1", "#1e293b", "#334155") if dark
+                                                                  else ("#ffffff", "#0f172a", "#f1f5f9", "#e2e8f0"))
     st.markdown(f"""<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    html, body, [class*="css"], .stApp {{ font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }}
     .stApp, [data-testid="stAppViewContainer"] {{ background:{bg}; color:{text}; }}
-    [data-testid="stHeader"], [data-testid="stSidebar"] {{ background:{surface}; color:{text}; }}
+    [data-testid="stHeader"], [data-testid="stSidebar"] {{ background:{sidebar_surface}; color:{sidebar_text}; }}
     [data-testid="stSidebar"] {{ border-right:1px solid {border}; }}
-    .block-container {{ padding-top:2rem; max-width:1600px; }}
+    .block-container {{ padding-top:1.5rem; max-width:1500px; }}
     [data-testid="stSidebar"] {{background:{sidebar_surface}!important;}}
     [data-testid="stSidebar"] p, [data-testid="stSidebar"] h3, [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {{color:{sidebar_text}!important;}}
-    [data-testid="stSidebar"] [role="radiogroup"] label {{padding:6px 10px;border-radius:8px;transition:background .15s;}}
+    [data-testid="stSidebar"] [role="radiogroup"] label {{padding:6px 12px;border-radius:12px;font-size:13px;font-weight:500;transition:all .15s;}}
     [data-testid="stSidebar"] [role="radiogroup"] label:hover {{background:{sidebar_hover};}}
-    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{background:{sidebar_selected};}}
-    .backend-status {{display:block;font-size:12px;margin:7px 0 3px;line-height:1.45;}}
-    .status-dot {{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;}}
-    .status-good {{color:#15803d!important;}} .status-good .status-dot {{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);}}
-    .status-warn {{color:#a16207!important;}} .status-warn .status-dot {{background:#f59e0b;}}
+    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{background:{sidebar_selected};font-weight:600;}}
+    .backend-status {{display:block;font-size:11px;margin:5px 0 2px;line-height:1.4;}}
+    .status-dot {{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;}}
+    .status-good {{color:#16a34a!important;font-weight:600;}} .status-good .status-dot {{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);}}
+    .status-warn {{color:#d97706!important;font-weight:600;}} .status-warn .status-dot {{background:#f59e0b;}}
     .status-neutral {{color:{muted}!important;}} .status-neutral .status-dot {{background:#94a3b8;}}
-    .workspace-hero {{border:1px solid {border};border-left:5px solid #6366f1;background:{surface};border-radius:16px;padding:25px 28px;margin-bottom:24px;}}
-    .workspace-hero h1 {{margin:6px 0 8px!important;font-size:2.15rem!important;}}
-    .workspace-hero p {{color:{muted};margin:0;max-width:850px;line-height:1.6;}}
-    .eyebrow {{font-size:11px;letter-spacing:2px;font-weight:700;color:#818cf8;text-transform:uppercase;}}
-    .workflow-band {{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0 24px;}}
-    .workflow-chip {{border:1px solid {border};border-radius:24px;background:{surface};padding:8px 15px;font-size:12px;color:{muted};}}
-    .empty-panel {{background:{surface};border:1px dashed {border};border-radius:14px;padding:32px 26px;margin:12px 0;min-height:200px;}}
-    .empty-panel strong {{font-size:17px;color:{text};display:block;margin-bottom:10px;}}
-    .empty-panel p {{color:{muted};font-size:14px;line-height:1.7;}}
-    [data-testid="stMetric"] {{border-top:3px solid #6366f1!important;box-shadow:0 5px 20px rgba(15,23,42,.035);}}
-    [data-testid="stMetricValue"] {{font-weight:650;letter-spacing:-.04em;}}
-    [data-testid="stTabs"] [role="tablist"] {{gap:16px;border-bottom:1px solid {border};}}
-    h1 {{ font-size:2rem!important; letter-spacing:-.03em; }}
-    h2 {{ font-size:1.35rem!important; }}
-    h1,h2,h3,p,label, [data-testid="stMarkdownContainer"], [data-testid="stWidgetLabel"] {{ color:{text}; }}
-    [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {{color:{muted}!important;opacity:1!important;}}
-    [data-testid="stMetric"], [data-testid="stExpander"], [data-testid="stForm"] {{background:{surface}; border:1px solid {border}; border-radius:12px; padding:14px;}}
-    [data-testid="stMetricValue"] {{font-size:1.8rem; color:{text};}}
-    [data-testid="stMetricLabel"] {{height:auto;min-height:2.5rem;}}
+    .workspace-hero {{border:1px solid {border};background:{surface};border-radius:20px;padding:18px 24px;margin-bottom:20px;box-shadow:0 2px 12px rgba(15,23,42,0.03);}}
+    .workspace-hero h1 {{margin:4px 0 6px!important;font-size:1.45rem!important;font-weight:700!important;letter-spacing:-0.02em;}}
+    .workspace-hero p {{color:{muted};margin:0;font-size:13px;max-width:850px;line-height:1.5;}}
+    .eyebrow {{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#6366f1;text-transform:uppercase;}}
+    .workflow-band {{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 20px;}}
+    .workflow-chip {{border:1px solid {border};border-radius:9999px;background:{surface};padding:6px 14px;font-size:11.5px;color:{muted};font-weight:500;}}
+    .empty-panel {{background:{surface};border:1px dashed {border};border-radius:16px;padding:28px 22px;margin:10px 0;min-height:180px;}}
+    .empty-panel strong {{font-size:15px;color:{text};display:block;margin-bottom:8px;}}
+    .empty-panel p {{color:{muted};font-size:13px;line-height:1.6;}}
+    [data-testid="stMetric"] {{background:{surface}!important;border:1px solid {border}!important;border-radius:16px!important;padding:12px 16px!important;box-shadow:0 2px 8px rgba(15,23,42,0.025);}}
+    [data-testid="stMetricValue"] {{font-weight:700!important;font-size:1.35rem!important;color:{text}!important;letter-spacing:-0.02em;}}
+    [data-testid="stMetricLabel"] {{height:auto;min-height:1.3rem;font-size:0.75rem!important;font-weight:600!important;text-transform:uppercase;letter-spacing:0.04em;color:{muted}!important;}}
     [data-testid="stMetricLabel"] * {{white-space:normal!important;text-overflow:clip!important;overflow:visible!important;}}
-    @media (min-width:641px) and (max-width:1100px) {{
-      [data-testid="stHorizontalBlock"] {{flex-wrap:wrap;}}
-      [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {{flex:1 1 220px!important;min-width:220px!important;width:auto!important;}}
-    }}
+    h1 {{ font-size:1.45rem!important; letter-spacing:-0.02em; font-weight:700!important; }}
+    h2 {{ font-size:1.2rem!important; font-weight:650!important; letter-spacing:-0.01em; }}
+    h3 {{ font-size:1.05rem!important; font-weight:600!important; }}
+    h4 {{ font-size:0.95rem!important; font-weight:600!important; }}
+    h1,h2,h3,h4,p,label, [data-testid="stMarkdownContainer"], [data-testid="stWidgetLabel"] {{ color:{text}; }}
+    [data-testid="stCaptionContainer"], [data-testid="stCaptionContainer"] p {{color:{muted}!important;opacity:1!important;font-size:12px;}}
+    [data-testid="stExpander"], [data-testid="stForm"] {{background:{surface}; border:1px solid {border}; border-radius:16px; padding:14px;}}
+    [data-testid="stTabs"] [role="tablist"] {{gap:10px;border-bottom:1px solid {border};padding-bottom:6px;}}
+    [data-testid="stTabs"] [role="tab"] {{border-radius:9999px;padding:6px 14px;font-size:13px;font-weight:500;}}
+    .eye-mode-btn {{display:block;width:100%;text-align:center;padding:14px;border-radius:18px;background:{surface};border:1.5px solid {border};cursor:pointer;transition:all .2s ease;}}
+    .eye-mode-btn:hover {{border-color:#6366f1;box-shadow:0 4px 16px rgba(99,102,241,0.08);}}
+    .eye-mode-active {{border:2px solid #6366f1!important;background:{surface}!important;box-shadow:0 4px 18px rgba(99,102,241,0.12)!important;}}
+    .pill-badge {{display:inline-flex;align-items:center;border-radius:9999px;padding:3px 10px;font-size:11px;font-weight:600;}}
+    .pill-cloud {{background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;}}
+    .pill-uno {{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}}
+    .pill-local {{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}}
+    .pill-risk-high {{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}}
+    .pill-risk-med {{background:#fffbeb;color:#b45309;border:1px solid #fde68a;}}
+    .pill-risk-low {{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}}
+    .risk-meter-bg {{width:100%;height:8px;background:#e2e8f0;border-radius:9999px;overflow:hidden;margin:6px 0;}}
+    .risk-meter-fill-high {{height:100%;background:linear-gradient(90deg, #f87171, #ef4444);border-radius:9999px;}}
+    .risk-meter-fill-med {{height:100%;background:linear-gradient(90deg, #fbbf24, #f59e0b);border-radius:9999px;}}
+    .risk-meter-fill-low {{height:100%;background:linear-gradient(90deg, #4ade80, #10b981);border-radius:9999px;}}
+    [data-baseweb="select"]>div, [data-baseweb="input"], [data-baseweb="textarea"], textarea, input {{background:{surface}!important;color:{text}!important;border-radius:12px!important;}}
+    button[kind="secondary"], button[kind="primary"] {{border-radius:12px!important;font-size:13px!important;font-weight:600!important;}}
     @media (max-width:640px) {{
-      .workspace-hero {{padding:18px;margin-bottom:18px;}}
-      .workspace-hero h1 {{font-size:1.7rem!important;}}
-      [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) {{flex-direction:row!important;flex-wrap:wrap!important;}}
-      [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) > [data-testid="stColumn"] {{flex:1 1 42%!important;width:42%!important;min-width:120px!important;}}
-      [data-testid="stMetricLabel"] {{min-height:1.5rem;}}
-      [data-testid="stMetricValue"] {{font-size:1.5rem;}}
+      .workspace-hero {{padding:14px;margin-bottom:14px;}}
+      .workspace-hero h1 {{font-size:1.25rem!important;}}
+      [data-testid="stMetricValue"] {{font-size:1.2rem!important;}}
     }}
-    [data-baseweb="select"]>div, [data-baseweb="input"], [data-baseweb="textarea"], textarea, input {{background:{surface}!important;color:{text}!important;}}
-    button[kind="secondary"] {{background:{surface};color:{text};border-color:{border};}}
-    [data-testid="stAlert"] p {{ color:{text}; }}
     </style>""", unsafe_allow_html=True)
 
 
@@ -311,13 +322,23 @@ def risk_selection_panel(run, reviews, backend=None):
     st.subheader('Risk calculated from accepted scenarios')
     st.caption('The rule-based system calculates risk immediately from severity and likelihood stored in the knowledge base. AI does not assign risk. Engineer review happens afterward: rejecting or excluding a scenario removes it and recalculates the result.')
     for key, value in results.items():
+        score_val = value.get('risk_score')
+        score_100 = min(100, round((float(score_val) / 9.0) * 100)) if score_val is not None else None
+        score_display = f"{score_100} / 100" if score_100 is not None else 'N/A'
+        risk_lvl = (value['risk_level'] or 'not available').upper()
+        fill_cls = "risk-meter-fill-high" if score_100 and score_100 >= 66 else ("risk-meter-fill-med" if score_100 and score_100 >= 36 else "risk-meter-fill-low")
+        meter_pct = score_100 if score_100 is not None else 0
+
         with st.container(border=True):
             st.markdown(f"**{LABELS.get(key, key)}**")
             a, b, c, d = st.columns(4)
             a.metric('Included scenarios', len(value['included']))
             b.metric('Engineer excluded', len(value['engineer_excluded']))
-            c.metric('Overall risk', (value['risk_level'] or 'not available').upper())
-            d.metric('Risk score', value['risk_score'] if value['risk_score'] is not None else 'not available')
+            c.metric('Overall risk', risk_lvl)
+            d.metric('Risk Score (/100)', score_display)
+            if score_100 is not None:
+                st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{meter_pct}%;"></div></div>', unsafe_allow_html=True)
+
             if value['status'] == 'provisional_needs_engineer_review':
                 st.warning('Provisional risk is available now. Complete the engineer review below and remove any unwanted scenarios; the result will recalculate automatically.')
             elif value['status'] == 'risk_input_missing':
@@ -338,7 +359,8 @@ def risk_selection_panel(run, reviews, backend=None):
                    'engineer excluded': len(value['engineer_excluded']), 'included scenarios': len(value['included']),
                    'unique hazards': len(value['hazard_ids']), 'risk': value['risk_level'] or 'unassigned',
                    'citation validity': value['citation_link_validity'], 'reviewed support': value['reviewed_support_rate'],
-                   'score': value['risk_score'], 'status': value['status'].replace('_', ' ')} for key, value in results.items()],
+                   'score (/100)': f"{min(100, round((float(value['risk_score'])/9.0)*100))}/100" if value['risk_score'] is not None else 'N/A',
+                   'status': value['status'].replace('_', ' ')} for key, value in results.items()],
                  use_container_width=True, hide_index=True)
     with st.expander('Technical details: included IDs, exclusions and KB risk records'):
         st.json(results)
@@ -375,19 +397,47 @@ def register_page(s):
         ("uno_q", "Arduino UNO Q", "⚡"),
     ]
 
-    mode_tabs = st.tabs([f"{icon} {label}" for _, label, icon in modes])
-
     # Current reviews and recalculated risks
     reviews = s.store.reviews(run_id)
     calculated_risk = recalculate(run, reviews)
 
+    # 1. Eye-Catching Summary Cards Across All 3 Modes
+    st.write("")
+    c1, c2, c3 = st.columns(3)
+    card_cols = {"qualcomm": c1, "laptop_local": c2, "uno_q": c3}
+
+    for backend, label, icon in modes:
+        col = card_cols[backend]
+        res = results.get(backend)
+        b_scenarios = res.get("scenarios", []) if res else []
+        b_eval = calculated_risk.get(backend, {})
+        b_risk = (b_eval.get("risk_level") or ("NO DATA" if not res else "EXCLUDED")).upper()
+        b_score = b_eval.get("risk_score")
+        b_score_100 = min(100, round((float(b_score) / 9.0) * 100)) if b_score is not None else None
+
+        with col:
+            with st.container(border=True):
+                st.markdown(f"**{icon} {label}**")
+                if res:
+                    st.caption(f"{res.get('status', 'unknown').title()} · {len(b_scenarios)} proposed")
+                    risk_badge_cls = "pill-risk-high" if b_score_100 and b_score_100 >= 66 else ("pill-risk-med" if b_score_100 and b_score_100 >= 36 else "pill-risk-low")
+                    score_txt = f"{b_score_100}/100" if b_score_100 is not None else "N/A"
+                    st.markdown(f'<span class="pill-badge {risk_badge_cls}">Risk: {b_risk} ({score_txt})</span>', unsafe_allow_html=True)
+                else:
+                    st.caption("Not executed in this run")
+                    st.markdown('<span class="pill-badge pill-slate">Not Run</span>', unsafe_allow_html=True)
+
+    st.write("")
+
+    # 2. Eye-Catching Styled Tabs for Each Mode
+    mode_tabs = st.tabs([f"{icon} {label}" for _, label, icon in modes])
     all_export_scenarios = []
 
     for tab, (backend, label, icon) in zip(mode_tabs, modes):
         with tab:
             result = results.get(backend)
             if not result:
-                st.info(f"**{label}** was not executed in this run.")
+                st.info(f"**{label}** was not executed in this run. Run inference in Scenario Builder to inspect scenarios.")
                 continue
 
             status = result.get("status", "unknown")
@@ -417,20 +467,26 @@ def register_page(s):
 
             risk_level = (mode_eval.get("risk_level") or "NO INCLUDED SCENARIOS").upper()
             risk_score = mode_eval.get("risk_score")
+            risk_score_100 = min(100, round((float(risk_score) / 9.0) * 100)) if risk_score is not None else None
+            fill_cls = "risk-meter-fill-high" if risk_score_100 and risk_score_100 >= 66 else ("risk-meter-fill-med" if risk_score_100 and risk_score_100 >= 36 else "risk-meter-fill-low")
+            meter_pct = risk_score_100 if risk_score_100 is not None else 0
 
             # Risk Summary Card
             with st.container(border=True):
-                st.markdown(f"**{icon} {label} — Recalculated Risk Evaluation**")
+                st.markdown(f"**{icon} {label} — Recalculated Safety Risk Evaluation**")
                 r1, r2, r3, r4 = st.columns(4)
                 r1.metric("Overall Risk", risk_level)
-                r2.metric("Risk Score", risk_score if risk_score is not None else "—")
+                r2.metric("Risk Score (/100)", f"{risk_score_100} / 100" if risk_score_100 is not None else "—")
                 r3.metric("Included Scenarios", len(included_scopes))
                 r4.metric("Excluded Scenarios", len(excluded_scopes))
+
+                if risk_score_100 is not None:
+                    st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{meter_pct}%;"></div></div>', unsafe_allow_html=True)
 
                 for step in mode_eval.get("calculation_steps", []):
                     st.caption(f"• {step}")
 
-            st.markdown("#### Proposed Scenarios")
+            st.markdown(f"#### Proposed Scenarios ({len(scenarios)})")
 
             for i, sc in enumerate(scenarios, 1):
                 scenario_id = sc.get("scenario_id", f"DRAFT-{i}")
@@ -446,7 +502,8 @@ def register_page(s):
                 risk_assess = sc.get("risk_assessments", {})
                 sc_risk = risk_assess.get(hazard_id, {}) if hazard_id else {}
                 sc_level = (sc_risk.get("risk_level") or "unknown").upper()
-                sc_score = sc_risk.get("risk_score", "—")
+                raw_sc_score = sc_risk.get("risk_score")
+                sc_score_100 = min(100, round((float(raw_sc_score) / 9.0) * 100)) if isinstance(raw_sc_score, (int, float)) else "—"
                 sc_sev = sc_risk.get("severity", "—")
                 sc_lik = sc_risk.get("likelihood", "—")
 
@@ -459,7 +516,7 @@ def register_page(s):
                     "hazard_id": hazard_id or "",
                     "severity": sc_sev,
                     "likelihood": sc_lik,
-                    "risk_score": sc_score,
+                    "risk_score_100": sc_score_100,
                     "risk_level": sc_level,
                     "narrative": sc.get("scenario_narrative", ""),
                 })
@@ -470,7 +527,7 @@ def register_page(s):
                         title_text = sc.get("title", "Untitled scenario")
                         badge = "🔴 [EXCLUDED]" if is_excluded else "🟢 [INCLUDED IN RISK]"
                         st.markdown(f"**{badge} {scenario_id}: {title_text}**")
-                        st.caption(f"Risk: **{sc_level}** (Score: {sc_score} · Severity: {sc_sev} · Likelihood: {sc_lik})")
+                        st.caption(f"Risk: **{sc_level}** (Score: {sc_score_100}/100 · Severity: {sc_sev} · Likelihood: {sc_lik})")
 
                     with col_action:
                         if is_excluded:
@@ -535,6 +592,8 @@ def register_page(s):
             )
         else:
             st.button("📥 Export Scenarios & Decisions (CSV)", disabled=True, use_container_width=True)
+
+
 
 
 def scenario_builder(s):
@@ -724,15 +783,21 @@ def scenario_builder(s):
 
                 risk_level = (mode_eval.get("risk_level") or ("NO INCLUDED SCENARIOS" if excluded_scopes else "CALCULATING")).upper()
                 risk_score = mode_eval.get("risk_score")
+                risk_score_100 = min(100, round((float(risk_score) / 9.0) * 100)) if risk_score is not None else None
+                fill_cls = "risk-meter-fill-high" if risk_score_100 and risk_score_100 >= 66 else ("risk-meter-fill-med" if risk_score_100 and risk_score_100 >= 36 else "risk-meter-fill-low")
+                meter_pct = risk_score_100 if risk_score_100 is not None else 0
 
                 # Risk Summary Box
                 with st.container(border=True):
                     st.markdown(f"**Safety Risk Evaluation (Recalculated)**")
                     rk1, rk2, rk3, rk4 = st.columns(4)
                     rk1.metric("Overall Risk", risk_level)
-                    rk2.metric("Risk Score", risk_score if risk_score is not None else "—")
+                    rk2.metric("Risk Score (/100)", f"{risk_score_100} / 100" if risk_score_100 is not None else "—")
                     rk3.metric("Included Scenarios", len(included_scopes))
                     rk4.metric("Excluded Scenarios", len(excluded_scopes))
+
+                    if risk_score_100 is not None:
+                        st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{meter_pct}%;"></div></div>', unsafe_allow_html=True)
 
                     for step in mode_eval.get("calculation_steps", []):
                         st.caption(f"• {step}")
@@ -755,7 +820,8 @@ def scenario_builder(s):
                     risk_assess = sc.get("risk_assessments", {})
                     sc_risk = risk_assess.get(hazard_id, {}) if hazard_id else {}
                     sc_level = (sc_risk.get("risk_level") or "unknown").upper()
-                    sc_score = sc_risk.get("risk_score", "—")
+                    raw_sc_score = sc_risk.get("risk_score")
+                    sc_score_100 = min(100, round((float(raw_sc_score) / 9.0) * 100)) if isinstance(raw_sc_score, (int, float)) else "—"
                     sc_sev = sc_risk.get("severity", "—")
                     sc_lik = sc_risk.get("likelihood", "—")
 
@@ -766,7 +832,7 @@ def scenario_builder(s):
                         "status": "Excluded" if is_excluded else "Included",
                         "severity": sc_sev,
                         "likelihood": sc_lik,
-                        "risk_score": sc_score,
+                        "risk_score_100": sc_score_100,
                         "risk_level": sc_level,
                     })
 
@@ -776,7 +842,7 @@ def scenario_builder(s):
                             title_text = sc.get("title", "Untitled scenario")
                             badge = "🔴 [EXCLUDED]" if is_excluded else "🟢 [INCLUDED IN RISK]"
                             st.markdown(f"**{badge} {scenario_id}: {title_text}**")
-                            st.caption(f"Risk: **{sc_level}** (Score: {sc_score} · Severity: {sc_sev} · Likelihood: {sc_lik})")
+                            st.caption(f"Risk: **{sc_level}** (Score: {sc_score_100}/100 · Severity: {sc_sev} · Likelihood: {sc_lik})")
                         with top_right:
                             if is_excluded:
                                 if st.button("↩️ Re-include Scenario", key=f"gen_reinc_{selected_backend}_{scenario_id}_{i}"):
@@ -964,7 +1030,8 @@ def comparison(s):
             identity = st.selectbox("Saved run for graphical comparison", [r["id"] for r in saved_runs])
             run = s.store.get(identity)["payload"]
             measured = comparison_rows(run)
-            st.caption("Matched inputs, evidence and risk policy within this run. Milliseconds are actual measurements; a fast failure is not a successful generation.")
+            st.caption("Matched inputs, evidence and risk policy within this run. Compare all 3 modes across latency, safety risk, and validity.")
+            st.plotly_chart(unified_benchmark_figure(measured, st.session_state.dark), use_container_width=True, key="matched_unified_benchmark")
             a, b = st.columns(2)
             a.plotly_chart(latency_figure(measured, st.session_state.dark), use_container_width=True, key="matched_latency")
             b.plotly_chart(validation_figure(measured, st.session_state.dark), use_container_width=True, key="matched_validation")
@@ -1100,10 +1167,82 @@ def risk_analysis(s):
     run = select_run(s, "risk")
     if not run:
         return
-    if run['snapshot'].get('prompt_version') == '3.0-scenario-drafts':
-        risk_selection_panel(run, s.store.reviews(run['id']))
-        st.info('Exclude or reject scenarios in Scenario Register → Engineer decision. These results recalculate from the latest decisions.')
-        return
+
+    reviews = s.store.reviews(run['id'])
+    results = recalculate(run, reviews)
+
+    st.markdown("### Safety Risk Analysis (Scale: 0 – 100)")
+    st.caption("Deterministic, rule-based risk calculated from frozen knowledge-base severity and likelihood. Standardized to a 100-point scale for comparative engineering audits.")
+
+    # 1. Comparative 3-Mode Risk Cards
+    modes_meta = [
+        ("qualcomm", "Qualcomm Cloud", "☁️"),
+        ("laptop_local", "Laptop Local", "💻"),
+        ("uno_q", "Arduino UNO Q", "⚡"),
+    ]
+
+    rc1, rc2, rc3 = st.columns(3)
+    cols_map = {"qualcomm": rc1, "laptop_local": rc2, "uno_q": rc3}
+
+    for b, label, icon in modes_meta:
+        col = cols_map[b]
+        b_res = results.get(b)
+        with col:
+            with st.container(border=True):
+                st.markdown(f"**{icon} {label}**")
+                if b_res and b_res.get('included'):
+                    raw_sc = b_res.get('risk_score')
+                    sc_100 = min(100, round((float(raw_sc) / 9.0) * 100)) if raw_sc is not None else 0
+                    lvl = (b_res.get('risk_level') or "unassigned").upper()
+                    fill_cls = "risk-meter-fill-high" if sc_100 >= 66 else ("risk-meter-fill-med" if sc_100 >= 36 else "risk-meter-fill-low")
+                    badge_cls = "pill-risk-high" if sc_100 >= 66 else ("pill-risk-med" if sc_100 >= 36 else "pill-risk-low")
+
+                    st.markdown(f'<span class="pill-badge {badge_cls}">{lvl} · {sc_100} / 100</span>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{sc_100}%;"></div></div>', unsafe_allow_html=True)
+
+                    c_a, c_b = st.columns(2)
+                    c_a.caption(f"Included: **{len(b_res['included'])}**")
+                    c_b.caption(f"Excluded: **{len(b_res['engineer_excluded'])}**")
+                elif b_res and b_res.get('engineer_excluded'):
+                    st.caption("All proposed scenarios excluded")
+                    st.markdown('<span class="pill-badge pill-slate">No Active Scenarios</span>', unsafe_allow_html=True)
+                else:
+                    st.caption("Mode not evaluated in this run")
+                    st.markdown('<span class="pill-badge pill-slate">Not Run</span>', unsafe_allow_html=True)
+
+    st.write("")
+
+    # 2. Detailed Recalculated Risk Panel
+    risk_selection_panel(run, reviews)
+
+    # 3. Comprehensive Hazard Risk Traceability Table
+    all_hazards = []
+    for b_key, b_val in results.items():
+        mode_label = LABELS.get(b_key, b_key)
+        risk_map = b_val.get('risk', {})
+        for hid in b_val.get('hazard_ids', []):
+            h_info = risk_map.get(hid, {})
+            raw_h_score = h_info.get('risk_score')
+            h_score_100 = min(100, round((float(raw_h_score) / 9.0) * 100)) if raw_h_score is not None else None
+            all_hazards.append({
+                "mode": mode_label,
+                "hazard_id": hid,
+                "severity": h_info.get('severity', '—'),
+                "likelihood": h_info.get('likelihood', '—'),
+                "raw_matrix_score": raw_h_score if raw_h_score is not None else "—",
+                "risk_score_100": f"{h_score_100} / 100" if h_score_100 is not None else "—",
+                "risk_level": (h_info.get('risk_level') or 'unknown').upper(),
+                "status": "Included in Calculation",
+            })
+
+    if all_hazards:
+        st.write("")
+        st.subheader("Traceable Hazard Risk Matrix (0 – 100 Scale)")
+        st.caption("Individual hazards identified from approved knowledge-base inputs, mapped through the active risk matrix and scaled out of 100.")
+        st.dataframe(all_hazards, use_container_width=True, hide_index=True)
+
+    st.info("💡 **Dynamic Risk Control**: Rejecting or excluding any scenario in **Scenario Register** or **Scenario Builder** immediately recalculates the 0–100 safety risk score in real time.")
+    return
     entries = {f"{b}:{scenario['scenario_id']}:{h['hazard_id']}": (scenario, h) for b, result in run["results"].items() for scenario in result.get("scenarios", []) for h in scenario["hazards"]}
     if not entries:
         st.info("This run has no parsed hazards")
@@ -1185,6 +1324,22 @@ def benchmark_progress(s):
 
 
 def evaluation_page(s):
+    # Unified 3-Mode Performance Benchmark from Latest Run
+    saved_runs = s.store.list("run", 10)
+    if saved_runs:
+        st.subheader("Unified 3-Mode Benchmark Comparison")
+        st.caption("Direct visual comparison of Qualcomm Cloud, Arduino UNO Q, and Laptop Local across Latency, Safety Risk (out of 100), and Valid Scenarios in a single graph.")
+        sel_run_id = st.selectbox(
+            "Select Run for 3-Mode Graphical Benchmark",
+            [r["id"] for r in saved_runs],
+            format_func=lambda i: next(f"{r['created']} · {i[:10]}" for r in saved_runs if r["id"] == i),
+            key="eval_run_selector"
+        )
+        run_payload = s.store.get(sel_run_id)["payload"]
+        measured_rows = comparison_rows(run_payload)
+        st.plotly_chart(unified_benchmark_figure(measured_rows, st.session_state.dark), use_container_width=True, key="unified_bench_eval_chart")
+        st.divider()
+
     label_file = 'multi_fault_cases_25.json' if s.dataset().dataset_id in {'multi-fault-draft-120', 'multi-fault-draft-180'} else 'labelled_cases_25.json'
     dataset = LabelledDataset.model_validate_json((ROOT / 'data' / label_file).read_bytes())
     st.warning('The 25 labelled cases are preliminary drafts awaiting expert review and dates. Repeated executions do not increase the case count.')
@@ -1296,60 +1451,194 @@ def history(s):
 
 def device(s):
     settings = s.settings()
-    st.caption("Connect to the authenticated Linux agent over local Wi-Fi. Initial board Wi-Fi setup and agent installation are required.")
-    adapter = make_adapter("uno_q", settings)
-    st.write("Configured address", settings["uno_q"]["base_url"] or "Not configured")
-    a, b, c = st.columns(3)
-    if a.button("Connect / refresh status"):
-        try:
-            st.session_state.board_status = adapter.get_runtime_information()
-            st.session_state.reachable_uno_q = True
-        except BackendError as exc:
-            st.session_state.pop("board_status", None)
-            st.session_state.reachable_uno_q = False
-            error(exc)
-    if b.button("Disconnect dashboard"):
-        st.session_state.pop("board_status", None)
-        st.session_state.reachable_uno_q = False
-    if c.button("Refresh board models"):
-        try:
-            st.session_state.catalogue_uno_q = adapter.list_models(refresh=True)
-            st.success("Board catalogue refreshed; see Model Studio")
-        except BackendError as exc:
-            error(exc)
-    status = st.session_state.get("board_status")
-    if status:
-        st.caption("Last explicitly requested health response; refresh for current status.")
-        st.json(status)
-        if st.button("Retrieve agent logs"):
-            try:
-                st.json(adapter.request("GET", "/v1/logs"))
-            except BackendError as exc:
-                error(exc)
-        tests = status.get("mcu", {}).get("tests", [])
-        if tests:
-            name = st.selectbox("Firmware test", tests)
-            confirmed = st.checkbox("Confirm this read-only MCU RPC test")
-            if st.button("Run selected hardware test", disabled=not confirmed):
+    st.caption("Central Device & Inference Control: Manage connectivity, runtime telemetry, model catalogues, and diagnostics for Cloud, Edge, and Local environments.")
+
+    # 1. Device Fleet Overview Status Cards
+    c1, c2, c3 = st.columns(3)
+
+    # Cloud Status
+    q_url = settings["qualcomm"]["base_url"]
+    q_key = bool(os.getenv("QUALCOMM_API_KEY"))
+    q_reach = st.session_state.get("reachable_qualcomm", False)
+    with c1:
+        with st.container(border=True):
+            st.markdown("### ☁️ Qualcomm Cloud")
+            st.caption(f"Host: `{urlsplit(q_url).netloc or 'cirrascale.com'}`")
+            status_cls = "pill-cloud" if q_reach else ("pill-uno" if q_key else "pill-risk-high")
+            status_txt = "Connected" if q_reach else ("API Key Set" if q_key else "Key Required")
+            st.markdown(f'<span class="pill-badge {status_cls}">{status_txt}</span>', unsafe_allow_html=True)
+            st.write("")
+            if st.button("Ping Cloud API", key="dev_ping_cloud", use_container_width=True):
                 try:
-                    result = adapter.request("POST", "/v1/hardware-tests", json={"name": name, "confirmed": confirmed})
-                    s.store.save("hardware_test", result)
-                    st.json(result)
+                    cat = make_adapter("qualcomm", settings).list_models(refresh=True)
+                    st.session_state.catalogue_qualcomm = cat
+                    st.session_state.reachable_qualcomm = True
+                    st.success(f"Online: {len(cat)} models available")
+                except BackendError as exc:
+                    st.session_state.reachable_qualcomm = False
+                    error(exc)
+
+    # Uno Q Status
+    u_url = settings["uno_q"]["base_url"] or "Not configured"
+    u_reach = st.session_state.get("reachable_uno_q", False)
+    with c2:
+        with st.container(border=True):
+            st.markdown("### ⚡ Arduino UNO Q")
+            st.caption(f"Address: `{u_url}`")
+            status_cls = "pill-uno" if u_reach else "pill-slate"
+            status_txt = "Online" if u_reach else "Disconnected"
+            st.markdown(f'<span class="pill-badge {status_cls}">{status_txt}</span>', unsafe_allow_html=True)
+            st.write("")
+            if st.button("Connect Board", key="dev_ping_uno", use_container_width=True):
+                try:
+                    adapter = make_adapter("uno_q", settings)
+                    st.session_state.board_status = adapter.get_runtime_information()
+                    st.session_state.reachable_uno_q = True
+                    st.success("Board reached successfully")
+                except BackendError as exc:
+                    st.session_state.pop("board_status", None)
+                    st.session_state.reachable_uno_q = False
+                    error(exc)
+
+    # Local Laptop Status
+    l_url = settings["laptop_local"]["base_url"]
+    l_reach = st.session_state.get("reachable_laptop_local", False)
+    with c3:
+        with st.container(border=True):
+            st.markdown("### 💻 Laptop Local")
+            st.caption(f"Endpoint: `{urlsplit(l_url).netloc or '127.0.0.1:11434'}`")
+            status_cls = "pill-local" if l_reach else "pill-slate"
+            status_txt = "Available" if l_reach else "Unverified"
+            st.markdown(f'<span class="pill-badge {status_cls}">{status_txt}</span>', unsafe_allow_html=True)
+            st.write("")
+            if st.button("Check Local Service", key="dev_ping_local", use_container_width=True):
+                try:
+                    cat = make_adapter("laptop_local", settings).list_models(refresh=True)
+                    st.session_state.catalogue_laptop_local = cat
+                    st.session_state.reachable_laptop_local = True
+                    st.success(f"Local Server Ready: {len(cat)} models")
+                except BackendError as exc:
+                    st.session_state.reachable_laptop_local = False
+                    error(exc)
+
+    st.write("")
+
+    # 2. Detailed Controls Per Environment
+    tabs = st.tabs(["☁️ Qualcomm Cloud Hub", "⚡ Arduino UNO Q Workstation", "💻 Local Inference Station"])
+
+    with tabs[0]:
+        st.subheader("Qualcomm AI Suite Cloud Service")
+        st.caption("Manages Cirrascale cloud inference connectivity, token management, and live model catalog inspection.")
+        q_col1, q_col2 = st.columns([2, 1])
+        with q_col1:
+            st.text_input("Cirrascale Base Endpoint", value=settings["qualcomm"]["base_url"], disabled=True, help="Update in Settings if using alternate allowed hosts.")
+            cat = st.session_state.get("catalogue_qualcomm", [])
+            if cat:
+                model_ids = [m["id"] for m in cat]
+                selected_q = st.selectbox("Active Cloud Model", model_ids, index=0 if model_ids else 0, key="dev_q_model_sel")
+                st.caption(f"Selected: `{selected_q}` · Configured to use temperature=0, seed=42.")
+            else:
+                st.info("Catalog not loaded in memory. Click 'Refresh Cloud Catalogue' to query Cirrascale API.")
+        with q_col2:
+            st.write("**Quick Actions**")
+            if st.button("🔄 Refresh Cloud Catalogue", key="dev_q_refresh_cat", use_container_width=True):
+                try:
+                    inventory = make_adapter("qualcomm", settings).list_models(refresh=True)
+                    st.session_state.catalogue_qualcomm = inventory
+                    st.session_state.reachable_qualcomm = True
+                    st.success(f"Retrieved {len(inventory)} models.")
                 except BackendError as exc:
                     error(exc)
+            token_status = "Configured in Environment" if os.getenv("QUALCOMM_API_KEY") else "Missing Token"
+            st.caption(f"Auth Token: **{token_status}**")
+
+    with tabs[1]:
+        st.subheader("Arduino UNO Q Board Control & Hardware RPC")
+        st.caption("Interact with the authenticated Linux daemon on the board, inspect hardware telemetry, and run firmware tests.")
+        u_adapter = make_adapter("uno_q", settings)
+        u_col1, u_col2 = st.columns(2)
+        with u_col1:
+            if st.button("🔄 Refresh Board Status", key="dev_uno_refresh", use_container_width=True):
+                try:
+                    st.session_state.board_status = u_adapter.get_runtime_information()
+                    st.session_state.reachable_uno_q = True
+                    st.success("Board status updated.")
+                except BackendError as exc:
+                    st.session_state.pop("board_status", None)
+                    st.session_state.reachable_uno_q = False
+                    error(exc)
+        with u_col2:
+            if st.button("⏹️ Disconnect Board Session", key="dev_uno_disconnect", use_container_width=True):
+                st.session_state.pop("board_status", None)
+                st.session_state.reachable_uno_q = False
+                st.info("Board session disconnected.")
+
+        status = st.session_state.get("board_status")
+        if status:
+            with st.container(border=True):
+                st.markdown("**Board Telemetry & Runtime Info**")
+                st.json(status)
+
+            b1, b2 = st.columns(2)
+            with b1:
+                if st.button("📋 Retrieve Board Agent Logs", key="dev_uno_logs", use_container_width=True):
+                    try:
+                        st.json(u_adapter.request("GET", "/v1/logs"))
+                    except BackendError as exc:
+                        error(exc)
+            with b2:
+                tests = status.get("mcu", {}).get("tests", [])
+                if tests:
+                    name = st.selectbox("MCU Firmware Test", tests, key="dev_uno_test_sel")
+                    confirmed = st.checkbox("Confirm read-only probe RPC", key="dev_uno_conf")
+                    if st.button("▶️ Execute Hardware Test", disabled=not confirmed, key="dev_uno_run_test", use_container_width=True):
+                        try:
+                            result = u_adapter.request("POST", "/v1/hardware-tests", json={"name": name, "confirmed": confirmed})
+                            s.store.save("hardware_test", result)
+                            st.json(result)
+                        except BackendError as exc:
+                            error(exc)
+                else:
+                    st.caption("No MCU commands verified. Read-only probe sketch required.")
+
+            with st.expander("Register GGUF Model on Board Linux"):
+                board_path = st.text_input("Absolute path to .gguf on board Linux", key="dev_uno_gguf_path")
+                if st.button("Register Board GGUF", disabled=not board_path, key="dev_uno_reg_gguf"):
+                    try:
+                        st.json(u_adapter.request("POST", "/v1/models/register", json={"path": board_path}))
+                        st.success("Model registered with board Linux agent.")
+                    except BackendError as exc:
+                        error(exc)
         else:
-            st.info("No verified MCU commands. Install the optional matching read-only probe sketch and configure Bridge before enabling tests.")
-    else:
-        st.info("Board not connected in this session. Configure its hostname/IP and UNO_Q_TOKEN, then connect.")
-    with st.expander("Register installed board model file"):
-        st.caption("The board agent restricts paths to its configured LOCAL_MODEL_DIRS. Registration checks file existence, not runtime compatibility or successful inference.")
-        board_path = st.text_input("Absolute GGUF path on board Linux")
-        if st.button("Register board file", disabled=not status or not board_path):
-            try:
-                st.json(adapter.request("POST", "/v1/models/register", json={"path": board_path}))
-            except BackendError as exc:
-                error(exc)
-    st.caption("Model inference and model selection are in Model Studio. Automatic mDNS scanning, Wi-Fi changes, firmware upload and system-service management are not implemented.")
+            st.info("Board not currently connected. Ensure its IP address is configured in Settings, then click 'Connect Board'.")
+
+    with tabs[2]:
+        st.subheader("Local Inference Engine (Laptop / Ollama / Llama.cpp)")
+        st.caption("Manage local runtime options, directory scan for GGUF model files, and fast inference toggles.")
+        l_col1, l_col2 = st.columns(2)
+        with l_col1:
+            st.text_input("Local Endpoint URL", value=settings["laptop_local"]["base_url"], disabled=True)
+            fast_mode = st.checkbox(
+                "⚡ Ollama Fast Mode (Disable Thinking / Request Clean JSON)",
+                value=settings["laptop_local"].get("ollama_fast_mode", True),
+                help="Suppresses reasoning chain tokens to deliver fast, deterministic output."
+            )
+            if fast_mode != settings["laptop_local"].get("ollama_fast_mode"):
+                settings["laptop_local"]["ollama_fast_mode"] = fast_mode
+                s.store.set_setting("preferences", settings)
+                st.success("Ollama fast mode setting updated.")
+        with l_col2:
+            st.write("**Model Files & Directory Scanner**")
+            if st.button("📂 Scan Permitted Model Directories", key="dev_local_scan", use_container_width=True):
+                st.session_state.local_files = discover_files(settings.get("model_dirs", []))
+                st.success(f"Discovered {len(st.session_state.local_files)} files.")
+
+        files = st.session_state.get("local_files", [])
+        if files:
+            st.markdown("##### Discovered Local Model Files")
+            st.dataframe(files, use_container_width=True)
+        else:
+            st.caption(f"Permitted directories: {', '.join(settings.get('model_dirs', [])) or 'None configured'}. Add paths in Settings.")
 
 
 def settings_page(s):
@@ -1486,6 +1775,7 @@ def main():
                 "Knowledge Base":"Traceable engineering knowledge with inspectable search relevance and measured retrieval speed."}.get(page, "Evidence-linked proposals. Transparent risk calculations. Accountable engineering decisions.")
     st.markdown(f'<div class="workspace-hero"><div class="eyebrow">SafeScenario AI / Engineering workspace</div><h1>{escape(page)}</h1><p>{escape(subtitle)}</p></div>', unsafe_allow_html=True)
     handlers = {"Overview":overview,"Scenario Builder":scenario_builder,"Model Studio":model_studio,"Model Comparison":comparison,
-                "Scenario Register":register_page,"Knowledge Base":knowledge,"Risk Analysis":risk_analysis,"Test Simulation":simulation_page,
+                "Scenario Register":register_page,"Knowledge Base":knowledge,"Risk Analysis":risk_analysis,
                 "Evaluation and Benchmarks":evaluation_page,"Reports and History":history,"Device Control":device,"Settings":settings_page}
     handlers[page](s)
+
