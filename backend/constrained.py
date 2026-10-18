@@ -15,7 +15,7 @@ FAULT_LABELS = {'Camera failure': 'camera_failure', 'Communication loss': 'commu
 LIMITATIONS = [
     'Scenario draft screening accepts exact KB description matches and valid record links only. It does not establish support for unrestricted generated prose. AI titles are display labels. Engineer exclusions recalculate an ordinal worst-hazard ranking, not a real-world probability.',
     'Initial scope: five fault types (camera, communication, traction, processing delay, lidar) and four conditions (day dry, night dry, rain, reduced visibility).',
-    'Single-fault cases only; other faults, combined faults, wet without rain, physical performance, certification and deployment approval are outside scope.',
+    'One to three supported faults can be selected. Risk covers documented individual hazards; unrecorded fault interactions, physical performance, certification and deployment approval remain outside scope.',
     'Risk categories are engineering rankings, not calibrated probabilities. citation_link_validity measures ID existence, type and linkage only. Expert support is reviewed and reported separately.',
     'Sample records and labels are illustrative drafts awaiting domain-expert review. Benchmark results on them are software checks, not validated safety accuracy.',
     'Edge, cloud and laptop models differ in size and are not like-for-like comparisons. Hardware performance, API access, seed support and model compatibility require live verification.'
@@ -76,12 +76,14 @@ class RunResult(Strict):
 
 def scope(inputs):
     faults = inputs.faults
-    fault = FAULT_LABELS.get(faults[0], faults[0]) if len(faults) == 1 else None
+    faults = list(dict.fromkeys(FAULT_LABELS.get(fault, fault) for fault in faults))
     condition = ('rain' if inputs.weather == 'rain' else 'reduced_visibility' if inputs.visibility == 'reduced'
                  else 'night_dry' if inputs.time_of_day == 'night' else 'day_dry')
-    if fault not in FAULT_LABELS.values() or inputs.weather == 'wet':
+    if not 1 <= len(faults) <= 3 or any(fault not in FAULT_LABELS.values() for fault in faults):
         return None
-    return fault, condition
+    if inputs.weather == 'wet':
+        condition = 'rain'  # Conservative wet-surface evidence bucket.
+    return faults, condition
 
 
 def output_schema(evidence):

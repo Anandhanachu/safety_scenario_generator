@@ -186,7 +186,7 @@ def retrieve_with_diagnostics(dataset, query, limit=12, threshold=0.05):
         structured = json.loads(query) if isinstance(query, str) and query.lstrip().startswith('{') else query
         from backend.schemas import ScenarioInput
         selected_scope = scope(ScenarioInput.model_validate(structured)) if isinstance(structured, dict) else scope(structured) if isinstance(structured, ScenarioInput) else None
-        filtered = [] if selected_scope is None else [r for r in dataset.records if r.tags and selected_scope[0] in r.tags.fault_type and selected_scope[1] in r.tags.operating_condition]
+        filtered = [] if selected_scope is None else [r for r in dataset.records if r.tags and set(selected_scope[0]).intersection(r.tags.fault_type) and selected_scope[1] in r.tags.operating_condition]
         if not filtered:
             return [], {'version': RETRIEVAL_VERSION, 'cache_reused': False, 'index_build_ms': 0.0, 'query_ms': 0.0,
                         'normalized_query': query_text(query), 'indexed_records': 0, 'eligible_records': 0, 'original_records': original_count,
@@ -199,6 +199,28 @@ def retrieve_with_diagnostics(dataset, query, limit=12, threshold=0.05):
     scores = [] if index.matrix is None else cosine_similarity(index.vectorizer.transform([search]), index.matrix)[0]
     ranked = sorted(range(len(scores)), key=lambda i: (-scores[i], index.records[i]["id"]))
     selected = [i for i in ranked if scores[i] > 0 and scores[i] >= threshold][:limit]
+    # Reserve complete groups across faults before filling spare capacity. All
+    # members must pass tag filtering, and still report their measured TF-IDF score.
+    if dataset.schema_version == '2.0' and (len(selected_scope[0]) > 1 or dataset.dataset_id == 'multi-fault-draft-120'):
+        positions = {r['id']: i for i, r in enumerate(index.records)}
+        queues = []
+        for fault in selected_scope[0]:
+            queues.append([i for i in ranked if index.records[i]['type'] == 'hazard'
+                           and fault in index.records[i]['tags']['fault_type']
+                           and scores[i] > 0 and scores[i] >= threshold])
+        selected = []
+        for depth in range(max(map(len, queues), default=0)):
+            for queue in queues:
+                if depth >= len(queue):
+                    continue
+                i = queue[depth]
+                hazard = index.records[i]
+                refs = [hazard['id'], *hazard['mitigation_ids'], *hazard['test_ids']]
+                if not hazard['mitigation_ids'] or not hazard['test_ids'] or any(ref not in positions for ref in refs):
+                    continue
+                group = [positions[ref] for ref in refs if positions[ref] not in selected]
+                if len(selected) + len(group) <= limit:
+                    selected.extend(group)
     # Return copies: callers cannot mutate a shared cached index or another run's snapshot.
     result = [{"record": json.loads(json.dumps(index.records[i])), "score": round(float(scores[i]), 6), "retrieval": "tfidf"} for i in selected]
     known = {x["record"]["id"] for x in result}

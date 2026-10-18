@@ -1,0 +1,2847 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "multi-fault-draft-120",
+  "dataset_name": "120 illustrative records covering five faults and four condition buckets",
+  "records": [
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-camera_failure-day_dry-1",
+      "type": "hazard",
+      "title": "Stale obstacle perception (day dry)",
+      "description": "Camera failure can leave obstacle perception stale. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-camera_failure-day_dry-1"
+      ],
+      "test_ids": [
+        "T-camera_failure-day_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-camera_failure-day_dry-1",
+      "type": "mitigation",
+      "title": "Camera failure: response 1",
+      "description": "Suspend autonomous travel and request a controlled stop when camera perception is unavailable. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-camera_failure-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-camera_failure-day_dry-1",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 1",
+      "description": "Inject camera failure and check that the controller requests a controlled stop. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-camera_failure-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-camera_failure-day_dry-2",
+      "type": "hazard",
+      "title": "Unavailable visual route cues (day dry)",
+      "description": "Camera failure can prevent recognition of visual route cues. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-camera_failure-day_dry-2"
+      ],
+      "test_ids": [
+        "T-camera_failure-day_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-camera_failure-day_dry-2",
+      "type": "mitigation",
+      "title": "Camera failure: response 2",
+      "description": "Pause route execution when required visual route cues are unavailable. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-camera_failure-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-camera_failure-day_dry-2",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 2",
+      "description": "Remove camera route cues and verify that route execution pauses. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-camera_failure-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-camera_failure-night_dry-1",
+      "type": "hazard",
+      "title": "Stale obstacle perception (night dry)",
+      "description": "Camera failure can leave obstacle perception stale. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-camera_failure-night_dry-1"
+      ],
+      "test_ids": [
+        "T-camera_failure-night_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-camera_failure-night_dry-1",
+      "type": "mitigation",
+      "title": "Camera failure: response 1",
+      "description": "Suspend autonomous travel and request a controlled stop when camera perception is unavailable. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-camera_failure-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-camera_failure-night_dry-1",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 1",
+      "description": "Inject camera failure and check that the controller requests a controlled stop. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-camera_failure-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-camera_failure-night_dry-2",
+      "type": "hazard",
+      "title": "Unavailable visual route cues (night dry)",
+      "description": "Camera failure can prevent recognition of visual route cues. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-camera_failure-night_dry-2"
+      ],
+      "test_ids": [
+        "T-camera_failure-night_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-camera_failure-night_dry-2",
+      "type": "mitigation",
+      "title": "Camera failure: response 2",
+      "description": "Pause route execution when required visual route cues are unavailable. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-camera_failure-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-camera_failure-night_dry-2",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 2",
+      "description": "Remove camera route cues and verify that route execution pauses. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-camera_failure-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-camera_failure-rain-1",
+      "type": "hazard",
+      "title": "Stale obstacle perception (rain)",
+      "description": "Camera failure can leave obstacle perception stale. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-camera_failure-rain-1"
+      ],
+      "test_ids": [
+        "T-camera_failure-rain-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-camera_failure-rain-1",
+      "type": "mitigation",
+      "title": "Camera failure: response 1",
+      "description": "Suspend autonomous travel and request a controlled stop when camera perception is unavailable. Operating condition: rain.",
+      "hazard_ids": [
+        "H-camera_failure-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-camera_failure-rain-1",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 1",
+      "description": "Inject camera failure and check that the controller requests a controlled stop. Operating condition: rain.",
+      "hazard_ids": [
+        "H-camera_failure-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-camera_failure-rain-2",
+      "type": "hazard",
+      "title": "Unavailable visual route cues (rain)",
+      "description": "Camera failure can prevent recognition of visual route cues. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-camera_failure-rain-2"
+      ],
+      "test_ids": [
+        "T-camera_failure-rain-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-camera_failure-rain-2",
+      "type": "mitigation",
+      "title": "Camera failure: response 2",
+      "description": "Pause route execution when required visual route cues are unavailable. Operating condition: rain.",
+      "hazard_ids": [
+        "H-camera_failure-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-camera_failure-rain-2",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 2",
+      "description": "Remove camera route cues and verify that route execution pauses. Operating condition: rain.",
+      "hazard_ids": [
+        "H-camera_failure-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-camera_failure-reduced_visibility-1",
+      "type": "hazard",
+      "title": "Stale obstacle perception (reduced visibility)",
+      "description": "Camera failure can leave obstacle perception stale. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-camera_failure-reduced_visibility-1"
+      ],
+      "test_ids": [
+        "T-camera_failure-reduced_visibility-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-camera_failure-reduced_visibility-1",
+      "type": "mitigation",
+      "title": "Camera failure: response 1",
+      "description": "Suspend autonomous travel and request a controlled stop when camera perception is unavailable. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-camera_failure-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-camera_failure-reduced_visibility-1",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 1",
+      "description": "Inject camera failure and check that the controller requests a controlled stop. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-camera_failure-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-camera_failure-reduced_visibility-2",
+      "type": "hazard",
+      "title": "Unavailable visual route cues (reduced visibility)",
+      "description": "Camera failure can prevent recognition of visual route cues. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-camera_failure-reduced_visibility-2"
+      ],
+      "test_ids": [
+        "T-camera_failure-reduced_visibility-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-camera_failure-reduced_visibility-2",
+      "type": "mitigation",
+      "title": "Camera failure: response 2",
+      "description": "Pause route execution when required visual route cues are unavailable. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-camera_failure-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "camera_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-camera_failure-reduced_visibility-2",
+      "type": "acceptance_test",
+      "title": "Camera failure: check 2",
+      "description": "Remove camera route cues and verify that route execution pauses. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-camera_failure-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-communication_loss-day_dry-1",
+      "type": "hazard",
+      "title": "Loss of remote supervision (day dry)",
+      "description": "Communication loss can interrupt remote supervision. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-communication_loss-day_dry-1"
+      ],
+      "test_ids": [
+        "T-communication_loss-day_dry-1"
+      ],
+      "severity": "S2",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-communication_loss-day_dry-1",
+      "type": "mitigation",
+      "title": "Communication loss: response 1",
+      "description": "Request a controlled stop when the communication watchdog expires. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-communication_loss-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-communication_loss-day_dry-1",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 1",
+      "description": "Disconnect communication and verify the configured watchdog stop request. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-communication_loss-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-communication_loss-day_dry-2",
+      "type": "hazard",
+      "title": "Unavailable remote intervention (day dry)",
+      "description": "Communication loss can prevent delivery of remote intervention commands. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-communication_loss-day_dry-2"
+      ],
+      "test_ids": [
+        "T-communication_loss-day_dry-2"
+      ],
+      "severity": "S3",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-communication_loss-day_dry-2",
+      "type": "mitigation",
+      "title": "Communication loss: response 2",
+      "description": "Disable continued autonomous travel when the required supervision link is unavailable. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-communication_loss-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-communication_loss-day_dry-2",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 2",
+      "description": "Interrupt the supervision link and verify that continued travel is disabled. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-communication_loss-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-communication_loss-night_dry-1",
+      "type": "hazard",
+      "title": "Loss of remote supervision (night dry)",
+      "description": "Communication loss can interrupt remote supervision. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-communication_loss-night_dry-1"
+      ],
+      "test_ids": [
+        "T-communication_loss-night_dry-1"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-communication_loss-night_dry-1",
+      "type": "mitigation",
+      "title": "Communication loss: response 1",
+      "description": "Request a controlled stop when the communication watchdog expires. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-communication_loss-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-communication_loss-night_dry-1",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 1",
+      "description": "Disconnect communication and verify the configured watchdog stop request. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-communication_loss-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-communication_loss-night_dry-2",
+      "type": "hazard",
+      "title": "Unavailable remote intervention (night dry)",
+      "description": "Communication loss can prevent delivery of remote intervention commands. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-communication_loss-night_dry-2"
+      ],
+      "test_ids": [
+        "T-communication_loss-night_dry-2"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-communication_loss-night_dry-2",
+      "type": "mitigation",
+      "title": "Communication loss: response 2",
+      "description": "Disable continued autonomous travel when the required supervision link is unavailable. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-communication_loss-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-communication_loss-night_dry-2",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 2",
+      "description": "Interrupt the supervision link and verify that continued travel is disabled. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-communication_loss-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-communication_loss-rain-1",
+      "type": "hazard",
+      "title": "Loss of remote supervision (rain)",
+      "description": "Communication loss can interrupt remote supervision. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-communication_loss-rain-1"
+      ],
+      "test_ids": [
+        "T-communication_loss-rain-1"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-communication_loss-rain-1",
+      "type": "mitigation",
+      "title": "Communication loss: response 1",
+      "description": "Request a controlled stop when the communication watchdog expires. Operating condition: rain.",
+      "hazard_ids": [
+        "H-communication_loss-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-communication_loss-rain-1",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 1",
+      "description": "Disconnect communication and verify the configured watchdog stop request. Operating condition: rain.",
+      "hazard_ids": [
+        "H-communication_loss-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-communication_loss-rain-2",
+      "type": "hazard",
+      "title": "Unavailable remote intervention (rain)",
+      "description": "Communication loss can prevent delivery of remote intervention commands. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-communication_loss-rain-2"
+      ],
+      "test_ids": [
+        "T-communication_loss-rain-2"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-communication_loss-rain-2",
+      "type": "mitigation",
+      "title": "Communication loss: response 2",
+      "description": "Disable continued autonomous travel when the required supervision link is unavailable. Operating condition: rain.",
+      "hazard_ids": [
+        "H-communication_loss-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-communication_loss-rain-2",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 2",
+      "description": "Interrupt the supervision link and verify that continued travel is disabled. Operating condition: rain.",
+      "hazard_ids": [
+        "H-communication_loss-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-communication_loss-reduced_visibility-1",
+      "type": "hazard",
+      "title": "Loss of remote supervision (reduced visibility)",
+      "description": "Communication loss can interrupt remote supervision. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-communication_loss-reduced_visibility-1"
+      ],
+      "test_ids": [
+        "T-communication_loss-reduced_visibility-1"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-communication_loss-reduced_visibility-1",
+      "type": "mitigation",
+      "title": "Communication loss: response 1",
+      "description": "Request a controlled stop when the communication watchdog expires. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-communication_loss-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-communication_loss-reduced_visibility-1",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 1",
+      "description": "Disconnect communication and verify the configured watchdog stop request. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-communication_loss-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-communication_loss-reduced_visibility-2",
+      "type": "hazard",
+      "title": "Unavailable remote intervention (reduced visibility)",
+      "description": "Communication loss can prevent delivery of remote intervention commands. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-communication_loss-reduced_visibility-2"
+      ],
+      "test_ids": [
+        "T-communication_loss-reduced_visibility-2"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-communication_loss-reduced_visibility-2",
+      "type": "mitigation",
+      "title": "Communication loss: response 2",
+      "description": "Disable continued autonomous travel when the required supervision link is unavailable. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-communication_loss-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "communication_loss"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-communication_loss-reduced_visibility-2",
+      "type": "acceptance_test",
+      "title": "Communication loss: check 2",
+      "description": "Interrupt the supervision link and verify that continued travel is disabled. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-communication_loss-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-reduced_traction-day_dry-1",
+      "type": "hazard",
+      "title": "Extended stopping travel (day dry)",
+      "description": "Reduced traction can increase travel during a stop request. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-reduced_traction-day_dry-1"
+      ],
+      "test_ids": [
+        "T-reduced_traction-day_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-reduced_traction-day_dry-1",
+      "type": "mitigation",
+      "title": "Reduced traction: response 1",
+      "description": "Apply the documented reduced-traction operating limits and request a controlled stop. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-reduced_traction-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-reduced_traction-day_dry-1",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 1",
+      "description": "Simulate reduced traction and check the configured operating-limit and stop requests. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-reduced_traction-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-reduced_traction-day_dry-2",
+      "type": "hazard",
+      "title": "Loss of path tracking (day dry)",
+      "description": "Reduced traction can cause deviation from the planned path. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-reduced_traction-day_dry-2"
+      ],
+      "test_ids": [
+        "T-reduced_traction-day_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-reduced_traction-day_dry-2",
+      "type": "mitigation",
+      "title": "Reduced traction: response 2",
+      "description": "Pause autonomous travel when traction monitoring indicates path tracking cannot be maintained. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-reduced_traction-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-reduced_traction-day_dry-2",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 2",
+      "description": "Inject a traction fault and verify the path-tracking monitor pause request. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-reduced_traction-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-reduced_traction-night_dry-1",
+      "type": "hazard",
+      "title": "Extended stopping travel (night dry)",
+      "description": "Reduced traction can increase travel during a stop request. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-reduced_traction-night_dry-1"
+      ],
+      "test_ids": [
+        "T-reduced_traction-night_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-reduced_traction-night_dry-1",
+      "type": "mitigation",
+      "title": "Reduced traction: response 1",
+      "description": "Apply the documented reduced-traction operating limits and request a controlled stop. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-reduced_traction-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-reduced_traction-night_dry-1",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 1",
+      "description": "Simulate reduced traction and check the configured operating-limit and stop requests. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-reduced_traction-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-reduced_traction-night_dry-2",
+      "type": "hazard",
+      "title": "Loss of path tracking (night dry)",
+      "description": "Reduced traction can cause deviation from the planned path. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-reduced_traction-night_dry-2"
+      ],
+      "test_ids": [
+        "T-reduced_traction-night_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-reduced_traction-night_dry-2",
+      "type": "mitigation",
+      "title": "Reduced traction: response 2",
+      "description": "Pause autonomous travel when traction monitoring indicates path tracking cannot be maintained. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-reduced_traction-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-reduced_traction-night_dry-2",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 2",
+      "description": "Inject a traction fault and verify the path-tracking monitor pause request. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-reduced_traction-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-reduced_traction-rain-1",
+      "type": "hazard",
+      "title": "Extended stopping travel (rain)",
+      "description": "Reduced traction can increase travel during a stop request. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-reduced_traction-rain-1"
+      ],
+      "test_ids": [
+        "T-reduced_traction-rain-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-reduced_traction-rain-1",
+      "type": "mitigation",
+      "title": "Reduced traction: response 1",
+      "description": "Apply the documented reduced-traction operating limits and request a controlled stop. Operating condition: rain.",
+      "hazard_ids": [
+        "H-reduced_traction-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-reduced_traction-rain-1",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 1",
+      "description": "Simulate reduced traction and check the configured operating-limit and stop requests. Operating condition: rain.",
+      "hazard_ids": [
+        "H-reduced_traction-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-reduced_traction-rain-2",
+      "type": "hazard",
+      "title": "Loss of path tracking (rain)",
+      "description": "Reduced traction can cause deviation from the planned path. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-reduced_traction-rain-2"
+      ],
+      "test_ids": [
+        "T-reduced_traction-rain-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-reduced_traction-rain-2",
+      "type": "mitigation",
+      "title": "Reduced traction: response 2",
+      "description": "Pause autonomous travel when traction monitoring indicates path tracking cannot be maintained. Operating condition: rain.",
+      "hazard_ids": [
+        "H-reduced_traction-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-reduced_traction-rain-2",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 2",
+      "description": "Inject a traction fault and verify the path-tracking monitor pause request. Operating condition: rain.",
+      "hazard_ids": [
+        "H-reduced_traction-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-reduced_traction-reduced_visibility-1",
+      "type": "hazard",
+      "title": "Extended stopping travel (reduced visibility)",
+      "description": "Reduced traction can increase travel during a stop request. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-reduced_traction-reduced_visibility-1"
+      ],
+      "test_ids": [
+        "T-reduced_traction-reduced_visibility-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-reduced_traction-reduced_visibility-1",
+      "type": "mitigation",
+      "title": "Reduced traction: response 1",
+      "description": "Apply the documented reduced-traction operating limits and request a controlled stop. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-reduced_traction-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-reduced_traction-reduced_visibility-1",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 1",
+      "description": "Simulate reduced traction and check the configured operating-limit and stop requests. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-reduced_traction-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-reduced_traction-reduced_visibility-2",
+      "type": "hazard",
+      "title": "Loss of path tracking (reduced visibility)",
+      "description": "Reduced traction can cause deviation from the planned path. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-reduced_traction-reduced_visibility-2"
+      ],
+      "test_ids": [
+        "T-reduced_traction-reduced_visibility-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-reduced_traction-reduced_visibility-2",
+      "type": "mitigation",
+      "title": "Reduced traction: response 2",
+      "description": "Pause autonomous travel when traction monitoring indicates path tracking cannot be maintained. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-reduced_traction-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "reduced_traction"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-reduced_traction-reduced_visibility-2",
+      "type": "acceptance_test",
+      "title": "Reduced traction: check 2",
+      "description": "Inject a traction fault and verify the path-tracking monitor pause request. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-reduced_traction-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-processing_delay-day_dry-1",
+      "type": "hazard",
+      "title": "Delayed obstacle response (day dry)",
+      "description": "Processing delay can cause obstacle decisions to use stale sensor information. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-processing_delay-day_dry-1"
+      ],
+      "test_ids": [
+        "T-processing_delay-day_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-processing_delay-day_dry-1",
+      "type": "mitigation",
+      "title": "Processing delay: response 1",
+      "description": "Request a controlled stop when sensor processing exceeds the configured freshness limit. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-processing_delay-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-processing_delay-day_dry-1",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 1",
+      "description": "Inject processing delay and verify the freshness-monitor stop request. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-processing_delay-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-processing_delay-day_dry-2",
+      "type": "hazard",
+      "title": "Delayed navigation updates (day dry)",
+      "description": "Processing delay can leave navigation commands based on outdated position information. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-processing_delay-day_dry-2"
+      ],
+      "test_ids": [
+        "T-processing_delay-day_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-processing_delay-day_dry-2",
+      "type": "mitigation",
+      "title": "Processing delay: response 2",
+      "description": "Pause navigation when position updates exceed the configured age limit. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-processing_delay-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-processing_delay-day_dry-2",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 2",
+      "description": "Delay position processing and verify that navigation pauses at the configured age limit. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-processing_delay-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-processing_delay-night_dry-1",
+      "type": "hazard",
+      "title": "Delayed obstacle response (night dry)",
+      "description": "Processing delay can cause obstacle decisions to use stale sensor information. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-processing_delay-night_dry-1"
+      ],
+      "test_ids": [
+        "T-processing_delay-night_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-processing_delay-night_dry-1",
+      "type": "mitigation",
+      "title": "Processing delay: response 1",
+      "description": "Request a controlled stop when sensor processing exceeds the configured freshness limit. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-processing_delay-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-processing_delay-night_dry-1",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 1",
+      "description": "Inject processing delay and verify the freshness-monitor stop request. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-processing_delay-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-processing_delay-night_dry-2",
+      "type": "hazard",
+      "title": "Delayed navigation updates (night dry)",
+      "description": "Processing delay can leave navigation commands based on outdated position information. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-processing_delay-night_dry-2"
+      ],
+      "test_ids": [
+        "T-processing_delay-night_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-processing_delay-night_dry-2",
+      "type": "mitigation",
+      "title": "Processing delay: response 2",
+      "description": "Pause navigation when position updates exceed the configured age limit. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-processing_delay-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-processing_delay-night_dry-2",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 2",
+      "description": "Delay position processing and verify that navigation pauses at the configured age limit. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-processing_delay-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-processing_delay-rain-1",
+      "type": "hazard",
+      "title": "Delayed obstacle response (rain)",
+      "description": "Processing delay can cause obstacle decisions to use stale sensor information. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-processing_delay-rain-1"
+      ],
+      "test_ids": [
+        "T-processing_delay-rain-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-processing_delay-rain-1",
+      "type": "mitigation",
+      "title": "Processing delay: response 1",
+      "description": "Request a controlled stop when sensor processing exceeds the configured freshness limit. Operating condition: rain.",
+      "hazard_ids": [
+        "H-processing_delay-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-processing_delay-rain-1",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 1",
+      "description": "Inject processing delay and verify the freshness-monitor stop request. Operating condition: rain.",
+      "hazard_ids": [
+        "H-processing_delay-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-processing_delay-rain-2",
+      "type": "hazard",
+      "title": "Delayed navigation updates (rain)",
+      "description": "Processing delay can leave navigation commands based on outdated position information. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-processing_delay-rain-2"
+      ],
+      "test_ids": [
+        "T-processing_delay-rain-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-processing_delay-rain-2",
+      "type": "mitigation",
+      "title": "Processing delay: response 2",
+      "description": "Pause navigation when position updates exceed the configured age limit. Operating condition: rain.",
+      "hazard_ids": [
+        "H-processing_delay-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-processing_delay-rain-2",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 2",
+      "description": "Delay position processing and verify that navigation pauses at the configured age limit. Operating condition: rain.",
+      "hazard_ids": [
+        "H-processing_delay-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-processing_delay-reduced_visibility-1",
+      "type": "hazard",
+      "title": "Delayed obstacle response (reduced visibility)",
+      "description": "Processing delay can cause obstacle decisions to use stale sensor information. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-processing_delay-reduced_visibility-1"
+      ],
+      "test_ids": [
+        "T-processing_delay-reduced_visibility-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-processing_delay-reduced_visibility-1",
+      "type": "mitigation",
+      "title": "Processing delay: response 1",
+      "description": "Request a controlled stop when sensor processing exceeds the configured freshness limit. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-processing_delay-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-processing_delay-reduced_visibility-1",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 1",
+      "description": "Inject processing delay and verify the freshness-monitor stop request. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-processing_delay-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-processing_delay-reduced_visibility-2",
+      "type": "hazard",
+      "title": "Delayed navigation updates (reduced visibility)",
+      "description": "Processing delay can leave navigation commands based on outdated position information. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-processing_delay-reduced_visibility-2"
+      ],
+      "test_ids": [
+        "T-processing_delay-reduced_visibility-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-processing_delay-reduced_visibility-2",
+      "type": "mitigation",
+      "title": "Processing delay: response 2",
+      "description": "Pause navigation when position updates exceed the configured age limit. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-processing_delay-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "processing_delay"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-processing_delay-reduced_visibility-2",
+      "type": "acceptance_test",
+      "title": "Processing delay: check 2",
+      "description": "Delay position processing and verify that navigation pauses at the configured age limit. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-processing_delay-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-lidar_failure-day_dry-1",
+      "type": "hazard",
+      "title": "Unavailable range measurements (day dry)",
+      "description": "Lidar failure can make obstacle range measurements unavailable. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-lidar_failure-day_dry-1"
+      ],
+      "test_ids": [
+        "T-lidar_failure-day_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-lidar_failure-day_dry-1",
+      "type": "mitigation",
+      "title": "Lidar failure: response 1",
+      "description": "Request a controlled stop when required lidar range measurements are unavailable. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-lidar_failure-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-lidar_failure-day_dry-1",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 1",
+      "description": "Inject lidar failure and verify the range-availability monitor stop request. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-lidar_failure-day_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "H-lidar_failure-day_dry-2",
+      "type": "hazard",
+      "title": "Unreliable free-space assessment (day dry)",
+      "description": "Lidar failure can invalidate the free-space assessment used for route execution. Operating condition: day dry.",
+      "mitigation_ids": [
+        "M-lidar_failure-day_dry-2"
+      ],
+      "test_ids": [
+        "T-lidar_failure-day_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L1"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "M-lidar_failure-day_dry-2",
+      "type": "mitigation",
+      "title": "Lidar failure: response 2",
+      "description": "Pause route execution when the required free-space assessment is unavailable. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-lidar_failure-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "id": "T-lidar_failure-day_dry-2",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 2",
+      "description": "Remove lidar free-space updates and verify that route execution pauses. Operating condition: day dry.",
+      "hazard_ids": [
+        "H-lidar_failure-day_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-lidar_failure-night_dry-1",
+      "type": "hazard",
+      "title": "Unavailable range measurements (night dry)",
+      "description": "Lidar failure can make obstacle range measurements unavailable. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-lidar_failure-night_dry-1"
+      ],
+      "test_ids": [
+        "T-lidar_failure-night_dry-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-lidar_failure-night_dry-1",
+      "type": "mitigation",
+      "title": "Lidar failure: response 1",
+      "description": "Request a controlled stop when required lidar range measurements are unavailable. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-lidar_failure-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-lidar_failure-night_dry-1",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 1",
+      "description": "Inject lidar failure and verify the range-availability monitor stop request. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-lidar_failure-night_dry-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "H-lidar_failure-night_dry-2",
+      "type": "hazard",
+      "title": "Unreliable free-space assessment (night dry)",
+      "description": "Lidar failure can invalidate the free-space assessment used for route execution. Operating condition: night dry.",
+      "mitigation_ids": [
+        "M-lidar_failure-night_dry-2"
+      ],
+      "test_ids": [
+        "T-lidar_failure-night_dry-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "M-lidar_failure-night_dry-2",
+      "type": "mitigation",
+      "title": "Lidar failure: response 2",
+      "description": "Pause route execution when the required free-space assessment is unavailable. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-lidar_failure-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "id": "T-lidar_failure-night_dry-2",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 2",
+      "description": "Remove lidar free-space updates and verify that route execution pauses. Operating condition: night dry.",
+      "hazard_ids": [
+        "H-lidar_failure-night_dry-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-lidar_failure-rain-1",
+      "type": "hazard",
+      "title": "Unavailable range measurements (rain)",
+      "description": "Lidar failure can make obstacle range measurements unavailable. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-lidar_failure-rain-1"
+      ],
+      "test_ids": [
+        "T-lidar_failure-rain-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-lidar_failure-rain-1",
+      "type": "mitigation",
+      "title": "Lidar failure: response 1",
+      "description": "Request a controlled stop when required lidar range measurements are unavailable. Operating condition: rain.",
+      "hazard_ids": [
+        "H-lidar_failure-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-lidar_failure-rain-1",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 1",
+      "description": "Inject lidar failure and verify the range-availability monitor stop request. Operating condition: rain.",
+      "hazard_ids": [
+        "H-lidar_failure-rain-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "H-lidar_failure-rain-2",
+      "type": "hazard",
+      "title": "Unreliable free-space assessment (rain)",
+      "description": "Lidar failure can invalidate the free-space assessment used for route execution. Operating condition: rain.",
+      "mitigation_ids": [
+        "M-lidar_failure-rain-2"
+      ],
+      "test_ids": [
+        "T-lidar_failure-rain-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "M-lidar_failure-rain-2",
+      "type": "mitigation",
+      "title": "Lidar failure: response 2",
+      "description": "Pause route execution when the required free-space assessment is unavailable. Operating condition: rain.",
+      "hazard_ids": [
+        "H-lidar_failure-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "id": "T-lidar_failure-rain-2",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 2",
+      "description": "Remove lidar free-space updates and verify that route execution pauses. Operating condition: rain.",
+      "hazard_ids": [
+        "H-lidar_failure-rain-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-lidar_failure-reduced_visibility-1",
+      "type": "hazard",
+      "title": "Unavailable range measurements (reduced visibility)",
+      "description": "Lidar failure can make obstacle range measurements unavailable. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-lidar_failure-reduced_visibility-1"
+      ],
+      "test_ids": [
+        "T-lidar_failure-reduced_visibility-1"
+      ],
+      "severity": "S3",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-lidar_failure-reduced_visibility-1",
+      "type": "mitigation",
+      "title": "Lidar failure: response 1",
+      "description": "Request a controlled stop when required lidar range measurements are unavailable. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-lidar_failure-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-lidar_failure-reduced_visibility-1",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 1",
+      "description": "Inject lidar failure and verify the range-availability monitor stop request. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-lidar_failure-reduced_visibility-1"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "H-lidar_failure-reduced_visibility-2",
+      "type": "hazard",
+      "title": "Unreliable free-space assessment (reduced visibility)",
+      "description": "Lidar failure can invalidate the free-space assessment used for route execution. Operating condition: reduced visibility.",
+      "mitigation_ids": [
+        "M-lidar_failure-reduced_visibility-2"
+      ],
+      "test_ids": [
+        "T-lidar_failure-reduced_visibility-2"
+      ],
+      "severity": "S2",
+      "likelihood": "L2"
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "M-lidar_failure-reduced_visibility-2",
+      "type": "mitigation",
+      "title": "Lidar failure: response 2",
+      "description": "Pause route execution when the required free-space assessment is unavailable. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-lidar_failure-reduced_visibility-2"
+      ]
+    },
+    {
+      "source": "expert_judgment",
+      "reviewed_by": null,
+      "review_status": "pending_review",
+      "illustrative": true,
+      "expert_support_review": "not_reviewed",
+      "tags": {
+        "fault_type": [
+          "lidar_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "id": "T-lidar_failure-reduced_visibility-2",
+      "type": "acceptance_test",
+      "title": "Lidar failure: check 2",
+      "description": "Remove lidar free-space updates and verify that route execution pauses. Operating condition: reduced visibility.",
+      "hazard_ids": [
+        "H-lidar_failure-reduced_visibility-2"
+      ]
+    }
+  ]
+}

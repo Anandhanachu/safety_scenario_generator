@@ -10,7 +10,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from backend.schemas import Strict, strict_json
+from backend.schemas import Strict, strict_json, ScenarioInput
 from backend.constrained import Choice, SelectionOutput, verify_selection, scope, baseline
 from risk_engine.calculator import RiskMatrix, stored_risk
 
@@ -197,6 +197,7 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
                     }
                     recovered_items = screen_drafts([recovery], inputs, evidence, matrix, threshold)
                     if recovered_items:
+                        recovered_items[0]['scenario_id'] = 'SYSTEM-RECOVERY-1'
                         recovered_items[0]['origin'] = 'deterministic_kb_recovery'
                         recovered_items[0]['recovery_note'] = (
                             'System recovered a complete linked KB group after AI drafts were incomplete')
@@ -261,6 +262,12 @@ def recalculate(run, reviews=()):
         group['reviewed_claim_count'] = len(reviewed)
         group['human_review_flags'] = sorted(set(group.get('human_review_flags', [])))
         group['hazard_ids'] = sorted(group['hazard_ids'])
+        request_inputs = run.get('snapshot', {}).get('request', {}).get('inputs')
+        selected_scope = scope(ScenarioInput.model_validate(request_inputs)) if request_inputs else None
+        covered = {fault for ref in group['hazard_ids'] for fault in (index.get(ref, {}).get('tags') or {}).get('fault_type', [])}
+        group['uncovered_faults'] = sorted(set(selected_scope[0]) - covered) if selected_scope else []
+        group['coverage_note'] = ('Some selected faults have no included scenario: ' + ', '.join(group['uncovered_faults'])
+                                  if group['uncovered_faults'] else 'All selected fault types have included evidence.' )
         group['risk'] = {ref: stored_risk(RiskMatrix.model_validate(matrix_data), index.get(ref, {})) for ref in group['hazard_ids']} if matrix_data else {}
         unresolved = [ref for ref, risk in group['risk'].items() if risk['risk_score'] is None]
         group['unresolved_hazards'] = unresolved

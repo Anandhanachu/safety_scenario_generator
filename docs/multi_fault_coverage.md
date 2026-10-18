@@ -1,0 +1,13 @@
+# Expanded scenario coverage
+
+The bundled dataset contains 120 illustrative records: 40 hazards, 40 linked mitigations and 40 acceptance tests. Every hazard stores severity and likelihood. Five supported faults each have two hazard groups for each of four condition buckets. These are drafting assumptions awaiting expert review, not sourced incident rates or approved risk classifications.
+
+Select one to three faults in Scenario Builder. Retrieval filters tags first, ranks hazards with measured TF-IDF scores, then reserves complete linked groups round-robin across faults within the retrieval limit. With the default 12-record budget, three faults each get at least one complete group. Raise the limit to 18 to retrieve both groups for all three faults. Linked records report their own measured score even when below the hazard relevance threshold. A very low retrieval budget may omit faults; the risk result explicitly lists uncovered faults.
+
+Day/dry, night/dry, rain and reduced visibility are operating-condition buckets. Rain takes priority over reduced visibility, followed by night/dry and day/dry. Wet surfaces use the rain bucket. The app retains the full submitted input, but does not infer separate quantitative effects for pedestrian density, speed, location, or overlapping environmental conditions without corresponding risk policy evidence.
+
+The risk matrix reads stored severity and likelihood for each included hazard. Overall risk is the highest included score, with repeated hazard IDs counted once. This avoids summing ordinal scores or inventing multipliers for multiple faults. Unknown interactions between faults remain a coverage limitation. Engineer exclusions recalculate from the remaining included hazards; the result explicitly identifies faults that lose coverage. Missing or conflicting values keep the overall result unresolved. Pending records produce provisional results.
+
+Only an unchanged bundled starter is upgraded automatically. Edited/custom knowledge bases and all historical run snapshots remain unchanged. The original 10-record dataset and its labels remain available for historical evaluation. The expanded dataset has a separate 25-case illustrative fixture; the UI selects the matching fixture. These labels are software regression expectations, pending expert review. Automated coverage tests exercise all 100 combinations of one, two and three faults across four buckets and check complete links, fault coverage and risk aggregation.
+
+More available evidence does not guarantee that a model returns all possible scenarios. AI and deterministic recovery origins must be inspected separately. Recovery scenarios have a distinct application ID so they cannot share engineer decisions with rejected AI drafts.

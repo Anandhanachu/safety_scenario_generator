@@ -279,7 +279,7 @@ def test_knowledge_search_inspector_returns_actual_matches(tmp_path, monkeypatch
     next(x for x in app.button if x.label == "Search evidence").click().run()
     assert not app.exception
     result = app.session_state["search_inspection"]
-    assert {r['record']['id'] for r in result['results']} == {'H-1', 'M-1', 'T-1', 'SRC-DEMO'}
+    assert {r['record']['type'] for r in result['results']} == {'hazard', 'mitigation', 'acceptance_test'}
     assert 0 < result["diagnostics"]["direct_matches"] <= 5
     assert any(m.label == "Measured search total" for m in app.metric)
 
@@ -289,6 +289,8 @@ def test_labelled_evaluation_completed_and_saved_views(tmp_path, monkeypatch):
     from evaluation.labelled import LabelledDataset
     service = Services(tmp_path)
     labels = LabelledDataset.model_validate_json((ROOT / 'data/sample_cases_5.json').read_bytes())
+    from knowledge_base.core import parse_upload
+    service.activate_dataset(parse_upload((ROOT / 'data/constrained_knowledge_base.json').read_bytes()))
     identity = service.benchmarks.start_labelled(labels, [], service.dataset(), service.matrix(), service.settings(), 3)
     result = wait_for(service.benchmarks, identity)
     assert result['status'] == 'completed' and len(result['rows']) == 60

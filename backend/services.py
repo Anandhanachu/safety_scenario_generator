@@ -22,6 +22,9 @@ class Services:
                 self.activate_dataset(parse_upload((ROOT / 'data/constrained_knowledge_base.json').read_bytes()))
         if not self.store.setting("active_matrix"):
             self.activate_matrix(RiskMatrix.model_validate_json((ROOT / "configs/risk_matrix.example.json").read_text(encoding="utf-8")))
+        starter = parse_upload((ROOT / 'data/constrained_knowledge_base.json').read_bytes())
+        if self.dataset().version == starter.version:
+            self.activate_dataset(parse_upload((ROOT / 'data/multi_fault_knowledge_base.json').read_bytes()))
 
     def settings(self):
         return self.store.setting("preferences", defaults())

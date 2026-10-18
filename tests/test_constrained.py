@@ -62,7 +62,7 @@ def test_scope_filter_before_ranking(kb):
     assert all(e['score'] is not None for e in hits)
     assert retrieve_with_diagnostics(kb, ScenarioInput(faults=['lidar_failure']).model_dump())[0] == [] or all(e['record']['id'] == 'SRC-DEMO' for e in retrieve_with_diagnostics(kb, ScenarioInput(faults=['lidar_failure']).model_dump())[0])
     assert scope(ScenarioInput(faults=['not_supported'])) is None
-    assert scope(ScenarioInput(faults=['camera_failure'], weather='wet')) is None
+    assert scope(ScenarioInput(faults=['camera_failure'], weather='wet')) == (['camera_failure'], 'rain')
 
 
 def test_id_enums_and_prose_forbidden(evidence):

@@ -2,6 +2,8 @@
 
 An engineering workspace for proposing evidence-linked safety scenarios for autonomous sidewalk delivery robots. It includes independent laptop, Qualcomm Imagine and Arduino UNO Q inference adapters, a Streamlit dashboard, an optional FastAPI API, SQLite history, deterministic verification and ordinal risk calculations.
 
+The expanded starter includes 120 illustrative KB records, with complete hazard, mitigation, test and risk inputs for five faults across four operating-condition buckets. Scenario Builder supports one to three faults together. Retrieval reserves complete groups across faults; risk reports identify any fault without an included scenario. See [multi-fault coverage](docs/multi_fault_coverage.md) for calculation rules and limitations.
+
 **Status:** Functional local application with real integration boundaries and automated tests. No real model, cloud account or UNO Q has been used to verify inference in this development environment. Initial datasets, benchmark labels and risk policy are explicitly illustrative. See [implementation status](docs/status.md) for the acceptance checklist and limitations.
 
 ## Start on Windows

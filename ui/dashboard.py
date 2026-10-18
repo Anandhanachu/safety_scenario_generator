@@ -310,6 +310,9 @@ def risk_selection_panel(run, reviews, backend=None):
                 st.success('Risk calculated from approved knowledge-base inputs.')
             for step in value.get('calculation_steps', []):
                 st.write(step)
+            if value.get('uncovered_faults'):
+                st.warning(value['coverage_note'] + '. The displayed risk covers the remaining included scenarios only.')
+            st.caption('Combined faults use the highest included hazard score. Undocumented interactions do not receive an invented risk multiplier.')
     st.dataframe([{'backend': LABELS.get(key, key), 'proposed': value['proposed'],
                    'system accepted': value['system_accepted'], 'system rejected': value['system_rejected'],
                    'engineer excluded': len(value['engineer_excluded']), 'included scenarios': len(value['included']),
@@ -485,7 +488,7 @@ def scenario_builder(s):
         navigation = b.text_input("Navigation mode", saved["navigation_mode"])
         sensors = c.text_input("Sensors (comma separated)", ", ".join(saved["sensors"]))
         faults_available = list(FAULT_LABELS)
-        faults = st.multiselect("Fault type (initial scope: one selected fault)", faults_available, default=[f for f in saved["faults"] if f in faults_available][:1], max_selections=1)
+        faults = st.multiselect("Fault types (select 1 to 3)", faults_available, default=[f for f in saved["faults"] if f in faults_available][:3], max_selections=3)
         capabilities = st.text_area("Documented robot capabilities (include source identifiers)", saved["documented_capabilities"])
         notes = st.text_area("Additional context / unsupported faults", saved["notes"])
         save = st.form_submit_button("Validate and save input", type="primary")
@@ -494,6 +497,8 @@ def scenario_builder(s):
             inputs = ScenarioInput(time_of_day=time_of_day, weather=weather, visibility=visibility, surface=surface,
                                    pedestrian_density=density, speed_mps=speed, location=location, navigation_mode=navigation,
                                    sensors=[v.strip() for v in sensors.split(",") if v.strip()], faults=faults, documented_capabilities=capabilities, notes=notes)
+            if not 1 <= len(inputs.faults) <= 3:
+                raise ValueError('Select between one and three fault types before saving.')
             s.store.set_setting("scenario_input", inputs.model_dump())
             st.success("Input validated and saved")
         except (ValidationError, ValueError) as exc:
@@ -872,7 +877,8 @@ def benchmark_progress(s):
 
 
 def evaluation_page(s):
-    dataset = LabelledDataset.model_validate_json((ROOT / 'data/labelled_cases_25.json').read_bytes())
+    label_file = 'multi_fault_cases_25.json' if s.dataset().dataset_id == 'multi-fault-draft-120' else 'labelled_cases_25.json'
+    dataset = LabelledDataset.model_validate_json((ROOT / 'data' / label_file).read_bytes())
     st.warning('The 25 labelled cases are preliminary drafts awaiting expert review and dates. Repeated executions do not increase the case count.')
     st.download_button("Download 25-case draft dataset", json_bytes(dataset.model_dump()), "benchmark-draft-25.json")
     st.download_button("Download benchmark schema", json_bytes(LabelledDataset.model_json_schema()), "benchmark.schema.json")

@@ -182,11 +182,14 @@ def test_incomplete_ai_drafts_recover_complete_kb_group(draft_evidence, matrix):
     recovery = result['scenarios'][1]
     assert recovery['origin'] == 'deterministic_kb_recovery'
     assert recovery['system_decision'] == 'accepted'
+    assert len({item['scenario_id'] for item in result['scenarios']}) == len(result['scenarios'])
 
 
 def test_new_pipeline_and_engineer_interface(tmp_path, monkeypatch):
     import ui.dashboard as dashboard
     service = Services(tmp_path)
+    from knowledge_base.core import parse_upload
+    service.activate_dataset(parse_upload((ROOT / 'data/constrained_knowledge_base.json').read_bytes()))
     class TestAdapter:
         def validate_configuration(self, model):
             return True
