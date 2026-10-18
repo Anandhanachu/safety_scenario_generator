@@ -97,6 +97,12 @@ def theme(dark):
     .pill-risk-high {{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;}}
     .pill-risk-med {{background:#fffbeb;color:#b45309;border:1px solid #fde68a;}}
     .pill-risk-low {{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;}}
+    .pill-stmt-hazard {{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;}}
+    .pill-stmt-mit {{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;}}
+    .pill-stmt-test {{background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;padding:2px 8px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;}}
+    .light-card-cloud {{border:1.5px solid #c7d2fe!important;background:rgba(99,102,241,0.03)!important;border-radius:16px;padding:14px;}}
+    .light-card-uno {{border:1.5px solid #fed7aa!important;background:rgba(245,158,11,0.03)!important;border-radius:16px;padding:14px;}}
+    .light-card-local {{border:1.5px solid #bbf7d0!important;background:rgba(16,185,129,0.03)!important;border-radius:16px;padding:14px;}}
     .risk-meter-bg {{width:100%;height:8px;background:#e2e8f0;border-radius:9999px;overflow:hidden;margin:6px 0;}}
     .risk-meter-fill-high {{height:100%;background:linear-gradient(90deg, #f87171, #ef4444);border-radius:9999px;}}
     .risk-meter-fill-med {{height:100%;background:linear-gradient(90deg, #fbbf24, #f59e0b);border-radius:9999px;}}
@@ -109,6 +115,93 @@ def theme(dark):
       [data-testid="stMetricValue"] {{font-size:1.2rem!important;}}
     }}
     </style>""", unsafe_allow_html=True)
+
+
+def render_odometer_gauge(score, level, width=280, height=160):
+    """Render a sleek circular speedometer/odometer SVG risk gauge."""
+    import math
+    if score is None:
+        score_val = 0
+        display_score = "—"
+        level_str = "NOT ASSIGNED"
+        color = "#94a3b8"
+        bg_pill = "#f1f5f9"
+        border_pill = "#cbd5e1"
+    else:
+        try:
+            score_val = max(0, min(100, int(round(float(score)))))
+        except (ValueError, TypeError):
+            score_val = 0
+        display_score = str(score_val)
+        level_str = str(level).upper() if level else "CALCULATING"
+        if score_val >= 66 or "HIGH" in level_str:
+            color = "#ef4444"
+            bg_pill = "#fef2f2"
+            border_pill = "#fecaca"
+        elif score_val >= 36 or "MED" in level_str:
+            color = "#f59e0b"
+            bg_pill = "#fffbeb"
+            border_pill = "#fde68a"
+        else:
+            color = "#10b981"
+            bg_pill = "#f0fdf4"
+            border_pill = "#bbf7d0"
+
+    cx, cy, r = 140, 115, 82
+    angle = math.pi * (1.0 - score_val / 100.0)
+
+    # Needle tip coordinates:
+    nx = cx - 64 * math.cos(math.pi - angle)
+    ny = cy - 64 * math.sin(math.pi - angle)
+
+    # Needle base:
+    bx1 = cx - 6 * math.sin(math.pi - angle)
+    by1 = cy + 6 * math.cos(math.pi - angle)
+    bx2 = cx + 6 * math.sin(math.pi - angle)
+    by2 = cy - 6 * math.cos(math.pi - angle)
+
+    ax = cx - r * math.cos(math.pi - angle)
+    ay = cy - r * math.sin(math.pi - angle)
+    large_arc = 1 if score_val > 50 else 0
+
+    val_path = f"M 58 115 A {r} {r} 0 {large_arc} 1 {ax:.1f} {ay:.1f}" if score_val > 0 else ""
+
+    return f"""
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;">
+      <svg width="{width}" height="{height}" viewBox="0 0 280 160" style="overflow:visible;max-width:100%;">
+        <defs>
+          <linearGradient id="meterTrackGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#10b981" />
+            <stop offset="50%" stop-color="#f59e0b" />
+            <stop offset="100%" stop-color="#ef4444" />
+          </linearGradient>
+          <filter id="needleGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.25"/>
+          </filter>
+        </defs>
+        <!-- Background Track -->
+        <path d="M 58 115 A 82 82 0 0 1 222 115" fill="none" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
+        <!-- Value Arc -->
+        {f'<path d="{val_path}" fill="none" stroke="url(#meterTrackGrad)" stroke-width="14" stroke-linecap="round"/>' if val_path else ''}
+        <!-- Ticks -->
+        <text x="44" y="132" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">0</text>
+        <text x="140" y="22" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">50</text>
+        <text x="236" y="132" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">100</text>
+        <!-- Needle -->
+        <polygon points="{bx1:.1f},{by1:.1f} {nx:.1f},{ny:.1f} {bx2:.1f},{by2:.1f}" fill="{color}" filter="url(#needleGlow)"/>
+        <circle cx="140" cy="115" r="8" fill="#1e293b"/>
+        <circle cx="140" cy="115" r="4" fill="#ffffff"/>
+        <!-- Center Odometer Score Display -->
+        <text x="140" y="92" font-size="28" font-weight="800" fill="{color}" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif">{display_score}</text>
+        <text x="140" y="106" font-size="9" font-weight="700" fill="#64748b" text-anchor="middle" letter-spacing="1.2">RISK SCORE</text>
+      </svg>
+      <div style="margin-top:-8px;">
+        <span class="pill-badge" style="background:{bg_pill};color:{color};border:1.5px solid {border_pill};font-size:11px;font-weight:700;padding:3px 12px;text-transform:uppercase;letter-spacing:0.5px;">
+          {level_str} RISK
+        </span>
+      </div>
+    </div>
+    """
 
 
 def backend_status_badge(backend, settings, store):
@@ -348,13 +441,16 @@ def risk_selection_panel(run, reviews, backend=None):
 
         with st.container(border=True):
             st.markdown(f"**{LABELS.get(key, key)}**")
-            a, b, c, d = st.columns(4)
-            a.metric('Included scenarios', len(value['included']))
-            b.metric('Engineer excluded', len(value['engineer_excluded']))
-            c.metric('Overall risk', risk_lvl)
-            d.metric('Risk Score (/100)', score_display)
-            if score_100 is not None:
-                st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{meter_pct}%;"></div></div>', unsafe_allow_html=True)
+            col_info, col_gauge = st.columns([3, 2])
+            with col_info:
+                a, b = st.columns(2)
+                a.metric('Included scenarios', len(value['included']))
+                b.metric('Engineer excluded', len(value['engineer_excluded']))
+                c, d = st.columns(2)
+                c.metric('Overall risk', risk_lvl)
+                d.metric('Risk Score (/100)', score_display)
+            with col_gauge:
+                st.markdown(render_odometer_gauge(score_100, risk_lvl, width=220, height=125), unsafe_allow_html=True)
 
             if value['status'] == 'provisional_needs_engineer_review':
                 st.warning('Provisional risk is available now. Complete the engineer review below and remove any unwanted scenarios; the result will recalculate automatically.')
@@ -488,20 +584,19 @@ def register_page(s):
             fill_cls = "risk-meter-fill-high" if risk_score_100 and risk_score_100 >= 66 else ("risk-meter-fill-med" if risk_score_100 and risk_score_100 >= 36 else "risk-meter-fill-low")
             meter_pct = risk_score_100 if risk_score_100 is not None else 0
 
-            # Risk Summary Card
+            # Risk Summary Card with Circular Odometer Gauge
             with st.container(border=True):
-                st.markdown(f"**{icon} {label} — Recalculated Safety Risk Evaluation**")
-                r1, r2, r3, r4 = st.columns(4)
-                r1.metric("Overall Risk", risk_level)
-                r2.metric("Risk Score (/100)", f"{risk_score_100} / 100" if risk_score_100 is not None else "—")
-                r3.metric("Included Scenarios", len(included_scopes))
-                r4.metric("Excluded Scenarios", len(excluded_scopes))
-
-                if risk_score_100 is not None:
-                    st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{meter_pct}%;"></div></div>', unsafe_allow_html=True)
-
-                for step in mode_eval.get("calculation_steps", []):
-                    st.caption(f"• {step}")
+                g_c1, g_c2 = st.columns([1.1, 2.9])
+                with g_c1:
+                    st.markdown(render_odometer_gauge(risk_score_100, risk_level), unsafe_allow_html=True)
+                with g_c2:
+                    st.markdown(f"**{icon} {label} — Recalculated Safety Risk Evaluation**")
+                    rk1, rk2, rk3 = st.columns(3)
+                    rk1.metric("Overall Risk", risk_level)
+                    rk2.metric("Included Scenarios", len(included_scopes))
+                    rk3.metric("Excluded Scenarios", len(excluded_scopes))
+                    for step in mode_eval.get("calculation_steps", []):
+                        st.caption(f"• {step}")
 
             st.markdown(f"#### Proposed Scenarios ({len(scenarios)})")
 
@@ -539,20 +634,20 @@ def register_page(s):
                 })
 
                 with st.container(border=True):
-                    col_title, col_action = st.columns([3, 1])
+                    col_title, col_action = st.columns([3.2, 1.2])
                     with col_title:
                         title_text = sc.get("title", "Untitled scenario")
-                        badge = "🔴 [EXCLUDED]" if is_excluded else "🟢 [INCLUDED IN RISK]"
-                        st.markdown(f"**{badge} {scenario_id}: {title_text}**")
+                        status_badge = '<span class="pill-badge pill-risk-high">EXCLUDED</span>' if is_excluded else '<span class="pill-badge pill-local">INCLUDED IN RISK</span>'
+                        st.markdown(f"{status_badge} &nbsp; **{scenario_id}: {title_text}**", unsafe_allow_html=True)
                         st.caption(f"Risk: **{sc_level}** (Score: {sc_score_100}/100 · Severity: {sc_sev} · Likelihood: {sc_lik})")
 
                     with col_action:
                         if is_excluded:
-                            if st.button("↩️ Re-include in Risk", key=f"reinc_{backend}_{scenario_id}"):
+                            if st.button("Re-include in Risk", key=f"reinc_{backend}_{scenario_id}", use_container_width=True):
                                 s.store.delete_reviews_for_scenario(run_id, scope)
                                 st.rerun()
                         else:
-                            if st.button("❌ Remove from Risk", key=f"rem_{backend}_{scenario_id}"):
+                            if st.button("Remove from Risk", key=f"rem_{backend}_{scenario_id}", use_container_width=True):
                                 s.store.review(run_id, scope, "rejected", "Engineer Review", "Excluded from risk evaluation")
                                 st.rerun()
 
@@ -561,14 +656,14 @@ def register_page(s):
                         for stmt in stmts:
                             rec_id = stmt.get("record_id", "")
                             text = stmt.get("text", "")
-                            if rec_id.startswith("H-"):
-                                st.markdown(f"**⚠️ Hazard:** {text} `[{rec_id}]`")
-                            elif rec_id.startswith("M-"):
-                                st.markdown(f"**🛡️ Mitigation:** {text} `[{rec_id}]`")
-                            elif rec_id.startswith("T-"):
-                                st.markdown(f"**🧪 Acceptance Test:** {text} `[{rec_id}]`")
+                            if rec_id.startswith("H-") or rec_id.startswith("HAZ-"):
+                                st.markdown(f'<span class="pill-stmt-hazard">HAZARD</span> &nbsp; **{rec_id}:** {text}', unsafe_allow_html=True)
+                            elif rec_id.startswith("M-") or rec_id.startswith("MIT-"):
+                                st.markdown(f'<span class="pill-stmt-mit">MITIGATION</span> &nbsp; **{rec_id}:** {text}', unsafe_allow_html=True)
+                            elif rec_id.startswith("T-") or rec_id.startswith("TEST-"):
+                                st.markdown(f'<span class="pill-stmt-test">VERIFICATION TEST</span> &nbsp; **{rec_id}:** {text}', unsafe_allow_html=True)
                             else:
-                                st.markdown(f"• {text} `[{rec_id}]`")
+                                st.markdown(f"• **{rec_id}:** {text}")
                     elif sc.get("scenario_narrative"):
                         st.write(sc.get("scenario_narrative"))
 
@@ -619,7 +714,28 @@ def scenario_builder(s):
 
     st.caption("Configure operating conditions and generate safety scenarios across Cloud, Uno Q, or Local. Selecting any option displays its controls, execution, proposed scenarios, and recalculating risk evaluation under there.")
 
-    with st.expander("⚙️ Operating Context & Fault Selection", expanded=False):
+    # Eye-catching banner for Operating Context & Fault Selection
+    inputs_curr = ScenarioInput.model_validate(saved)
+    active_fault_names = ", ".join(inputs_curr.faults) if inputs_curr.faults else "None"
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(245,158,11,0.05) 50%, rgba(16,185,129,0.05) 100%);
+                border:1.5px solid #c7d2fe;border-radius:18px;padding:16px 20px;margin-bottom:12px;
+                box-shadow:0 4px 16px rgba(99,102,241,0.04);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <span class="eyebrow" style="color:#4f46e5;">Target Operational Design Domain</span>
+          <h3 style="margin:2px 0 0 0;font-size:1.15rem;font-weight:700;">🎯 Operating Context & Fault Selection</h3>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <span class="pill-badge pill-cloud">{inputs_curr.time_of_day.upper()} · {inputs_curr.weather.upper()} · {inputs_curr.visibility.upper()}</span>
+          <span class="pill-badge pill-uno">{len(inputs_curr.faults)} FAULT{'S' if len(inputs_curr.faults) != 1 else ''}: {active_fault_names}</span>
+          <span class="pill-badge pill-local">{inputs_curr.speed_mps} m/s</span>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.expander("⚙️ Customize Operating Context & Fault Types (1–3 Faults)", expanded=False):
         with st.form("scenario_form"):
             a, b, c = st.columns(3)
             time_of_day = a.selectbox("Time of day", ["day", "night"], index=["day", "night"].index(saved.get("time_of_day", "day")))
@@ -631,27 +747,51 @@ def scenario_builder(s):
             location = a.text_input("Operating context", saved.get("location", "sidewalk"))
             navigation = b.text_input("Navigation mode", saved.get("navigation_mode", "autonomous"))
             sensors = c.text_input("Sensors (comma separated)", ", ".join(saved.get("sensors", [])))
-            faults_available = list(FAULT_LABELS)
-            default_faults = [f for f in saved.get("faults", []) if f in faults_available][:3]
+
+            # Fault mapping and safe default calculation:
+            code_to_label = {v: k for k, v in FAULT_LABELS.items()}
+            faults_available = list(FAULT_LABELS.keys())
+            default_faults = []
+            for f in saved.get("faults", []):
+                if f in faults_available:
+                    default_faults.append(f)
+                elif f in code_to_label:
+                    default_faults.append(code_to_label[f])
+                else:
+                    norm = f.lower().replace("_", " ")
+                    match = next((k for k in faults_available if k.lower() == norm), None)
+                    if match:
+                        default_faults.append(match)
+            default_faults = list(dict.fromkeys(default_faults))[:3]
             if not default_faults and faults_available:
                 default_faults = [faults_available[0]]
-            faults = st.multiselect("Fault types (select 1 to 3)", faults_available, default=default_faults, max_selections=3)
+
+            faults = st.multiselect(
+                "Fault types (select 1 to 3 supported faults)",
+                faults_available,
+                default=default_faults,
+                max_selections=3,
+                help="Choose 1 to 3 robot faults. Matched hazard, mitigation, and acceptance test evidence will be retrieved."
+            )
             capabilities = st.text_area("Documented robot capabilities", saved.get("documented_capabilities", ""))
             notes = st.text_area("Additional context / notes", saved.get("notes", ""))
-            save = st.form_submit_button("Validate and save input", type="primary")
+            save = st.form_submit_button("Validate and save input", type="primary", use_container_width=True)
+
         if save:
             try:
-                new_inputs = ScenarioInput(time_of_day=time_of_day, weather=weather, visibility=visibility, surface=surface,
-                                           pedestrian_density=density, speed_mps=speed, location=location, navigation_mode=navigation,
-                                           sensors=[v.strip() for v in sensors.split(",") if v.strip()], faults=faults,
-                                           documented_capabilities=capabilities, notes=notes)
-                if not 1 <= len(new_inputs.faults) <= 3:
-                    raise ValueError('Select between one and three fault types before saving.')
+                selected_faults = faults if faults else [faults_available[0]]
+                new_inputs = ScenarioInput(
+                    time_of_day=time_of_day, weather=weather, visibility=visibility, surface=surface,
+                    pedestrian_density=density, speed_mps=speed, location=location, navigation_mode=navigation,
+                    sensors=[v.strip() for v in sensors.split(",") if v.strip()], faults=selected_faults,
+                    documented_capabilities=capabilities, notes=notes
+                )
                 s.store.set_setting("scenario_input", new_inputs.model_dump())
-                st.success("Input validated and saved")
+                st.success("Operating context and active faults updated.")
+                st.rerun()
             except (ValidationError, ValueError) as exc:
                 error(exc)
-        if st.button("Reset saved input"):
+        if st.button("Reset to default conditions"):
             s.store.set_setting("scenario_input", ScenarioInput().model_dump())
             st.rerun()
 
@@ -659,7 +799,7 @@ def scenario_builder(s):
 
     # Context Summary Badge
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Context", f"{inputs.time_of_day}, {inputs.weather}")
+    c1.metric("Context", f"{inputs.time_of_day.title()}, {inputs.weather.title()}")
     c2.metric("Active Faults", ", ".join(inputs.faults) or "None")
     c3.metric("Pedestrians", inputs.pedestrian_density.title())
     c4.metric("Mode", inputs.navigation_mode.title())
@@ -816,20 +956,19 @@ def scenario_builder(s):
                 fill_cls = "risk-meter-fill-high" if risk_score_100 and risk_score_100 >= 66 else ("risk-meter-fill-med" if risk_score_100 and risk_score_100 >= 36 else "risk-meter-fill-low")
                 meter_pct = risk_score_100 if risk_score_100 is not None else 0
 
-                # Risk Summary Box
+                # Risk Summary Box with Circular Odometer Gauge
                 with st.container(border=True):
-                    st.markdown(f"**Safety Risk Evaluation (Recalculated)**")
-                    rk1, rk2, rk3, rk4 = st.columns(4)
-                    rk1.metric("Overall Risk", risk_level)
-                    rk2.metric("Risk Score (/100)", f"{risk_score_100} / 100" if risk_score_100 is not None else "—")
-                    rk3.metric("Included Scenarios", len(included_scopes))
-                    rk4.metric("Excluded Scenarios", len(excluded_scopes))
-
-                    if risk_score_100 is not None:
-                        st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{meter_pct}%;"></div></div>', unsafe_allow_html=True)
-
-                    for step in mode_eval.get("calculation_steps", []):
-                        st.caption(f"• {step}")
+                    g_c1, g_c2 = st.columns([1.1, 2.9])
+                    with g_c1:
+                        st.markdown(render_odometer_gauge(risk_score_100, risk_level), unsafe_allow_html=True)
+                    with g_c2:
+                        st.markdown("**Safety Risk Evaluation (Recalculated)**")
+                        rk1, rk2, rk3 = st.columns(3)
+                        rk1.metric("Overall Risk", risk_level)
+                        rk2.metric("Included Scenarios", len(included_scopes))
+                        rk3.metric("Excluded Scenarios", len(excluded_scopes))
+                        for step in mode_eval.get("calculation_steps", []):
+                            st.caption(f"• {step}")
 
                 st.markdown(f"#### Proposed Scenarios ({len(scenarios)})")
                 st.caption("Remove any scenario below to immediately recalculate the risk evaluation above.")
@@ -866,20 +1005,20 @@ def scenario_builder(s):
                     })
 
                     with st.container(border=True):
-                        top_left, top_right = st.columns([3, 1])
+                        top_left, top_right = st.columns([3.2, 1.2])
                         with top_left:
                             title_text = sc.get("title", "Untitled scenario")
-                            badge = "🔴 [EXCLUDED]" if is_excluded else "🟢 [INCLUDED IN RISK]"
-                            st.markdown(f"**{badge} {scenario_id}: {title_text}**")
+                            status_badge = '<span class="pill-badge pill-risk-high">EXCLUDED</span>' if is_excluded else '<span class="pill-badge pill-local">INCLUDED IN RISK</span>'
+                            st.markdown(f"{status_badge} &nbsp; **{scenario_id}: {title_text}**", unsafe_allow_html=True)
                             st.caption(f"Risk: **{sc_level}** (Score: {sc_score_100}/100 · Severity: {sc_sev} · Likelihood: {sc_lik})")
                         with top_right:
                             if is_excluded:
-                                if st.button("↩️ Re-include Scenario", key=f"gen_reinc_{selected_backend}_{scenario_id}_{i}"):
+                                if st.button("Re-include in Risk", key=f"gen_reinc_{selected_backend}_{scenario_id}_{i}", use_container_width=True):
                                     if run_identity:
                                         s.store.delete_reviews_for_scenario(run_identity, scope)
                                     st.rerun()
                             else:
-                                if st.button("❌ Remove Scenario", key=f"gen_rem_{selected_backend}_{scenario_id}_{i}"):
+                                if st.button("Remove from Risk", key=f"gen_rem_{selected_backend}_{scenario_id}_{i}", use_container_width=True):
                                     if run_identity:
                                         s.store.review(run_identity, scope, "rejected", "Engineer Review", "Excluded from risk evaluation")
                                     st.rerun()
@@ -889,14 +1028,14 @@ def scenario_builder(s):
                             for stmt in stmts:
                                 rec_id = stmt.get("record_id", "")
                                 text = stmt.get("text", "")
-                                if rec_id.startswith("H-"):
-                                    st.markdown(f"**⚠️ Hazard:** {text} `[{rec_id}]`")
-                                elif rec_id.startswith("M-"):
-                                    st.markdown(f"**🛡️ Mitigation:** {text} `[{rec_id}]`")
-                                elif rec_id.startswith("T-"):
-                                    st.markdown(f"**🧪 Acceptance Test:** {text} `[{rec_id}]`")
+                                if rec_id.startswith("H-") or rec_id.startswith("HAZ-"):
+                                    st.markdown(f'<span class="pill-stmt-hazard">HAZARD</span> &nbsp; **{rec_id}:** {text}', unsafe_allow_html=True)
+                                elif rec_id.startswith("M-") or rec_id.startswith("MIT-"):
+                                    st.markdown(f'<span class="pill-stmt-mit">MITIGATION</span> &nbsp; **{rec_id}:** {text}', unsafe_allow_html=True)
+                                elif rec_id.startswith("T-") or rec_id.startswith("TEST-"):
+                                    st.markdown(f'<span class="pill-stmt-test">VERIFICATION TEST</span> &nbsp; **{rec_id}:** {text}', unsafe_allow_html=True)
                                 else:
-                                    st.markdown(f"• {text} `[{rec_id}]`")
+                                    st.markdown(f'• **{rec_id}:** {text}')
                         elif sc.get("scenario_narrative"):
                             st.write(sc.get("scenario_narrative"))
 
@@ -931,8 +1070,25 @@ def scenario_builder(s):
 
 def model_studio(s):
     settings = s.settings()
-    for backend, label in LABELS.items():
-        with st.container(border=True):
+    st.caption("Inspect runtime catalogues, choose active models, and test isolated inference for each environment without vertical scrolling.")
+
+    # 3-column top status strip
+    top_c1, top_c2, top_c3 = st.columns(3)
+    with top_c1:
+        st.markdown(f'<div class="light-card-cloud"><span class="pill-badge pill-cloud">Cloud</span> &nbsp; <strong>Qualcomm Cirrascale</strong><br><small style="color:#64748b;">Target: {settings["qualcomm"].get("model_id") or "DeepSeek-R1-Distill-Llama-70B"}</small></div>', unsafe_allow_html=True)
+    with top_c2:
+        st.markdown(f'<div class="light-card-uno"><span class="pill-badge pill-uno">Edge</span> &nbsp; <strong>Arduino UNO Q</strong><br><small style="color:#64748b;">Target: {settings["uno_q"].get("model_id") or "qwen3:0.6b"}</small></div>', unsafe_allow_html=True)
+    with top_c3:
+        st.markdown(f'<div class="light-card-local"><span class="pill-badge pill-local">Local</span> &nbsp; <strong>Laptop Ollama</strong><br><small style="color:#64748b;">Target: {settings["laptop_local"].get("model_id") or "qwen3:1.7b"}</small></div>', unsafe_allow_html=True)
+
+    st.write("")
+
+    ms_tabs = st.tabs(["☁️ Qualcomm Cloud", "⚡ Arduino UNO Q", "💻 Laptop Local"])
+    tab_list = [("qualcomm", ms_tabs[0]), ("uno_q", ms_tabs[1]), ("laptop_local", ms_tabs[2])]
+
+    for backend, current_tab in tab_list:
+        label = LABELS[backend]
+        with current_tab:
             st.subheader(label)
             st.caption(settings[backend]["base_url"] or "Address not configured")
             if f"catalogue_{backend}" not in st.session_state:
@@ -965,15 +1121,18 @@ def model_studio(s):
                     st.json(next(x for x in inventory if x["id"] == selected))
                     st.json(make_adapter(backend, settings).capabilities)
                 a, b = st.columns(2)
-                if a.button("Save selection", key=f"save_{backend}"):
+                if a.button("Save selection", key=f"save_{backend}", use_container_width=True):
                     settings[backend]["model_id"] = selected
                     s.store.set_setting("preferences", settings)
                     st.success("Selection saved independently for this backend")
-                if b.button("Test real scenario inference", key=f"test_{backend}"):
+                if b.button("Test real scenario inference", key=f"test_{backend}", use_container_width=True):
                     request = RunRequest(inputs=ScenarioInput.model_validate(s.store.setting('scenario_input', ScenarioInput().model_dump())), selections=[Selection(backend=backend, model_id=selected, generation=Generation(max_tokens=settings.get('max_tokens', 1800)))], generation_mode='scenario_drafts')
                     st.session_state.active_run = s.manager.start(request, s.dataset(), s.matrix(), settings)
-                st.button("Load model (runtime unsupported)", key=f"load_{backend}", disabled=True)
-                st.button("Unload model (runtime unsupported)", key=f"unload_{backend}", disabled=True)
+                btn_c1, btn_c2 = st.columns(2)
+                with btn_c1:
+                    st.button("Load model (runtime unsupported)", key=f"load_{backend}", disabled=True, use_container_width=True)
+                with btn_c2:
+                    st.button("Unload model (runtime unsupported)", key=f"unload_{backend}", disabled=True, use_container_width=True)
             else:
                 st.info("No verified catalogue loaded. Configure the endpoint in Settings, then refresh.")
             successes = [r for run in s.store.list("run", 50) for r in run["payload"]["results"].values() if r["backend"] == backend and r["status"] == "completed"]
@@ -1233,11 +1392,7 @@ def risk_analysis(s):
                     raw_sc = b_res.get('risk_score')
                     sc_100 = min(100, round((float(raw_sc) / 9.0) * 100)) if raw_sc is not None else 0
                     lvl = (b_res.get('risk_level') or "unassigned").upper()
-                    fill_cls = "risk-meter-fill-high" if sc_100 >= 66 else ("risk-meter-fill-med" if sc_100 >= 36 else "risk-meter-fill-low")
-                    badge_cls = "pill-risk-high" if sc_100 >= 66 else ("pill-risk-med" if sc_100 >= 36 else "pill-risk-low")
-
-                    st.markdown(f'<span class="pill-badge {badge_cls}">{lvl} · {sc_100} / 100</span>', unsafe_allow_html=True)
-                    st.markdown(f'<div class="risk-meter-bg"><div class="{fill_cls}" style="width:{sc_100}%;"></div></div>', unsafe_allow_html=True)
+                    st.markdown(render_odometer_gauge(sc_100, lvl, width=200, height=120), unsafe_allow_html=True)
 
                     c_a, c_b = st.columns(2)
                     c_a.caption(f"Included: **{len(b_res['included'])}**")
@@ -1712,28 +1867,48 @@ def device(s):
 def settings_page(s):
     settings = s.settings()
     with st.form("settings"):
+        st.markdown("#### 3-Tier Model Execution Settings")
+        st.caption("Configure endpoints, model targets, and hardware metadata side-by-side to minimize scrolling.")
+
+        c_cloud, c_uno, c_local = st.columns(3)
+        cols_map = {
+            "qualcomm": (c_cloud, "pill-cloud", "☁️ Qualcomm Cloud", "light-card-cloud"),
+            "uno_q": (c_uno, "pill-uno", "⚡ Arduino UNO Q", "light-card-uno"),
+            "laptop_local": (c_local, "pill-local", "💻 Laptop Local", "light-card-local")
+        }
+
         endpoints, selected, params = {}, {}, {}
-        for backend, label in LABELS.items():
-            st.markdown(f"**{label}**")
-            endpoints[backend] = st.text_input("Base URL", settings[backend]["base_url"], key=f"endpoint_{backend}")
-            if backend == 'laptop_local':
-                ollama_fast = st.checkbox('Ollama fast response: disable thinking and request JSON',
-                                          value=settings[backend].get('ollama_fast_mode', urlsplit(settings[backend]['base_url']).port == 11434),
-                                          help='For Ollama only. Requests reasoning_effort=none and JSON output. Turn off for other local servers. Runtime options are included in reports.')
-            selected[backend] = st.text_input("Selected model ID (revalidated on execution)", settings[backend].get("model_id", ""), key=f"configured_{backend}")
-            a, b = st.columns(2)
-            current = settings[backend].get("generation", {})
-            a.caption('Temperature 0 · seed 42 · fixed for every backend; runtime support unverified until tested')
-            params[backend] = {'temperature': 0.0, 'seed': 42, 'max_tokens': settings.get('max_tokens', 1800)}
-            settings[backend]['parameter_size'] = a.text_input('Parameter size (verified metadata only; leave blank if unavailable)', settings[backend].get('parameter_size') or '', key=f'parameters_{backend}') or None
-            settings[backend]['quantization'] = b.text_input('Quantization (verified metadata only; leave blank if unavailable)', settings[backend].get('quantization') or '', key=f'quantization_{backend}') or None
-        max_tokens = st.number_input('Shared maximum generated tokens', 64, 8192, settings.get('max_tokens', 1800))
-        backend_timeout_seconds = st.number_input('Backend request timeout (seconds)', 30, 900, int(settings.get('backend_timeout_seconds', 900)), 30, help='Applies to laptop, UNO Q and cloud requests. Slow local reasoning models may need the full 900 seconds.')
-        citation_link_validity_threshold = st.number_input('citation_link_validity threshold for human review', 0.0, 1.0, float(settings.get('citation_link_validity_threshold', 1.0)), 0.05)
-        directories = st.text_area("Permitted local model directories (one absolute path per line)", "\n".join(settings.get("model_dirs", [])))
-        limit = st.number_input("TF-IDF result limit", 1, 40, settings["retrieval_limit"])
-        threshold = st.number_input("Minimum relevance", 0.0, 1.0, float(settings["relevance_threshold"]), 0.01)
-        submit = st.form_submit_button("Validate and save settings", type="primary")
+        ollama_fast = settings["laptop_local"].get("ollama_fast_mode", True)
+
+        for backend, (col, pill_cls, title, card_cls) in cols_map.items():
+            with col:
+                with st.container(border=True):
+                    st.markdown(f'<span class="pill-badge {pill_cls}">{title}</span>', unsafe_allow_html=True)
+                    st.write("")
+                    endpoints[backend] = st.text_input("Base URL", settings[backend]["base_url"], key=f"endpoint_{backend}")
+                    if backend == 'laptop_local':
+                        ollama_fast = st.checkbox(
+                            'Ollama fast response (no-think JSON)',
+                            value=settings[backend].get('ollama_fast_mode', urlsplit(settings[backend]['base_url']).port == 11434),
+                            help='Requests reasoning_effort=none and JSON output.'
+                        )
+                    selected[backend] = st.text_input("Selected model ID", settings[backend].get("model_id", ""), key=f"configured_{backend}")
+                    params[backend] = {'temperature': 0.0, 'seed': 42, 'max_tokens': settings.get('max_tokens', 1800)}
+                    settings[backend]['parameter_size'] = st.text_input('Parameter size', settings[backend].get('parameter_size') or '', key=f'parameters_{backend}', help='e.g. 70B, 0.6B') or None
+                    settings[backend]['quantization'] = st.text_input('Quantization', settings[backend].get('quantization') or '', key=f'quantization_{backend}', help='e.g. Q4_K_M, INT8') or None
+
+        st.markdown("---")
+        st.markdown("#### Global Policy & Pipeline Parameters")
+        g1, g2 = st.columns(2)
+        with g1:
+            max_tokens = st.number_input('Shared maximum generated tokens', 64, 8192, settings.get('max_tokens', 1800))
+            backend_timeout_seconds = st.number_input('Backend request timeout (seconds)', 30, 900, int(settings.get('backend_timeout_seconds', 900)), 30, help='Applies to laptop, UNO Q and cloud requests.')
+            citation_link_validity_threshold = st.number_input('citation_link_validity threshold for human review', 0.0, 1.0, float(settings.get('citation_link_validity_threshold', 1.0)), 0.05)
+        with g2:
+            limit = st.number_input("TF-IDF result limit", 1, 40, settings["retrieval_limit"])
+            threshold = st.number_input("Minimum relevance", 0.0, 1.0, float(settings["relevance_threshold"]), 0.01)
+            directories = st.text_area("Permitted local model directories (one absolute path per line)", "\n".join(settings.get("model_dirs", [])), height=100)
+        submit = st.form_submit_button("Validate and save settings", type="primary", use_container_width=True)
     if submit:
         try:
             for backend, value in endpoints.items():
