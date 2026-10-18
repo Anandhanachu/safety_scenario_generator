@@ -188,10 +188,10 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
             normalized = raw.strip()
             if '</think>' in normalized:
                 normalized = normalized.split('</think>', 1)[1].strip()
-            start = normalized.find('{')
-            end = normalized.rfind('}')
-            if start != -1 and end != -1 and end > start:
-                normalized = normalized[start:end+1]
+            json_start = normalized.find('{')
+            json_end = normalized.rfind('}')
+            if json_start != -1 and json_end != -1 and json_end > json_start:
+                normalized = normalized[json_start:json_end+1]
             elif normalized.startswith('```'):
                 lines = normalized.splitlines()
                 if lines and lines[0].startswith('```'):

@@ -651,8 +651,13 @@ def run_progress(s):
         st.download_button("Export comparison CSV", csv_bytes(comparison_rows(run)), f"comparison-{identity}.csv", "text/csv")
         with st.expander("Frozen configuration, evidence and stage timestamps"):
             st.json(run["snapshot"])
-
-
+    else:
+        # Inference is still running in a background thread; auto-refresh every 3 s so
+        # results appear automatically when the thread completes, without a manual reload.
+        import time as _time
+        with st.spinner("Inference running — results will appear automatically…"):
+            _time.sleep(3)
+        st.rerun()
 def comparison(s):
     st.caption(LIMITATIONS[-1])
     latest_evaluations = [r['payload'] for r in s.store.list('evaluation', 10) if r['payload'].get('summary')]
