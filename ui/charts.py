@@ -107,7 +107,7 @@ def unified_benchmark_figure(rows, dark=False):
 
     fig = make_subplots(
         rows=1, cols=3,
-        subplot_titles=("⚡ Latency (Seconds)", "🛡️ Safety Risk Index (0-100)", "✅ Valid Scenarios"),
+        subplot_titles=("Latency (Seconds)", "Safety Risk Index (0-100)", "Valid Scenarios"),
         horizontal_spacing=0.08
     )
 
