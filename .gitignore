@@ -8,3 +8,5 @@ runtime/
 *.gguf
 *.sqlite*
 *.log
+.ppt-work/
+output/
