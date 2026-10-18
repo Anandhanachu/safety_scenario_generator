@@ -151,6 +151,16 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
     applied = {key: 'not measured' for key in settings}
     runtime_options, runtime_metrics = {}, {}
     scenarios = []
+    usable = [item for item in evidence
+              if item['record'].get('expert_support_review') != 'unsupported'
+              and item['record'].get('review_status') != 'rejected']
+    if not scope(inputs) or not baseline(usable).selections:
+        return {'scenarios': [], 'schema_valid': False, 'attempts': [],
+                'generation_latency_ms': None, 'requested_settings': settings,
+                'applied_settings': applied, 'status': 'failed',
+                'declared_candidate_count': 0, 'valid_scenarios': 0,
+                'needs_human_review': True, 'generation_mode': 'scenario_drafts',
+                'error': 'No complete supported KB evidence group is available. Check fault selection, active knowledge base and retrieval settings before generating.'}
     for attempt in range(2):
         if cancel and cancel.is_set():
             from models.adapters import Cancelled
@@ -185,19 +195,17 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
                           if item['record'].get('expert_support_review') != 'unsupported'
                           and item['record'].get('review_status') != 'rejected']
                 recovered = baseline(usable)
-                if recovered.selections and len(scenarios) < limit:
-                    refs = []
-                    for choice in recovered.selections:
-                        refs.extend([choice.hazard_id, *choice.mitigation_ids, *choice.acceptance_test_ids])
+                for number, choice in enumerate(recovered.selections[:limit], 1):
+                    refs = list(dict.fromkeys([choice.hazard_id, *choice.mitigation_ids, *choice.acceptance_test_ids]))
                     records = {item['record']['id']: item['record'] for item in evidence}
                     recovery = {
-                        'scenario_id': 'SYSTEM-RECOVERY-1',
+                        'scenario_id': f'SYSTEM-RECOVERY-{number}',
                         'title': 'Knowledge-base linked scenario',
                         'statements': [{'record_id': ref, 'text': records[ref]['description'].strip()} for ref in refs],
                     }
                     recovered_items = screen_drafts([recovery], inputs, evidence, matrix, threshold)
                     if recovered_items:
-                        recovered_items[0]['scenario_id'] = 'SYSTEM-RECOVERY-1'
+                        recovered_items[0]['scenario_id'] = f'SYSTEM-RECOVERY-{number}'
                         recovered_items[0]['origin'] = 'deterministic_kb_recovery'
                         recovered_items[0]['recovery_note'] = (
                             'System recovered a complete linked KB group after AI drafts were incomplete')
@@ -214,6 +222,8 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
             'requested_runtime_options': runtime_options, 'runtime_metrics': runtime_metrics,
             'status': 'completed' if valid_envelope else 'failed',
             'declared_candidate_count': len(scenarios),
+            'ai_candidate_count': sum(s.get('origin') != 'deterministic_kb_recovery' for s in scenarios),
+            'recovered_candidate_count': sum(s.get('origin') == 'deterministic_kb_recovery' for s in scenarios),
             'valid_scenarios': sum(s.get('system_decision') == 'accepted' for s in scenarios),
             'needs_human_review': not scenarios or any(s['needs_human_review'] for s in scenarios),
             'error': '' if valid_envelope else 'Invalid draft batch after one corrective retry',

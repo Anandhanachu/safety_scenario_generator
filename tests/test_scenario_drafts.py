@@ -177,12 +177,36 @@ def test_incomplete_ai_drafts_recover_complete_kb_group(draft_evidence, matrix):
     result = generate_drafts(PartialAdapter(), 'TEST', ScenarioInput(faults=['Camera failure']),
                              draft_evidence, matrix,
                              {'temperature': 0., 'seed': 42, 'max_tokens': 2000}, 10)
-    assert result['valid_scenarios'] == 1
+    assert result['valid_scenarios'] == 2
     assert result['scenarios'][0]['system_decision'] == 'rejected'
     recovery = result['scenarios'][1]
     assert recovery['origin'] == 'deterministic_kb_recovery'
     assert recovery['system_decision'] == 'accepted'
     assert len({item['scenario_id'] for item in result['scenarios']}) == len(result['scenarios'])
+
+
+def test_full_rejected_batch_does_not_block_kb_recovery(draft_evidence, matrix):
+    class BadAdapter:
+        def generate_scenarios(self, *args):
+            return json.dumps({'schema_version': '3.0', 'scenarios': [
+                {'scenario_id': str(i), 'title': 'Unsupported', 'statements': [
+                    {'record_id': 'invented', 'text': 'Invented claim'}]} for i in range(10)]})
+    result = generate_drafts(BadAdapter(), 'TEST', ScenarioInput(faults=['Camera failure'], weather='wet'),
+                             draft_evidence, matrix, {'temperature': 0., 'seed': 42, 'max_tokens': 4096}, 10)
+    assert result['ai_candidate_count'] == 10
+    assert result['recovered_candidate_count'] == result['valid_scenarios'] == 2
+    assert all(s['system_decision'] == 'rejected' for s in result['scenarios'][:10])
+    assert len({s['scenario_id'] for s in result['scenarios']}) == 12
+
+
+def test_no_evidence_never_calls_model(matrix):
+    class NeverAdapter:
+        def generate_scenarios(self, *args):
+            raise AssertionError('No model request is allowed without evidence')
+    result = generate_drafts(NeverAdapter(), 'TEST', ScenarioInput(faults=['Camera failure']), [],
+                             matrix, {'temperature': 0., 'seed': 42, 'max_tokens': 4096}, 10)
+    assert result['status'] == 'failed' and result['scenarios'] == []
+    assert result['generation_latency_ms'] is None
 
 
 def test_new_pipeline_and_engineer_interface(tmp_path, monkeypatch):

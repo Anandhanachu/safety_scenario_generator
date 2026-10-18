@@ -402,6 +402,8 @@ def register_page(s):
                 a.metric("Execution", result.get("status", "unknown"))
                 b.metric("Schema valid", "Yes" if result.get("schema_valid") else "No")
                 c.metric("Proposals", len(result.get("scenarios", [])))
+                if result.get('recovered_candidate_count'):
+                    st.caption(f"AI drafts: {result['ai_candidate_count']}. Additional KB recovery scenarios: {result['recovered_candidate_count']}. Recovery is deterministic and is not AI output.")
                 latency = result.get("generation_latency_ms")
                 d.metric("Generation time", f"{latency / 1000:.1f} s" if latency is not None else "not measured")
                 if result.get("error"):
