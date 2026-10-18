@@ -17,6 +17,7 @@ from evaluation.labelled import baseline_result
 from backend.scenario_generation import generate_drafts
 
 PROMPT_VERSION = "2.0-record-selection"
+IMPLEMENTATION_VERSION = '2026.10.18-evidence-4'
 
 
 def prompt_messages(inputs, evidence):
@@ -36,9 +37,12 @@ class RunManager:
             raise ValueError('Activate a validated v2 tagged knowledge base before constrained generation. Existing legacy history is retained.')
         if request.method != 'full_pipeline':
             raise ValueError('Constrained generation requires the shared retrieved evidence; llm_only is retired')
+        if request.generation_mode == 'scenario_drafts' and not evidence:
+            raise ValueError('No matching KB evidence was retrieved. Select 1–3 supported faults and check the knowledge base and relevance settings before running models.')
         deterministic = baseline_result(evidence, matrix, request.citation_link_validity_threshold, request.selections[0].generation.max_tokens).model_dump()
         deterministic['latency_ms'] += retrieval_diagnostics['total_ms']
         snapshot = {"schema_version": "1.0", "created": now(), "request": request.model_dump(),
+                    'implementation_version': IMPLEMENTATION_VERSION,
                     "knowledge_base_version": dataset.version, "knowledge_base": dataset.model_dump(),
                     "risk_matrix": matrix.model_dump(), "prompt_version": '3.0-scenario-drafts' if request.generation_mode == 'scenario_drafts' else PROMPT_VERSION,
                     "retrieval": {"method": RETRIEVAL_VERSION, "limit": request.retrieval_limit, "threshold": request.relevance_threshold, "diagnostics": retrieval_diagnostics},

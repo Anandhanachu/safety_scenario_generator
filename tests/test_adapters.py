@@ -36,6 +36,23 @@ def test_imagine_catalogue_and_documented_chat():
     assert requests[1].url.path == "/apis/v2/chat/completions"
 
 
+def test_empty_message_uses_documented_delta_text():
+    response = {'model': 'test', 'choices': [{'message': {}, 'delta': {'content': '{"ok":true}'}, 'finish_reason': 'stop'}]}
+    assert content_from_response(response, 'test') == '{"ok":true}'
+
+
+@pytest.mark.parametrize('content', [{'String': '{"ok":true}'}, {'Vec': ['{"ok":', 'true}']}])
+def test_imagine_tagged_content_is_decoded(content):
+    response = {'model': 'test', 'choices': [{'delta': {'content': content}, 'finish_reason': 'stop'}]}
+    assert content_from_response(response, 'test') == '{"ok":true}'
+
+
+def test_imagine_non_text_union_remains_an_error():
+    response = {'model': 'test', 'choices': [{'delta': {'content': {'MultiModal': []}}}]}
+    with pytest.raises(BackendError, match='missing text content'):
+        content_from_response(response, 'test')
+
+
 @pytest.mark.parametrize("data", [{"data": {}}, {"chat": "bad"}, [], {"chat": [4]}])
 def test_malformed_cloud_catalogue(data):
     adapter = QualcommAdapter("https://aisuite.cirrascale.com/apis", "qualcomm", "test-only", transport=mock_transport(lambda r: httpx.Response(200, json=data)))

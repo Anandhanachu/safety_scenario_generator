@@ -209,6 +209,16 @@ def test_no_evidence_never_calls_model(matrix):
     assert result['generation_latency_ms'] is None
 
 
+def test_cloud_fenced_json_passes_same_evidence_checks(draft_evidence, matrix):
+    class FencedAdapter:
+        def generate_scenarios(self, *args):
+            return '```json\n' + json.dumps({'schema_version': '3.0', 'scenarios': [draft(draft_evidence)]}) + '\n```'
+    result = generate_drafts(FencedAdapter(), 'TEST', ScenarioInput(faults=['Camera failure']), draft_evidence,
+                             matrix, {'temperature': 0., 'seed': 42, 'max_tokens': 4096}, 10)
+    assert result['valid_scenarios'] == 1
+    assert result['recovered_candidate_count'] == 0
+
+
 def test_new_pipeline_and_engineer_interface(tmp_path, monkeypatch):
     import ui.dashboard as dashboard
     service = Services(tmp_path)

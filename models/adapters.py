@@ -143,7 +143,21 @@ def content_from_response(data, expected_model):
         if choice.get("finish_reason") in {"length", "content_filter"}:
             raise BackendError("Model output truncated or filtered; adjust supported generation settings")
         # Imagine OpenAPI documents delta even for its non-streaming response.
-        content = choice.get("message", choice.get("delta", {}))["content"]
+        content = None
+        for part in (choice.get('message'), choice.get('delta')):
+            value = part.get('content') if isinstance(part, dict) else None
+            # Imagine's Content schema is a tagged union, unlike a plain
+            # OpenAI string. Only documented text forms are accepted.
+            if isinstance(value, dict):
+                if set(value) == {'String'}:
+                    value = value['String']
+                elif set(value) == {'Vec'} and isinstance(value['Vec'], list) and all(isinstance(v, str) for v in value['Vec']):
+                    value = ''.join(value['Vec'])
+                else:
+                    value = None
+            if isinstance(value, str) and value.strip():
+                content = value
+                break
         if not isinstance(content, str) or not content.strip():
             raise ValueError()
         return content

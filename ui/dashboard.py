@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from backend.configuration import ROOT, validate_url
 from backend.schemas import Generation, RunRequest, ScenarioInput, Selection
 from backend.services import Services
+from backend.orchestration import IMPLEMENTATION_VERSION
 from backend.analytics import scenario_register, review_counts, performance_rows, proposal_entries, DECISIONS
 from evaluation.benchmark import BenchmarkDataset, draft_dataset
 from evaluation.labelled import LabelledDataset, baseline_result
@@ -37,7 +38,7 @@ PAGES = ["Overview", "Scenario Builder", "Model Studio", "Model Comparison", "Sc
 
 @st.cache_resource
 def services():
-    """Shared services v4: citation validity, expert support and failure-inclusive experiments."""
+    """Shared services v5: complete multi-fault evidence and preflight validation."""
     return Services()
 
 
@@ -339,6 +340,8 @@ def register_page(s):
         saved = run_options[run_label]
         run = saved["payload"]
         evidence = run.get("snapshot", {}).get("evidence", [])
+        if not evidence:
+            st.warning('This saved run retrieved no KB evidence. Its rejected scenarios remain in history. Start a new run using the current build and active knowledge base.')
         results = run.get("results", {})
         input_data = run.get("snapshot", {}).get("request", {}).get("inputs", {})
 
@@ -1103,6 +1106,25 @@ def settings_page(s):
             st.success("Settings saved. Refresh catalogues to check availability.")
         except ValueError as exc:
             error(exc)
+    st.subheader("Connect Qualcomm cloud")
+    st.caption('Paste your Cirrascale API token here to use it in this running app. It is held in server memory until restart and is never saved in reports or preferences.')
+    def apply_cloud_token():
+        token = st.session_state.get('cloud_token_input', '').strip()
+        if token:
+            os.environ['QUALCOMM_API_KEY'] = token
+            st.session_state['cloud_token_input'] = ''
+            st.session_state.pop('catalogue_qualcomm', None)
+            st.session_state['reachable_qualcomm'] = False
+    st.text_input('Qualcomm API token', type='password', key='cloud_token_input')
+    st.button('Use Qualcomm token', on_click=apply_cloud_token)
+    if st.button('Check Qualcomm connection and models'):
+        try:
+            catalogue = make_adapter('qualcomm', s.settings()).list_models(refresh=True)
+            st.session_state.catalogue_qualcomm = catalogue
+            st.session_state.reachable_qualcomm = True
+            st.success(f'Connected. Retrieved {len(catalogue)} models. Select a chat model in Model Studio, then test scenario inference.')
+        except BackendError as exc:
+            error(exc)
     st.subheader("Credential configuration status")
     for name in ("QUALCOMM_API_KEY", "UNO_Q_TOKEN", "SAFESCENARIO_API_TOKEN"):
         st.write(f"{name}: {'configured' if os.getenv(name) else 'setup required'}")
@@ -1146,6 +1168,7 @@ def main():
     with st.sidebar:
         st.markdown("### SafeScenario AI")
         st.caption("AUTONOMOUS PRODUCT SAFETY")
+        st.caption(f'Build {IMPLEMENTATION_VERSION}')
         dark = st.toggle("Dark theme", key="dark")
         page = st.radio("Workspace", PAGES, label_visibility="collapsed")
         st.divider()
