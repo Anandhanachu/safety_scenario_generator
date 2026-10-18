@@ -54,6 +54,11 @@ def theme(dark):
     [data-testid="stSidebar"] [role="radiogroup"] label {{padding:6px 10px;border-radius:8px;transition:background .15s;}}
     [data-testid="stSidebar"] [role="radiogroup"] label:hover {{background:{sidebar_hover};}}
     [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{background:{sidebar_selected};}}
+    .backend-status {{display:block;font-size:12px;margin:7px 0 3px;line-height:1.45;}}
+    .status-dot {{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;}}
+    .status-good {{color:#15803d!important;}} .status-good .status-dot {{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.16);}}
+    .status-warn {{color:#a16207!important;}} .status-warn .status-dot {{background:#f59e0b;}}
+    .status-neutral {{color:{muted}!important;}} .status-neutral .status-dot {{background:#94a3b8;}}
     .workspace-hero {{border:1px solid {border};border-left:5px solid #6366f1;background:{surface};border-radius:16px;padding:25px 28px;margin-bottom:24px;}}
     .workspace-hero h1 {{margin:6px 0 8px!important;font-size:2.15rem!important;}}
     .workspace-hero p {{color:{muted};margin:0;max-width:850px;line-height:1.6;}}
@@ -90,6 +95,23 @@ def theme(dark):
     button[kind="secondary"] {{background:{surface};color:{text};border-color:{border};}}
     [data-testid="stAlert"] p {{ color:{text}; }}
     </style>""", unsafe_allow_html=True)
+
+
+def backend_status_badge(backend, settings, store):
+    """Show runtime reachability without claiming that inference is verified."""
+    model_id = settings[backend].get("model_id")
+    if not model_id:
+        return '<span class="backend-status status-neutral"><span class="status-dot"></span>No model selected</span>'
+    if st.session_state.get(f"reachable_{backend}"):
+        completed = any(
+            result.get("status") == "completed" and result.get("model_id") == model_id
+            for saved in store.list("run", 50)
+            for result in saved["payload"].get("results", {}).values()
+            if result.get("backend") == backend
+        )
+        label = "Runtime reachable · inference completed" if completed else "Runtime reachable · inference unverified"
+        return f'<span class="backend-status status-good"><span class="status-dot"></span>{label}</span>'
+    return '<span class="backend-status status-warn"><span class="status-dot"></span>Configured · refresh to check</span>'
 
 
 def error(exc):
@@ -1025,10 +1047,13 @@ def main():
             st.caption("Run together: " + " · ".join(configured))
             ready = sum(bool(s.settings()[b].get("model_id")) for b in LABELS)
             st.caption(f"Configured backends: {ready}/{len(LABELS)} · Scenario Builder and Model Comparison will preselect all available models")
+            for backend in LABELS:
+                st.markdown(f"{LABELS[backend]} {backend_status_badge(backend, s.settings(), s.store)}", unsafe_allow_html=True)
         else:
             selected = s.settings()[active_backend].get("model_id")
             st.caption(f"Model: {selected or 'not selected'}")
-            st.caption("Availability: " + ("reachable at last check" if st.session_state.get(f"reachable_{active_backend}") else "not checked / setup required"))
+            st.markdown(backend_status_badge(active_backend, s.settings(), s.store), unsafe_allow_html=True)
+            st.caption("Green means the runtime catalogue was reached. It does not by itself prove successful structured inference.")
     theme(dark)
     with st.expander('Out of scope / limitations'):
         for limitation in LIMITATIONS:
