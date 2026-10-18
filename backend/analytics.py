@@ -20,7 +20,7 @@ def proposal_entries(run):
                 scope += f"#candidate-{i+1}"
             used_scopes.add(scope)
             entries.append({"scope": scope, "backend": backend, "model_id": result.get("model_id", "unrecorded"), "candidate": candidate,
-                            "schema_valid": bool(result.get("scenarios")), "candidate_index": i})
+                            "schema_valid": candidate.get('schema_valid', bool(result.get("scenarios"))), "candidate_index": i})
     return entries
 
 
@@ -39,6 +39,7 @@ def scenario_register(store, run_id=None):
                          "created": saved["created"], "decision": review["payload"]["decision"] if review else "pending_review",
                          "reviewer": review["payload"]["reviewer"] if review else "", "reviewed_at": review["created"] if review else None,
                          "notes": review["payload"]["notes"] if review else "", "schema_valid": entry["schema_valid"],
+                         "system_decision": candidate.get('system_decision', 'not recorded'),
                          "validation_passed": bool(candidate.get("verification", {}).get("valid", False))})
     return rows
 

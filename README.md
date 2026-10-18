@@ -51,6 +51,8 @@ flowchart TD
 
 ## Features and workflow
 
+The interactive default is now **AI writes scenarios → KB screening → engineer cross-check**. Select a maximum of 1-20 distinct scenarios per model. The model composes cited hazard, mitigation and acceptance-test statements; the server accepts exact KB description matches with valid links and retains unsupported drafts with rejection reasons. In Scenario Register, engineers can reject/exclude scenarios and immediately see recalculated risk and support metrics. Risk Analysis and JSON/CSV/PDF engineering reports use the same frozen-input recalculation. Excluding all scenarios leaves risk unassigned. See the [current architecture](docs/architecture.md) for the screening limits and the compatible earlier selection mode.
+
 The current validity upgrade uses constrained record selection, expert risk inputs, filtered TF-IDF, a no-AI baseline and repeated labelled evaluation. Start with the [revised architecture](docs/architecture.md) and [prioritized implementation plan](docs/implementation_plan.md). The active starter is a 10-record v2 draft; the earlier expanded catalogue is retained for legacy exploration and history. No domain-expert approval or real inference performance is claimed.
 
 The review revision adds citation_link_validity, separate expert support review, a 25-case preliminary set, risk exact-match/ordinal error/confusion matrices, and run_experiment across all four modes. Every metric shows unique case counts and repeated-run spread. Failed runs remain in the results. The comparison view shows one results table, accuracy bars and measured run-duration distributions; complete JSON/CSV/PDF experiment reports are available from Evaluation and Benchmarks.

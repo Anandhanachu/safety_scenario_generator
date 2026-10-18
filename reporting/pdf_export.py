@@ -77,6 +77,7 @@ def pdf_bytes(payload):
     section("5. Human review and ordinal assessments")
     field("Human reviews (separate from AI content)", payload.get("human_reviews", []))
     field("Human risk assessments", payload.get("human_risk_assessments", []))
+    field('Included scenarios and recalculated risk after engineer decisions', payload.get('risk_after_engineer_review', {}))
     section("6. Simulation and execution trace")
     field("Software simulations", payload.get("software_simulations", []))
     story.append(p("No simulation results attached means no simulated test was associated with this report. A proposed acceptance test is not an executed test. Physical robot performance and MCU-only timing are unavailable unless separately measured and recorded."))

@@ -13,6 +13,7 @@ Condition = Literal['day_dry', 'night_dry', 'rain', 'reduced_visibility']
 FAULT_LABELS = {'Camera failure': 'camera_failure', 'Communication loss': 'communication_loss',
                 'Reduced traction': 'reduced_traction', 'Processing delay': 'processing_delay', 'Lidar failure': 'lidar_failure'}
 LIMITATIONS = [
+    'Scenario draft screening accepts exact KB description matches and valid record links only. It does not establish support for unrestricted generated prose. AI titles are display labels. Engineer exclusions recalculate an ordinal worst-hazard ranking, not a real-world probability.',
     'Initial scope: five fault types (camera, communication, traction, processing delay, lidar) and four conditions (day dry, night dry, rain, reduced visibility).',
     'Single-fault cases only; other faults, combined faults, wet without rain, physical performance, certification and deployment approval are outside scope.',
     'Risk categories are engineering rankings, not calibrated probabilities. citation_link_validity measures ID existence, type and linkage only. Expert support is reviewed and reported separately.',

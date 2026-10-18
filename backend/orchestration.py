@@ -14,6 +14,7 @@ from knowledge_base.core import retrieve_with_diagnostics, RETRIEVAL_VERSION
 from models.adapters import BackendError, Cancelled, make_adapter
 from backend.constrained import execute, ModelDetails, scenario_views, messages, LIMITATIONS
 from evaluation.labelled import baseline_result
+from backend.scenario_generation import generate_drafts
 
 PROMPT_VERSION = "2.0-record-selection"
 
@@ -39,7 +40,7 @@ class RunManager:
         deterministic['latency_ms'] += retrieval_diagnostics['total_ms']
         snapshot = {"schema_version": "1.0", "created": now(), "request": request.model_dump(),
                     "knowledge_base_version": dataset.version, "knowledge_base": dataset.model_dump(),
-                    "risk_matrix": matrix.model_dump(), "prompt_version": PROMPT_VERSION,
+                    "risk_matrix": matrix.model_dump(), "prompt_version": '3.0-scenario-drafts' if request.generation_mode == 'scenario_drafts' else PROMPT_VERSION,
                     "retrieval": {"method": RETRIEVAL_VERSION, "limit": request.retrieval_limit, "threshold": request.relevance_threshold, "diagnostics": retrieval_diagnostics},
                     "evidence": evidence, 'baseline_comparison': deterministic, 'limitations': LIMITATIONS,
                     "backend_endpoints": {s.backend: settings[s.backend]["base_url"] for s in request.selections},
@@ -82,23 +83,12 @@ class RunManager:
             adapter.validate_configuration(selection.model_id)
             self._stage(identity, selection.backend, "running_inference")
             cfg = settings[selection.backend]
-            measured = execute(adapter, ModelDetails(backend=selection.backend, name=selection.model_id,
-                               parameter_size=cfg.get('parameter_size'), quantization=cfg.get('quantization')),
-                               inputs, job['snapshot']['evidence'], matrix, selection.generation.max_tokens,
-                               job['snapshot']['request']['citation_link_validity_threshold'], job['cancel'])
-            result.update(constrained=measured.model_dump(), model_details=measured.model.model_dump(),
-                          generation_latency_ms=measured.latency_ms, schema_valid=measured.output is not None,
-                          scenarios=scenario_views(measured, inputs), needs_human_review=measured.needs_human_review,
-                          citation_link_validity=measured.citation_link_validity, attempts=measured.attempts)
-            result['reviewed_support_rate'] = measured.reviewed_support_rate
-            result['requested_settings'] = measured.requested_settings
-            result['applied_settings'] = measured.applied_settings
-            result['candidate_inventory'] = measured.attempts[-1].get('candidate_inventory', [])
-            result['declared_candidate_count'] = len(result['scenarios']) or len(result['candidate_inventory'])
-            result['status'] = 'completed' if measured.output is not None else 'failed'
-            result['valid_scenarios'] = sum(s['verification']['valid'] for s in result['scenarios'])
-            if measured.output is None:
-                result['error'] = 'needs human review: verification failed after one corrective retry; output not accepted'
+            if job['snapshot']['request'].get('generation_mode') == 'scenario_drafts':
+                result.update(generate_drafts(adapter, selection.model_id, inputs, job['snapshot']['evidence'], matrix,
+                                             selection.generation.model_dump(), job['snapshot']['request']['max_scenarios'],
+                                             job['snapshot']['request']['citation_link_validity_threshold'], job['cancel']))
+            else:
+                self._execute_selection(result, adapter, selection, cfg, inputs, job, matrix)
             self._stage(identity, selection.backend, 'calculating_risk')
         except Cancelled as e:
             result.update(status="cancelled", error=str(e))
@@ -108,6 +98,7 @@ class RunManager:
             result["error"] = str(e)
         except Exception:
             result["error"] = "Unexpected pipeline error; no successful result recorded"
+        result['generation_mode'] = job['snapshot']['request'].get('generation_mode', 'record_selection')
         result["total_pipeline_latency_ms"] = round((time.perf_counter() - start) * 1000 + job['snapshot']['retrieval']['diagnostics']['total_ms'], 3)
         result["finished"] = now()
         with self.lock:
@@ -121,6 +112,25 @@ class RunManager:
                     self.store.save("run", payload, identity)
                 except Exception:
                     job["persistence_error"] = "Run finished but could not be saved to SQLite"
+
+    def _execute_selection(self, result, adapter, selection, cfg, inputs, job, matrix):
+        measured = execute(adapter, ModelDetails(backend=selection.backend, name=selection.model_id,
+                           parameter_size=cfg.get('parameter_size'), quantization=cfg.get('quantization')),
+                           inputs, job['snapshot']['evidence'], matrix, selection.generation.max_tokens,
+                           job['snapshot']['request']['citation_link_validity_threshold'], job['cancel'])
+        result.update(constrained=measured.model_dump(), model_details=measured.model.model_dump(),
+                      generation_latency_ms=measured.latency_ms, schema_valid=measured.output is not None,
+                      scenarios=scenario_views(measured, inputs), needs_human_review=measured.needs_human_review,
+                      citation_link_validity=measured.citation_link_validity, attempts=measured.attempts)
+        result['reviewed_support_rate'] = measured.reviewed_support_rate
+        result['requested_settings'] = measured.requested_settings
+        result['applied_settings'] = measured.applied_settings
+        result['candidate_inventory'] = measured.attempts[-1].get('candidate_inventory', [])
+        result['declared_candidate_count'] = len(result['scenarios']) or len(result['candidate_inventory'])
+        result['status'] = 'completed' if measured.output is not None else 'failed'
+        result['valid_scenarios'] = sum(s['verification']['valid'] for s in result['scenarios'])
+        if measured.output is None:
+            result['error'] = 'needs human review: verification failed after one corrective retry; output not accepted'
 
     def get(self, identity):
         with self.lock:

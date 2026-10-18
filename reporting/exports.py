@@ -7,11 +7,13 @@ def json_bytes(payload):
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False).encode("utf-8")
 
 
-def comparison_rows(run):
+def comparison_rows(run, reviews=()):
+    from backend.scenario_generation import recalculate
+    effective = recalculate(run, reviews)
     rows = []
     for backend, result in run.get("results", {}).items():
         scenarios = result.get("scenarios", [])
-        checks = [s["verification"] for s in scenarios]
+        checks = [s["verification"] for s in scenarios if 'verification' in s]
         rows.append({"backend": backend, "model_id": result["model_id"], "status": result["status"],
                      "schema_valid": result.get("schema_valid", False),
                      'parameter_size': result.get('model_details', {}).get('parameter_size') or 'not measured',
@@ -33,7 +35,8 @@ def comparison_rows(run):
                      "unsupported_claims_flagged": sum(c["unsupported_claims_flagged"] for c in checks),
                      "duplicates": sum(c["duplicate"] for c in checks), "invalid_mitigation_refs": sum(c["invalid_mitigation_refs"] for c in checks),
                      "invalid_test_refs": sum(c["invalid_test_refs"] for c in checks),
-                     "risk_categories": json.dumps([r["risk_level"] for s in scenarios for r in s["risk_assessments"].values()]),
+                     'effective_risk_after_review': json.dumps(effective.get(backend)),
+                     "risk_categories": json.dumps([r["risk_level"] for s in scenarios for r in s.get("risk_assessments", {}).values()]),
                      "warnings": json.dumps([w for c in checks for w in c["warnings"]]), "error": result.get("error", "")})
     baseline = run.get('snapshot', {}).get('baseline_comparison')
     if baseline:
@@ -69,12 +72,14 @@ def csv_bytes(rows):
 def report(run, reviews=(), risk_assessments=(), simulations=()):
     from backend.constrained import LIMITATIONS
     from backend.analytics import proposal_entries, review_counts
+    from backend.scenario_generation import recalculate
     reviews = list(reviews)
     latest = {r["scenario_id"]: r["payload"]["decision"] for r in reviews}
     outcomes = [{"decision": latest.get(e["scope"], "pending_review")} for e in proposal_entries(run)]
     return {"report_schema": "1.0", "title": "SafeScenario AI engineering review report",
             "notice": "Unreviewed AI proposals; illustrative records and software simulation are labelled. This report is not certification or formal safety approval.",
-            "run": run, 'limitations': LIMITATIONS, 'baseline_comparison': run.get('snapshot', {}).get('baseline_comparison'), "comparison": comparison_rows(run), "human_reviews": reviews, "proposal_review_summary": review_counts(outcomes),
+            "run": run, 'limitations': LIMITATIONS, 'baseline_comparison': run.get('snapshot', {}).get('baseline_comparison'), "comparison": comparison_rows(run, reviews), "human_reviews": reviews, "proposal_review_summary": review_counts(outcomes),
+            'risk_after_engineer_review': recalculate(run, reviews),
             "human_risk_assessments": list(risk_assessments), "software_simulations": list(simulations)}
 
 

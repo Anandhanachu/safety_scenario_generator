@@ -88,6 +88,8 @@ class RunRequest(Strict):
     relevance_threshold: float = Field(default=0.05, ge=0, le=1)
     citation_link_validity_threshold: float = Field(default=1.0, ge=0, le=1)
     method: Literal["full_pipeline", "llm_only"] = "full_pipeline"
+    generation_mode: Literal['record_selection', 'scenario_drafts'] = 'record_selection'
+    max_scenarios: int = Field(default=10, ge=1, le=20)
 
     @model_validator(mode="after")
     def unique_backends(self):

@@ -2,6 +2,8 @@
 
 Development and verification: 17-18 October 2026.
 
+Current scenario-batch revision: interactive AI draft generation with per-scenario automatic KB screening, retained rejections, and engineer exclusion followed by deterministic risk/count/citation/support recalculation is implemented. The suite now passes 154 tests, including partial batch failures, unsupported prose, duplicate citations, scoped exclusions, immutable snapshots, empty risk sets, reports and Streamlit review interactions. New draft-writing compatibility and performance have not been verified against a real model in this revision. Existing labelled experiment metrics evaluate the earlier ID-selection workflow.
+
 Current review revision: see [constrained architecture](architecture.md). New runs use record-only model output, citation_link_validity, separate expert support review, expert risk inputs and a 25-case preliminary set. Experiments include all four modes and retain failures/timeouts, requested/applied settings, risk exact match/ordinal error/confusion matrices and unique-case counts. Earlier catalogue/search measurements below are historical. Expert approval and live inference/hardware verification remain pending.
 
 The revised suite has 138 automated tests. A live app verification recorded 300 rows (25 cases × 3 repetitions × 4 modes): 75 completed baseline runs and 225 failed rows for unconfigured AI models. No AI request was attempted. Mock-transport tests cover all three adapter setting reports and timeouts; they do not establish actual compatibility. JSON/CSV/PDF exports and the comparison view were checked; the PDF was rendered and visually inspected.

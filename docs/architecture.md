@@ -1,4 +1,22 @@
-# SafeScenario AI: constrained selection architecture
+# SafeScenario AI: scenario generation and KB screening
+
+## Current interactive workflow
+
+Scenario Builder, Model Comparison and Model Studio inference tests now use AI-written scenario batches by default. The UI requests as many distinct supported scenarios as possible up to a configurable cap of 1-20 per model (default 10). Available evidence and token budget determine the actual count; no promise of maximum coverage is made. Models compose written scenarios as a list of cited statements with a display title. Scenario context is attached from the validated user input. Risk values remain entirely server-calculated.
+
+`backend/scenario_generation.py` contains `CitedStatement`, `ScenarioDraft`, `ScenarioBatch`, batch generation, independent scenario screening and review-based recalculation. Automatic acceptance requires all cited descriptions to match retrieved KB descriptions exactly, complete hazard/mitigation/test coverage, valid reciprocal links, supported scope, and no explicitly rejected/unsupported evidence. Unverified paraphrases, extra claims, invented IDs, invalid individual schemas and duplicate record combinations are retained as rejected drafts. AI titles are display labels, not evidence. This conservative check does not prove semantic support for arbitrary new prose or real-world validity of a KB record. Pending/illustrative records retain review flags and cannot support approved risk inputs.
+
+A well-formed batch keeps every draft, even if some are rejected. Invalid batch JSON/envelopes receive one corrective retry; transport failures are recorded without automatic retries. Original responses have hashes/byte counts and per-attempt settings. Runtime failures remain visible.
+
+System-accepted drafts initially contribute to a model's risk analysis, separately from engineer approval. A named engineer can reject a draft or request follow-up in Scenario Register; that excludes it from the effective calculation. The latest scoped decision controls inclusion. A subsequent human acceptance can restore a previously excluded scenario only when all existing acceptance checks pass. System-rejected drafts cannot be overridden as accepted. Reviews stay append-only and original run snapshots are immutable.
+
+`recalculate()` reads the run's frozen evidence/matrix and current decisions. It recomputes included/excluded counts, unique hazards, per-hazard risk, worst included risk category/score, citation_link_validity and reviewed_support_rate. Risk ranks are never averaged or treated as probabilities. Missing/conflicting/unreviewed inputs leave the overall risk unresolved. Excluding the last scenario gives `no_included_scenarios` and null risk, never low risk. Exclusion changes analysis coverage; it does not demonstrate reduced physical risk.
+
+Scenario Register, execution results, Risk Analysis, and JSON/CSV/PDF engineering reports expose the effective calculation. Reports retain original proposals, system decisions, rejection reasons and human audit history alongside recalculated results. The earlier record-selection mode and immutable historical runs remain supported. REST requests default to `record_selection` for compatibility; request `generation_mode: scenario_drafts` and `max_scenarios` to use the new path.
+
+The 25-case repeated evaluator remains an evaluation of **record selection**, as its labels name record IDs rather than scenario prose. Its metrics must not be presented as measured draft-writing accuracy. Real model compatibility and new generation latency must be established with actual runs.
+
+## Earlier record-selection workflow (still available)
 
 Streamlit and the authenticated FastAPI API share Pydantic contracts, TF-IDF retrieval, deterministic record verification and SQLite/JSON snapshots. The inference boundaries remain llama.cpp on the laptop, the UNO Q Linux agent and the Qualcomm cloud API.
 

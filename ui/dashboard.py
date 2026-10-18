@@ -17,6 +17,7 @@ from backend.analytics import scenario_register, review_counts, performance_rows
 from evaluation.benchmark import BenchmarkDataset, draft_dataset
 from evaluation.labelled import LabelledDataset, baseline_result
 from backend.constrained import FAULT_LABELS, LIMITATIONS
+from backend.scenario_generation import recalculate
 from knowledge_base.core import Dataset, ConstrainedDataset, parse_upload, retrieve, retrieve_with_diagnostics
 from knowledge_base.benchmark import benchmark_retrieval
 from ui.charts import review_figure, latency_figure, validation_figure, outcome_figure
@@ -122,6 +123,14 @@ def error(exc):
 
 
 def scenario_detail(scenario, evidence, decision="pending_review"):
+    if 'system_decision' in scenario:
+        st.write('Automatic KB screening:', scenario['system_decision'])
+        st.caption('AI title is a display label. Statement support uses exact KB description matching; engineer approval is recorded separately.')
+        for reason in scenario.get('screening_reasons', []):
+            st.error(reason)
+        if not scenario.get('schema_valid'):
+            st.json(scenario)
+            return
     if 'citation_link_validity' in scenario:
         st.caption(f"citation_link_validity: {scenario['citation_link_validity'] if scenario['citation_link_validity'] is not None else 'not measured'} · reviewed support rate: {scenario.get('reviewed_support_rate') if scenario.get('reviewed_support_rate') is not None else 'not measured'} · needs human review: {scenario.get('needs_human_review', True)}")
     st.subheader(scenario["title"])
@@ -188,7 +197,9 @@ def choose_models(settings, prefix, selectable=True):
             use_key = f"{prefix}_use_{backend}"
             if run_all:
                 st.session_state[use_key] = True
-            use = st.checkbox("Include in run", value=(run_all or backend == "laptop_local"), key=use_key) if selectable else True
+            elif use_key not in st.session_state:
+                st.session_state[use_key] = backend == 'laptop_local'
+            use = st.checkbox("Include in run", key=use_key, disabled=run_all) if selectable else True
             if use:
                 params = {'temperature': 0.0, 'seed': 42, 'max_tokens': settings.get('max_tokens', 1800)}
                 chosen.append(Selection(backend=backend, model_id=selected, generation=Generation.model_validate(params)))
@@ -246,6 +257,35 @@ def performance_panel(s):
     st.plotly_chart(validation_figure(rows, st.session_state.dark), use_container_width=True, key="historic_validation")
     st.dataframe(rows, use_container_width=True)
     st.download_button("Export measured model performance", csv_bytes(rows), "model-performance.csv", key="performance_csv")
+
+
+def draft_controls(prefix):
+    mode = st.radio('Generation workflow', ['scenario_drafts', 'record_selection'],
+                    format_func=lambda value: 'AI writes scenarios → KB screening → engineer review' if value == 'scenario_drafts' else 'Record selection (earlier workflow)',
+                    key=f'{prefix}_generation_mode')
+    limit = st.number_input('Maximum distinct scenarios per model', 1, 20, 10, key=f'{prefix}_scenario_limit', disabled=mode != 'scenario_drafts')
+    if mode == 'scenario_drafts':
+        st.caption('AI combines cited hazard, mitigation and test statements. Automatic acceptance requires exact KB description matches and valid links. Unsupported wording and duplicate record combinations are rejected. Coverage, evidence and the token limit determine how many scenarios can be produced.')
+    return {'generation_mode': mode, 'max_scenarios': limit}
+
+
+def risk_selection_panel(run, reviews, backend=None):
+    results = recalculate(run, reviews)
+    if backend:
+        results = {backend: results[backend]} if backend in results else {}
+    if not results:
+        return
+    st.subheader('Scenarios included in risk calculation')
+    st.caption('System-accepted scenarios start included. Engineer rejection or follow-up excludes them immediately. Risk is the worst included hazard; repeated hazards count once. Automatic acceptance is a text/link check, with separate evidence-review flags.')
+    st.dataframe([{'backend': LABELS.get(key, key), 'proposed': value['proposed'],
+                   'system accepted': value['system_accepted'], 'system rejected': value['system_rejected'],
+                   'engineer excluded': len(value['engineer_excluded']), 'included scenarios': len(value['included']),
+                   'unique hazards': len(value['hazard_ids']), 'risk': value['risk_level'] or 'unassigned',
+                   'citation validity': value['citation_link_validity'], 'reviewed support': value['reviewed_support_rate'],
+                   'score': value['risk_score'], 'status': value['status']} for key, value in results.items()],
+                 use_container_width=True, hide_index=True)
+    with st.expander('Included scenario IDs, exclusions and calculation steps'):
+        st.json(results)
 
 
 def register_page(s):
@@ -356,13 +396,13 @@ def register_page(s):
                     st.info("No proposal can be approved or rejected because this model produced no identifiable scenario. The failed execution remains visible in Model Output.")
                 else:
                     selected_scope = st.session_state.get(f"register_proposal_{saved['id']}_{selected_backend}")
-                    entry = next((item for item in model_entries if selected_scope and selected_scope.startswith(item["scope"])), model_entries[0])
+                    entry = next((item for item in model_entries if selected_scope == f"{item['scope']} · {item['candidate'].get('title', 'Untitled proposal')}"), model_entries[0])
                     scoped_row = next((row for row in rows if row["run_id"] == saved["id"] and row["review_scope"] == entry["scope"]), None)
                     current = scoped_row["decision"] if scoped_row else "pending_review"
                     st.markdown(f"**Reviewing:** {LABELS.get(selected_backend, selected_backend)} · {selected_result.get('model_id', 'unrecorded')} · {entry['scope']}")
                     st.caption(f"Current decision: {current.replace('_', ' ')}. Acceptance is available only after all technical and evidence-review flags are resolved.")
                     reviewer = st.text_input("Engineer / reviewer name", key=f"register_reviewer_{saved['id']}_{entry['scope']}")
-                    decisions = [d for d in DECISIONS if d != "pending_review" and (d != "accepted" or (entry["schema_valid"] and not entry["candidate"].get("needs_human_review")))]
+                    decisions = [d for d in DECISIONS if d != "pending_review" and (d != "accepted" or (entry["schema_valid"] and entry['candidate'].get('system_decision') != 'rejected' and not entry["candidate"].get("needs_human_review")))]
                     decision = st.selectbox("Engineering decision", decisions, format_func=lambda value: value.replace("_", " ").title(), key=f"register_decision_{saved['id']}_{entry['scope']}")
                     notes = st.text_area("Review rationale / required follow-up", key=f"register_notes_{saved['id']}_{entry['scope']}")
                     if st.button("Save engineering decision", disabled=not reviewer.strip(), type="primary", key=f"save_review_{saved['id']}_{entry['scope']}"):
@@ -370,6 +410,7 @@ def register_page(s):
                         st.rerun()
                     with st.expander("Human review audit trail"):
                         st.json([review for review in s.store.reviews(saved["id"]) if review["scenario_id"] == entry["scope"]])
+                risk_selection_panel(run, s.store.reviews(saved['id']), selected_backend)
     else:
         st.info("No saved runs yet. Generate a scenario or comparison first; both successful and failed model executions will appear here.")
 
@@ -428,6 +469,7 @@ def scenario_builder(s):
         st.json(inputs.model_dump())
         st.json(retrieve(dataset, inputs.model_dump_json(), settings["retrieval_limit"], settings["relevance_threshold"]))
     selections = choose_models(settings, "builder")
+    generation_options = draft_controls('builder')
     if st.button('Run no-AI baseline'):
         if dataset.schema_version != '2.0':
             st.error('Activate a tagged v2 knowledge base first')
@@ -436,7 +478,7 @@ def scenario_builder(s):
             st.json(baseline_result(evidence, s.matrix(), settings.get('citation_link_validity_threshold', 1.0)).model_dump())
     if st.button("Run selected models", type="primary", disabled=not selections):
         try:
-            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0))
+            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0), **generation_options)
             st.session_state.active_run = s.manager.start(request, dataset, s.matrix(), settings)
             st.success("Run started. Progress and results appear below and in Model Comparison.")
         except (ValidationError, ValueError) as exc:
@@ -475,7 +517,7 @@ def model_studio(s):
                     s.store.set_setting("preferences", settings)
                     st.success("Selection saved independently for this backend")
                 if b.button("Test real scenario inference", key=f"test_{backend}"):
-                    request = RunRequest(inputs=ScenarioInput(), selections=[Selection(backend=backend, model_id=selected)])
+                    request = RunRequest(inputs=ScenarioInput.model_validate(s.store.setting('scenario_input', ScenarioInput().model_dump())), selections=[Selection(backend=backend, model_id=selected, generation=Generation(max_tokens=settings.get('max_tokens', 1800)))], generation_mode='scenario_drafts')
                     st.session_state.active_run = s.manager.start(request, s.dataset(), s.matrix(), settings)
                 st.button("Load model (runtime unsupported)", key=f"load_{backend}", disabled=True)
                 st.button("Unload model (runtime unsupported)", key=f"unload_{backend}", disabled=True)
@@ -536,6 +578,7 @@ def run_progress(s):
                         scenario_detail(scenario, run["snapshot"]["evidence"])
                 with st.expander("Raw normalized result"):
                     st.json(result)
+        risk_selection_panel(run, s.store.reviews(identity) if run['status'] != 'running' else [])
     if run["status"] != "running":
         st.download_button("Export comparison JSON", json_bytes(report(run)), f"comparison-{identity}.json", "application/json")
         st.download_button("Export comparison CSV", csv_bytes(comparison_rows(run)), f"comparison-{identity}.csv", "text/csv")
@@ -551,11 +594,12 @@ def comparison(s):
         evaluation_summary(latest_evaluations[0], 'comparison_eval')
     st.caption("Each model receives the same saved input and frozen evidence. Results are measured independently; no automatic quality ranking is applied.")
     selections = choose_models(s.settings(), "comparison")
+    generation_options = draft_controls('comparison')
     if st.button("Run comparison", disabled=not selections, type="primary"):
         try:
             settings = s.settings()
             inputs = ScenarioInput.model_validate(s.store.setting("scenario_input", ScenarioInput().model_dump()))
-            st.session_state.active_run = s.manager.start(RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"]), s.dataset(), s.matrix(), settings)
+            st.session_state.active_run = s.manager.start(RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0), **generation_options), s.dataset(), s.matrix(), settings)
         except ValueError as exc:
             error(exc)
     if st.button("Clear displayed results"):
@@ -705,6 +749,10 @@ def select_run(s, prefix):
 def risk_analysis(s):
     run = select_run(s, "risk")
     if not run:
+        return
+    if run['snapshot'].get('prompt_version') == '3.0-scenario-drafts':
+        risk_selection_panel(run, s.store.reviews(run['id']))
+        st.info('Exclude or reject scenarios in Scenario Register → Engineer decision. These results recalculate from the latest decisions.')
         return
     entries = {f"{b}:{scenario['scenario_id']}:{h['hazard_id']}": (scenario, h) for b, result in run["results"].items() for scenario in result.get("scenarios", []) for h in scenario["hazards"]}
     if not entries:
@@ -882,6 +930,7 @@ def history(s):
             except ValueError as exc:
                 error(exc)
     reviews = s.store.reviews(run["id"])
+    risk_selection_panel(run, reviews)
     assessments = [r for r in s.store.list("risk_assessment") if r["payload"]["run_id"] == run["id"]]
     exported = report(run, reviews, assessments)
     report_signature = hashlib.sha256(json_bytes(exported)).hexdigest()
@@ -892,7 +941,7 @@ def history(s):
     prepared_pdf = st.session_state.get("pdf_report")
     if prepared_pdf and prepared_pdf[0] == report_signature:
         st.download_button("Download engineering PDF", prepared_pdf[1], f"report-{run['id']}.pdf", "application/pdf")
-    st.download_button("Export comparison CSV", csv_bytes(comparison_rows(run)), f"report-{run['id']}.csv", "text/csv")
+    st.download_button("Export comparison CSV", csv_bytes(comparison_rows(run, reviews)), f"report-{run['id']}.csv", "text/csv")
     st.download_button("Export reviewed scenario collection", json_bytes({"run": run, "reviews": reviews}), f"reviewed-collection-{run['id']}.json")
     st.caption("JSON retains the complete source dataset and exact Unicode content. PDF provides a paginated engineering report with visible character escapes where needed.")
 
