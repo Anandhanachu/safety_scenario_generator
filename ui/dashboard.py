@@ -540,57 +540,298 @@ def register_page(s):
 def scenario_builder(s):
     settings, dataset = s.settings(), s.dataset()
     saved = s.store.setting("scenario_input", ScenarioInput().model_dump())
-    st.caption("Define operating conditions, inspect the shared evidence snapshot, then select the models to run. Choose All backends in the sidebar to preselect every configured backend.")
-    with st.form("scenario_form"):
-        a, b, c = st.columns(3)
-        time_of_day = a.selectbox("Time of day", ["day", "night"], index=["day", "night"].index(saved["time_of_day"]))
-        weather = b.selectbox("Weather", ["dry", "wet", "rain"], index=["dry", "wet", "rain"].index(saved["weather"]))
-        visibility = c.selectbox("Visibility", ["clear", "reduced"], index=["clear", "reduced"].index(saved["visibility"]))
-        surface = a.text_input("Surface", saved["surface"])
-        density = b.selectbox("Pedestrian density", ["low", "medium", "high"], index=["low", "medium", "high"].index(saved["pedestrian_density"]))
-        speed = c.number_input("Speed (m/s)", 0.0, 5.0, float(saved["speed_mps"]), 0.1)
-        location = a.text_input("Operating context", saved["location"])
-        navigation = b.text_input("Navigation mode", saved["navigation_mode"])
-        sensors = c.text_input("Sensors (comma separated)", ", ".join(saved["sensors"]))
-        faults_available = list(FAULT_LABELS)
-        faults = st.multiselect("Fault types (select 1 to 3)", faults_available, default=[f for f in saved["faults"] if f in faults_available][:3], max_selections=3)
-        capabilities = st.text_area("Documented robot capabilities (include source identifiers)", saved["documented_capabilities"])
-        notes = st.text_area("Additional context / unsupported faults", saved["notes"])
-        save = st.form_submit_button("Validate and save input", type="primary")
-    if save:
-        try:
-            inputs = ScenarioInput(time_of_day=time_of_day, weather=weather, visibility=visibility, surface=surface,
-                                   pedestrian_density=density, speed_mps=speed, location=location, navigation_mode=navigation,
-                                   sensors=[v.strip() for v in sensors.split(",") if v.strip()], faults=faults, documented_capabilities=capabilities, notes=notes)
-            if not 1 <= len(inputs.faults) <= 3:
-                raise ValueError('Select between one and three fault types before saving.')
-            s.store.set_setting("scenario_input", inputs.model_dump())
-            st.success("Input validated and saved")
-        except (ValidationError, ValueError) as exc:
-            error(exc)
-    if st.button("Reset saved input"):
-        s.store.set_setting("scenario_input", ScenarioInput().model_dump())
-        st.rerun()
+
+    st.caption("Configure operating conditions and generate safety scenarios across Cloud, Uno Q, or Local. Selecting any option displays its controls, execution, proposed scenarios, and recalculating risk evaluation under there.")
+
+    with st.expander("⚙️ Operating Context & Fault Selection", expanded=False):
+        with st.form("scenario_form"):
+            a, b, c = st.columns(3)
+            time_of_day = a.selectbox("Time of day", ["day", "night"], index=["day", "night"].index(saved.get("time_of_day", "day")))
+            weather = b.selectbox("Weather", ["dry", "wet", "rain"], index=["dry", "wet", "rain"].index(saved.get("weather", "dry")))
+            visibility = c.selectbox("Visibility", ["clear", "reduced"], index=["clear", "reduced"].index(saved.get("visibility", "clear")))
+            surface = a.text_input("Surface", saved.get("surface", "paved sidewalk"))
+            density = b.selectbox("Pedestrian density", ["low", "medium", "high"], index=["low", "medium", "high"].index(saved.get("pedestrian_density", "medium")))
+            speed = c.number_input("Speed (m/s)", 0.0, 5.0, float(saved.get("speed_mps", 1.0)), 0.1)
+            location = a.text_input("Operating context", saved.get("location", "sidewalk"))
+            navigation = b.text_input("Navigation mode", saved.get("navigation_mode", "autonomous"))
+            sensors = c.text_input("Sensors (comma separated)", ", ".join(saved.get("sensors", [])))
+            faults_available = list(FAULT_LABELS)
+            default_faults = [f for f in saved.get("faults", []) if f in faults_available][:3]
+            if not default_faults and faults_available:
+                default_faults = [faults_available[0]]
+            faults = st.multiselect("Fault types (select 1 to 3)", faults_available, default=default_faults, max_selections=3)
+            capabilities = st.text_area("Documented robot capabilities", saved.get("documented_capabilities", ""))
+            notes = st.text_area("Additional context / notes", saved.get("notes", ""))
+            save = st.form_submit_button("Validate and save input", type="primary")
+        if save:
+            try:
+                new_inputs = ScenarioInput(time_of_day=time_of_day, weather=weather, visibility=visibility, surface=surface,
+                                           pedestrian_density=density, speed_mps=speed, location=location, navigation_mode=navigation,
+                                           sensors=[v.strip() for v in sensors.split(",") if v.strip()], faults=faults,
+                                           documented_capabilities=capabilities, notes=notes)
+                if not 1 <= len(new_inputs.faults) <= 3:
+                    raise ValueError('Select between one and three fault types before saving.')
+                s.store.set_setting("scenario_input", new_inputs.model_dump())
+                st.success("Input validated and saved")
+            except (ValidationError, ValueError) as exc:
+                error(exc)
+        if st.button("Reset saved input"):
+            s.store.set_setting("scenario_input", ScenarioInput().model_dump())
+            st.rerun()
+
     inputs = ScenarioInput.model_validate(s.store.setting("scenario_input", ScenarioInput().model_dump()))
-    with st.expander("Validated request and retrieved evidence"):
-        st.json(inputs.model_dump())
-        st.json(retrieve(dataset, inputs.model_dump_json(), settings["retrieval_limit"], settings["relevance_threshold"]))
-    selections = choose_models(settings, "builder")
-    generation_options = draft_controls('builder')
-    if st.button('Run no-AI baseline'):
-        if dataset.schema_version != '2.0':
-            st.error('Activate a tagged v2 knowledge base first')
+
+    # Context Summary Badge
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Context", f"{inputs.time_of_day}, {inputs.weather}")
+    c2.metric("Active Faults", ", ".join(inputs.faults) or "None")
+    c3.metric("Pedestrians", inputs.pedestrian_density.title())
+    c4.metric("Mode", inputs.navigation_mode.title())
+
+    st.markdown("#### Select Inference Option")
+    mode_options = [
+        ("qualcomm", "Cloud (Qualcomm)", "☁️"),
+        ("uno_q", "Uno Q (Arduino)", "⚡"),
+        ("laptop_local", "Local (Laptop)", "💻"),
+    ]
+    mode_labels = [f"{icon} {label}" for _, label, icon in mode_options]
+    selected_label = st.radio("Inference Target", mode_labels, horizontal=True, label_visibility="collapsed", key="builder_selected_target")
+
+    # Determine chosen backend
+    selected_backend, active_label, active_icon = next(
+        ((b, l, i) for b, l, i in mode_options if f"{i} {l}" == selected_label),
+        mode_options[0]
+    )
+
+    # Content under the selected option
+    with st.container(border=True):
+        st.markdown(f"### {active_icon} {active_label} Generator & Risk Evaluation")
+
+        cfg = settings.get(selected_backend, {})
+        inventory = st.session_state.get(f"catalogue_{selected_backend}", [])
+        model_ids = list(dict.fromkeys(m["id"] for m in inventory))
+        persisted = cfg.get("model_id", "")
+        if persisted and persisted not in model_ids:
+            model_ids.insert(0, persisted)
+        if not model_ids and selected_backend == "qualcomm":
+            model_ids = ["DeepSeek-R1-Distill-Llama-70B"]
+        elif not model_ids:
+            model_ids = [persisted or "Default Model"]
+
+        col_m, col_l, col_btn1, col_btn2 = st.columns([2, 1, 1.5, 1.2])
+        with col_m:
+            chosen_model = st.selectbox("Model", model_ids, index=0, key=f"sel_m_{selected_backend}")
+        with col_l:
+            scenario_limit = st.number_input("Max scenarios", 1, 10, 3, key=f"lim_{selected_backend}")
+        with col_btn1:
+            st.write("")
+            st.write("")
+            run_btn = st.button(f"🚀 Generate ({active_label.split()[0]})", type="primary", key=f"gen_{selected_backend}", use_container_width=True)
+        with col_btn2:
+            st.write("")
+            st.write("")
+            run_all_btn = st.button("Run All 3", key=f"gen_all_{selected_backend}", use_container_width=True)
+
+        if run_btn:
+            try:
+                gen_opts = Generation(max_tokens=settings.get("max_tokens", 1800), temperature=0.0, seed=42)
+                selection = Selection(backend=selected_backend, model_id=chosen_model, generation=gen_opts)
+                request = RunRequest(
+                    inputs=inputs,
+                    selections=[selection],
+                    retrieval_limit=settings["retrieval_limit"],
+                    relevance_threshold=settings["relevance_threshold"],
+                    citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0),
+                    generation_mode='scenario_drafts',
+                    max_scenarios=scenario_limit,
+                )
+                st.session_state.active_run = s.manager.start(request, dataset, s.matrix(), settings)
+                st.rerun()
+            except (ValidationError, ValueError) as exc:
+                error(exc)
+
+        if run_all_btn:
+            try:
+                selections = []
+                for b, _, _ in mode_options:
+                    m_id = settings[b].get("model_id") or ("DeepSeek-R1-Distill-Llama-70B" if b == "qualcomm" else "test")
+                    selections.append(Selection(backend=b, model_id=m_id, generation=Generation(max_tokens=settings.get('max_tokens', 1800), temperature=0.0, seed=42)))
+                request = RunRequest(
+                    inputs=inputs,
+                    selections=selections,
+                    retrieval_limit=settings["retrieval_limit"],
+                    relevance_threshold=settings["relevance_threshold"],
+                    citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0),
+                    generation_mode='scenario_drafts',
+                    max_scenarios=scenario_limit,
+                )
+                st.session_state.active_run = s.manager.start(request, dataset, s.matrix(), settings)
+                st.rerun()
+            except (ValidationError, ValueError) as exc:
+                error(exc)
+
+        # Check Active or Latest Run
+        active_id = st.session_state.get("active_run")
+        run_data = None
+        run_identity = None
+
+        if active_id:
+            try:
+                active_job = s.manager.get(active_id)
+                run_identity = active_id
+                if active_job.get("status") == "running":
+                    with st.spinner(f"Inference in progress on {active_label}… results will appear automatically"):
+                        import time as _time
+                        _time.sleep(2)
+                    st.rerun()
+                run_data = active_job
+            except KeyError:
+                st.session_state.pop("active_run", None)
+
+        if not run_data:
+            saved_runs = s.store.list("run", limit=1)
+            if saved_runs:
+                run_data = saved_runs[0]["payload"]
+                run_identity = saved_runs[0]["id"]
+
+        st.divider()
+
+        # Display results under the selected mode
+        if run_data and selected_backend in run_data.get("results", {}):
+            result = run_data["results"][selected_backend]
+            status = result.get("status", "unknown")
+            scenarios = result.get("scenarios", [])
+            latency = result.get("generation_latency_ms")
+            tokens = result.get("runtime_metrics", {}).get("total_tokens")
+
+            s1, s2, s3, s4 = st.columns(4)
+            s1.metric("Model", result.get("model_id") or chosen_model)
+            s2.metric("Execution", status.title())
+            s3.metric("Latency", f"{latency / 1000:.1f} s" if latency is not None else "N/A")
+            s4.metric("Tokens Used", f"{tokens:,}" if tokens else "N/A")
+
+            if status == "failed":
+                st.error(f"Inference error: {result.get('error', 'Execution failed')}")
+            elif not scenarios:
+                st.warning(f"No scenarios were generated for {active_label} in this run.")
+            else:
+                # Recalculate Risk Evaluation dynamically
+                reviews = s.store.reviews(run_identity) if run_identity else []
+                calculated_risk = recalculate(run_data, reviews)
+                mode_eval = calculated_risk.get(selected_backend, {})
+                included_scopes = set(mode_eval.get("included", []))
+                excluded_scopes = set(mode_eval.get("engineer_excluded", []))
+
+                risk_level = (mode_eval.get("risk_level") or ("NO INCLUDED SCENARIOS" if excluded_scopes else "CALCULATING")).upper()
+                risk_score = mode_eval.get("risk_score")
+
+                # Risk Summary Box
+                with st.container(border=True):
+                    st.markdown(f"**Safety Risk Evaluation (Recalculated)**")
+                    rk1, rk2, rk3, rk4 = st.columns(4)
+                    rk1.metric("Overall Risk", risk_level)
+                    rk2.metric("Risk Score", risk_score if risk_score is not None else "—")
+                    rk3.metric("Included Scenarios", len(included_scopes))
+                    rk4.metric("Excluded Scenarios", len(excluded_scopes))
+
+                    for step in mode_eval.get("calculation_steps", []):
+                        st.caption(f"• {step}")
+
+                st.markdown(f"#### Proposed Scenarios ({len(scenarios)})")
+                st.caption("Remove any scenario below to immediately recalculate the risk evaluation above.")
+
+                export_list = []
+                for i, sc in enumerate(scenarios, 1):
+                    scenario_id = sc.get("scenario_id", f"DRAFT-{i}")
+                    scope = f"{selected_backend}:{scenario_id}"
+                    is_excluded = scope in excluded_scopes
+                    for rev in reviews:
+                        if rev.get("scenario_id") == scope and rev.get("payload", {}).get("decision") == "rejected":
+                            is_excluded = True
+                            break
+
+                    hazards = sc.get("hazards", [])
+                    hazard_id = hazards[0].get("hazard_id") if hazards else None
+                    risk_assess = sc.get("risk_assessments", {})
+                    sc_risk = risk_assess.get(hazard_id, {}) if hazard_id else {}
+                    sc_level = (sc_risk.get("risk_level") or "unknown").upper()
+                    sc_score = sc_risk.get("risk_score", "—")
+                    sc_sev = sc_risk.get("severity", "—")
+                    sc_lik = sc_risk.get("likelihood", "—")
+
+                    export_list.append({
+                        "mode": active_label,
+                        "scenario_id": scenario_id,
+                        "title": sc.get("title", "Untitled"),
+                        "status": "Excluded" if is_excluded else "Included",
+                        "severity": sc_sev,
+                        "likelihood": sc_lik,
+                        "risk_score": sc_score,
+                        "risk_level": sc_level,
+                    })
+
+                    with st.container(border=True):
+                        top_left, top_right = st.columns([3, 1])
+                        with top_left:
+                            title_text = sc.get("title", "Untitled scenario")
+                            badge = "🔴 [EXCLUDED]" if is_excluded else "🟢 [INCLUDED IN RISK]"
+                            st.markdown(f"**{badge} {scenario_id}: {title_text}**")
+                            st.caption(f"Risk: **{sc_level}** (Score: {sc_score} · Severity: {sc_sev} · Likelihood: {sc_lik})")
+                        with top_right:
+                            if is_excluded:
+                                if st.button("↩️ Re-include Scenario", key=f"gen_reinc_{selected_backend}_{scenario_id}_{i}"):
+                                    if run_identity:
+                                        s.store.delete_reviews_for_scenario(run_identity, scope)
+                                    st.rerun()
+                            else:
+                                if st.button("❌ Remove Scenario", key=f"gen_rem_{selected_backend}_{scenario_id}_{i}"):
+                                    if run_identity:
+                                        s.store.review(run_identity, scope, "rejected", "Engineer Review", "Excluded from risk evaluation")
+                                    st.rerun()
+
+                        stmts = sc.get("statements", [])
+                        if stmts:
+                            for stmt in stmts:
+                                rec_id = stmt.get("record_id", "")
+                                text = stmt.get("text", "")
+                                if rec_id.startswith("H-"):
+                                    st.markdown(f"**⚠️ Hazard:** {text} `[{rec_id}]`")
+                                elif rec_id.startswith("M-"):
+                                    st.markdown(f"**🛡️ Mitigation:** {text} `[{rec_id}]`")
+                                elif rec_id.startswith("T-"):
+                                    st.markdown(f"**🧪 Acceptance Test:** {text} `[{rec_id}]`")
+                                else:
+                                    st.markdown(f"• {text} `[{rec_id}]`")
+                        elif sc.get("scenario_narrative"):
+                            st.write(sc.get("scenario_narrative"))
+
+                        if sc_risk.get("explanation"):
+                            with st.expander("Knowledge Base Risk Details", expanded=False):
+                                st.write(sc_risk.get("explanation"))
+
+                # Download options for this mode
+                st.write("")
+                dl1, dl2 = st.columns(2)
+                with dl1:
+                    st.download_button(
+                        f"📥 Export {active_label} Scenarios (JSON)",
+                        json_bytes({"mode": active_label, "recalculated_risk": mode_eval, "scenarios": scenarios}),
+                        f"{selected_backend}-scenarios.json",
+                        "application/json",
+                        use_container_width=True,
+                        key=f"dl_json_{selected_backend}"
+                    )
+                with dl2:
+                    st.download_button(
+                        f"📥 Export {active_label} Scenarios (CSV)",
+                        csv_bytes(export_list),
+                        f"{selected_backend}-scenarios.csv",
+                        "text/csv",
+                        use_container_width=True,
+                        key=f"dl_csv_{selected_backend}"
+                    )
         else:
-            evidence = retrieve(dataset, inputs.model_dump(), settings['retrieval_limit'], settings['relevance_threshold'])
-            st.json(baseline_result(evidence, s.matrix(), settings.get('citation_link_validity_threshold', 1.0)).model_dump())
-    if st.button("Run selected models", type="primary", disabled=not selections):
-        try:
-            request = RunRequest(inputs=inputs, selections=selections, retrieval_limit=settings["retrieval_limit"], relevance_threshold=settings["relevance_threshold"], citation_link_validity_threshold=settings.get('citation_link_validity_threshold', 1.0), **generation_options)
-            st.session_state.active_run = s.manager.start(request, dataset, s.matrix(), settings)
-            st.success("Run started. Progress and results appear below and in Model Comparison.")
-        except (ValidationError, ValueError) as exc:
-            error(exc)
-    run_progress(s)
+            st.info(f"No scenario generation results yet for {active_label}. Click 'Generate ({active_label.split()[0]})' above to run inference and view proposed scenarios.")
 
 
 def model_studio(s):
