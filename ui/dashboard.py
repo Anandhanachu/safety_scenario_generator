@@ -133,12 +133,26 @@ def render_odometer_gauge(score, level, width=280, height=160):
         except (ValueError, TypeError):
             score_val = 0
         display_score = str(score_val)
-        level_str = str(level).upper() if level else "CALCULATING"
-        if score_val >= 66 or "HIGH" in level_str:
+        level_str = str(level).strip().upper() if level else "CALCULATING"
+
+        # Align color with risk category (67 is 6/9 which is Medium risk, 7-9 is High)
+        if "HIGH" in level_str:
             color = "#ef4444"
             bg_pill = "#fef2f2"
             border_pill = "#fecaca"
-        elif score_val >= 36 or "MED" in level_str:
+        elif "MED" in level_str:
+            color = "#f59e0b"
+            bg_pill = "#fffbeb"
+            border_pill = "#fde68a"
+        elif "LOW" in level_str:
+            color = "#10b981"
+            bg_pill = "#f0fdf4"
+            border_pill = "#bbf7d0"
+        elif score_val >= 75:
+            color = "#ef4444"
+            bg_pill = "#fef2f2"
+            border_pill = "#fecaca"
+        elif score_val >= 35:
             color = "#f59e0b"
             bg_pill = "#fffbeb"
             border_pill = "#fde68a"
@@ -148,47 +162,55 @@ def render_odometer_gauge(score, level, width=280, height=160):
             border_pill = "#bbf7d0"
 
     cx, cy, r = 140, 115, 82
-    angle = math.pi * (1.0 - score_val / 100.0)
+    theta = math.pi * (score_val / 100.0)
 
-    # Needle tip coordinates:
-    nx = cx - 64 * math.cos(math.pi - angle)
-    ny = cy - 64 * math.sin(math.pi - angle)
+    # Needle tip coordinates (pointing from center outward):
+    nx = cx - 64 * math.cos(theta)
+    ny = cy - 64 * math.sin(theta)
 
-    # Needle base:
-    bx1 = cx - 6 * math.sin(math.pi - angle)
-    by1 = cy + 6 * math.cos(math.pi - angle)
-    bx2 = cx + 6 * math.sin(math.pi - angle)
-    by2 = cy - 6 * math.cos(math.pi - angle)
+    # Needle base polygon:
+    bx1 = cx - 6 * math.sin(theta)
+    by1 = cy + 6 * math.cos(theta)
+    bx2 = cx + 6 * math.sin(theta)
+    by2 = cy - 6 * math.cos(theta)
 
-    ax = cx - r * math.cos(math.pi - angle)
-    ay = cy - r * math.sin(math.pi - angle)
-    large_arc = 1 if score_val > 50 else 0
+    # Semicircle arc endpoint:
+    if score_val >= 100:
+        ax, ay = 221.9, 115.0
+    else:
+        ax = cx - r * math.cos(theta)
+        ay = cy - r * math.sin(theta)
 
-    val_path = f"M 58 115 A {r} {r} 0 {large_arc} 1 {ax:.1f} {ay:.1f}" if score_val > 0 else ""
+    # For a 180° semicircle dial, the arc angle is always <= 180°, so large-arc-flag is ALWAYS 0.
+    val_path = f"M 58 115 A {r} {r} 0 0 1 {ax:.1f} {ay:.1f}" if score_val > 0 else ""
+
+    badge_text = level_str if level_str.endswith("RISK") else f"{level_str} RISK"
+    grad_id = f"meterGrad_{abs(hash(str(score) + str(level))) % 100000}"
+    glow_id = f"needleGlow_{abs(hash(str(score) + str(level))) % 100000}"
 
     return f"""
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;">
       <svg width="{width}" height="{height}" viewBox="0 0 280 160" style="overflow:visible;max-width:100%;">
         <defs>
-          <linearGradient id="meterTrackGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="{grad_id}" x1="58" y1="115" x2="222" y2="115" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stop-color="#10b981" />
             <stop offset="50%" stop-color="#f59e0b" />
             <stop offset="100%" stop-color="#ef4444" />
           </linearGradient>
-          <filter id="needleGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id="{glow_id}" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.25"/>
           </filter>
         </defs>
         <!-- Background Track -->
         <path d="M 58 115 A 82 82 0 0 1 222 115" fill="none" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
         <!-- Value Arc -->
-        {f'<path d="{val_path}" fill="none" stroke="url(#meterTrackGrad)" stroke-width="14" stroke-linecap="round"/>' if val_path else ''}
+        {f'<path d="{val_path}" fill="none" stroke="url(#{grad_id})" stroke-width="14" stroke-linecap="round"/>' if val_path else ''}
         <!-- Ticks -->
         <text x="44" y="132" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">0</text>
         <text x="140" y="22" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">50</text>
         <text x="236" y="132" font-size="10" font-weight="600" fill="#94a3b8" text-anchor="middle">100</text>
         <!-- Needle -->
-        <polygon points="{bx1:.1f},{by1:.1f} {nx:.1f},{ny:.1f} {bx2:.1f},{by2:.1f}" fill="{color}" filter="url(#needleGlow)"/>
+        <polygon points="{bx1:.1f},{by1:.1f} {nx:.1f},{ny:.1f} {bx2:.1f},{by2:.1f}" fill="{color}" filter="url(#{glow_id})"/>
         <circle cx="140" cy="115" r="8" fill="#1e293b"/>
         <circle cx="140" cy="115" r="4" fill="#ffffff"/>
         <!-- Center Odometer Score Display -->
@@ -197,7 +219,7 @@ def render_odometer_gauge(score, level, width=280, height=160):
       </svg>
       <div style="margin-top:-8px;">
         <span class="pill-badge" style="background:{bg_pill};color:{color};border:1.5px solid {border_pill};font-size:11px;font-weight:700;padding:3px 12px;text-transform:uppercase;letter-spacing:0.5px;">
-          {level_str} RISK
+          {badge_text}
         </span>
       </div>
     </div>
