@@ -15,7 +15,7 @@ from backend.configuration import ROOT, validate_url
 from backend.schemas import Generation, RunRequest, ScenarioInput, Selection
 from backend.services import Services
 from backend.orchestration import IMPLEMENTATION_VERSION
-from backend.analytics import scenario_register, review_counts, performance_rows, proposal_entries, DECISIONS
+from backend.analytics import scenario_register, performance_rows, proposal_entries, DECISIONS
 from evaluation.benchmark import BenchmarkDataset, draft_dataset
 from evaluation.labelled import LabelledDataset, baseline_result
 from backend.constrained import FAULT_LABELS, LIMITATIONS
@@ -226,7 +226,6 @@ def overview(s):
     runs = s.store.list("run")
     latest = runs[0]['payload'] if runs else None
     rows = scenario_register(s.store, latest['id']) if latest else []
-    counts = review_counts(rows)
     calculated = recalculate(latest, s.store.reviews(latest['id'])) if latest else {}
     risk_values = [value for value in calculated.values() if value.get('risk_score') is not None]
     highest = max(risk_values, key=lambda value: value['risk_score']) if risk_values else None
@@ -236,7 +235,7 @@ def overview(s):
     included = sum(len(value['included']) for value in calculated.values())
     for col, label, value in zip(cols,
         ["Latest run proposals", "Automatic KB accepted", "Automatic KB rejected", "Included in risk", "Current risk"],
-        [counts["proposed"], system_accepted, system_rejected, included,
+        [len(rows), system_accepted, system_rejected, included,
          (highest['risk_level'].upper() + f" · {highest['risk_score']}") if highest else "NOT AVAILABLE"]):
         col.metric(label, value)
     st.caption("These figures describe the newest saved run, not mixed totals from older implementations. Risk is calculated before engineer review from the included, automatically screened scenarios.")
@@ -346,155 +345,196 @@ def risk_selection_panel(run, reviews, backend=None):
 
 
 def register_page(s):
-    rows = scenario_register(s.store)
-    counts = review_counts(rows)
-    columns = st.columns(4)
-    for column, label, value in zip(columns, ["All proposed", "Accepted", "Rejected", "Pending review"], [counts["proposed"],counts["accepted"],counts["rejected"],counts["pending_review"]]):
-        column.metric(label, value)
-    st.caption("Review one frozen run from evidence to model output to engineering decision. Failed and truncated model runs remain visible even when they produced no proposal.")
-
-    saved_runs = s.store.list("run")
-    if saved_runs:
-        run_options = {f"{item['created']} · {item['id']}": item for item in saved_runs}
-        run_label = st.selectbox("Run to review", list(run_options), key="register_run")
-        saved = run_options[run_label]
-        run = saved["payload"]
-        evidence = run.get("snapshot", {}).get("evidence", [])
-        if not evidence:
-            st.warning('This saved run retrieved no KB evidence. Its rejected scenarios remain in history. Start a new run using the current build and active knowledge base.')
-        results = run.get("results", {})
-        input_data = run.get("snapshot", {}).get("request", {}).get("inputs", {})
-
-        st.markdown('<div class="workflow-band"><span class="workflow-chip">1 · Inspect TF-IDF evidence</span><span class="workflow-chip">2 · Compare model output</span><span class="workflow-chip">3 · Record engineering decision</span></div>', unsafe_allow_html=True)
-        evidence_tab, output_tab, decision_tab = st.tabs(["1 · TF-IDF evidence", "2 · Model output", "3 · Engineer decision"])
-
-        with evidence_tab:
-            st.caption("This is the exact filtered and ranked evidence snapshot shared by every model in this run. Relevance is not engineering approval.")
-            if input_data:
-                with st.expander("Scenario input", expanded=False):
-                    st.json(input_data)
-            if evidence:
-                evidence_rows = []
-                for item in evidence:
-                    record = item.get("record", {})
-                    evidence_rows.append({
-                        "rank": len(evidence_rows) + 1,
-                        "record_id": record.get("id"),
-                        "type": record.get("type"),
-                        "title": record.get("title"),
-                        "tfidf_score": item.get("score"),
-                        "severity": record.get("severity") or "not applicable",
-                        "likelihood": record.get("likelihood") or "not applicable",
-                        "record_review": record.get("review_status"),
-                        "expert_support": record.get("expert_support_review", "not_reviewed"),
-                        "reviewed_by": record.get("reviewed_by") or "not reviewed",
-                        "illustrative": record.get("illustrative", False),
-                    })
-                st.dataframe(evidence_rows, use_container_width=True, hide_index=True)
-                record_options = {f"{r['record'].get('id')} · {r['record'].get('title')}": r for r in evidence}
-                evidence_choice = st.selectbox("Preview retrieved record", list(record_options), key=f"evidence_{saved['id']}")
-                chosen_evidence = record_options[evidence_choice]
-                a, b, c = st.columns(3)
-                a.metric("TF-IDF rank", list(record_options).index(evidence_choice) + 1)
-                chosen_score = chosen_evidence.get("score")
-                b.metric("Relevance score", f"{chosen_score:.4f}" if isinstance(chosen_score, (int, float)) else "not measured")
-                c.metric("Record status", chosen_evidence["record"].get("review_status", "not recorded").replace("_", " "))
-                st.write(chosen_evidence["record"].get("description", "No description"))
-                with st.expander("Full record and retrieval details"):
-                    st.json(chosen_evidence)
-                st.info("Approve or correct reusable evidence in Knowledge Base. Proposal decisions below apply only to a model's use of this evidence in this run.")
-            else:
-                st.warning("This saved run contains no retrievable evidence snapshot.")
-
-        backend = None
-        result = None
-        entry = None
-        scoped_row = None
-        if results:
-            backend = st.session_state.get(f"register_backend_{saved['id']}")
-            if backend not in results:
-                backend = next(iter(results))
-
-        with output_tab:
-            if not results:
-                st.warning("No backend results were recorded for this run.")
-            else:
-                backend = st.selectbox("Model result", list(results), format_func=lambda value: f"{LABELS.get(value, value)} · {results[value].get('model_id', 'unrecorded')}", key=f"register_backend_{saved['id']}")
-                result = results[backend]
-                a, b, c, d = st.columns(4)
-                a.metric("Execution", result.get("status", "unknown"))
-                b.metric("Schema valid", "Yes" if result.get("schema_valid") else "No")
-                c.metric("Proposals", len(result.get("scenarios", [])))
-                if result.get('recovered_candidate_count'):
-                    st.caption(f"AI drafts: {result['ai_candidate_count']}. Additional KB recovery scenarios: {result['recovered_candidate_count']}. Recovery is deterministic and is not AI output.")
-                latency = result.get("generation_latency_ms")
-                d.metric("Generation time", f"{latency / 1000:.1f} s" if latency is not None else "not measured")
-                if result.get("error"):
-                    st.error(result["error"])
-                st.caption(f"Requested settings: {result.get('run_settings') or result.get('requested_settings') or 'not recorded'} · applied settings: {result.get('applied_settings', 'not measured')}")
-                if result.get('requested_runtime_options'):
-                    st.caption(f"Runtime options requested: {result['requested_runtime_options']} · reported token usage: {result.get('runtime_metrics') or 'not measured'}")
-                model_entries = [item for item in proposal_entries(run) if item["backend"] == backend]
-                if model_entries:
-                    entry_options = {f"{item['scope']} · {item['candidate'].get('title', 'Untitled proposal')}": item for item in model_entries}
-                    entry_label = st.selectbox("Proposal preview", list(entry_options), key=f"register_proposal_{saved['id']}_{backend}")
-                    entry = entry_options[entry_label]
-                    scoped_row = next((row for row in rows if row["run_id"] == saved["id"] and row["review_scope"] == entry["scope"]), None)
-                    if entry["schema_valid"]:
-                        scenario_detail(entry["candidate"], evidence, scoped_row["decision"] if scoped_row else "pending_review")
-                    else:
-                        st.warning("The model returned an identifiable candidate, but it failed schema or evidence verification.")
-                        st.json(entry["candidate"])
-                else:
-                    st.warning("This model produced no reviewable proposal. Inspect the error and attempt diagnostics, then rerun after correcting the model settings.")
-                with st.expander("Model diagnostics and complete normalized result"):
-                    st.json(result)
-
-        with decision_tab:
-            if not results:
-                st.info("There is no model output to review in this run.")
-            else:
-                selected_backend = st.session_state.get(f"register_backend_{saved['id']}", backend)
-                selected_result = results.get(selected_backend, result or {})
-                model_entries = [item for item in proposal_entries(run) if item["backend"] == selected_backend]
-                if not model_entries:
-                    st.info("No proposal can be approved or rejected because this model produced no identifiable scenario. The failed execution remains visible in Model Output.")
-                else:
-                    selected_scope = st.session_state.get(f"register_proposal_{saved['id']}_{selected_backend}")
-                    entry = next((item for item in model_entries if selected_scope == f"{item['scope']} · {item['candidate'].get('title', 'Untitled proposal')}"), model_entries[0])
-                    scoped_row = next((row for row in rows if row["run_id"] == saved["id"] and row["review_scope"] == entry["scope"]), None)
-                    current = scoped_row["decision"] if scoped_row else "pending_review"
-                    st.markdown(f"**Reviewing:** {LABELS.get(selected_backend, selected_backend)} · {selected_result.get('model_id', 'unrecorded')} · {entry['scope']}")
-                    st.caption(f"Current decision: {current.replace('_', ' ')}. The provisional risk below is calculated before this review. Reject or request follow-up to remove this scenario from the calculation; the result updates immediately.")
-                    reviewer = st.text_input("Engineer / reviewer name", key=f"register_reviewer_{saved['id']}_{entry['scope']}")
-                    decisions = [d for d in DECISIONS if d != "pending_review" and (d != "accepted" or (entry["schema_valid"] and entry['candidate'].get('system_decision') != 'rejected' and not entry["candidate"].get("needs_human_review")))]
-                    decision = st.selectbox("Engineering decision", decisions, format_func=lambda value: value.replace("_", " ").title(), key=f"register_decision_{saved['id']}_{entry['scope']}")
-                    notes = st.text_area("Review rationale / required follow-up", key=f"register_notes_{saved['id']}_{entry['scope']}")
-                    if st.button("Save engineering decision", disabled=not reviewer.strip(), type="primary", key=f"save_review_{saved['id']}_{entry['scope']}"):
-                        s.store.review(saved["id"], entry["scope"], decision, reviewer, notes)
-                        st.rerun()
-                    with st.expander("Human review audit trail"):
-                        st.json([review for review in s.store.reviews(saved["id"]) if review["scenario_id"] == entry["scope"]])
-                risk_selection_panel(run, s.store.reviews(saved['id']), selected_backend)
-    else:
-        st.info("No saved runs yet. Generate a scenario or comparison first; both successful and failed model executions will appear here.")
-
-    st.divider()
-    st.subheader("All proposal decisions")
-    st.caption("Compact register across all runs. Use the review workspace above for evidence and model-level inspection.")
-    search = st.text_input("Search all proposed scenarios", placeholder="Scenario ID, title, model, backend or reviewer")
-    statuses = st.multiselect("Human decision filter", list(DECISIONS))
-    backends = st.multiselect("Backend filter", list(LABELS), format_func=LABELS.get)
-    selected = [r for r in rows if (not statuses or r["decision"] in statuses) and (not backends or r["backend"] in backends)
-                and search.lower() in " ".join(str(v) for v in r.values()).lower()]
-    st.caption(f"{len(selected)} of {len(rows)} proposals match these filters")
-    st.download_button("Export all proposed scenarios CSV", csv_bytes(rows), "all-proposed-scenarios.csv")
-    st.download_button("Export filtered proposals JSON", json_bytes(selected), "filtered-proposals.json")
-    if not selected:
-        st.info("No proposals match. Generate scenarios or adjust the filters.")
+    saved_runs = s.store.list("run", limit=1)
+    if not saved_runs:
+        st.info("No saved runs found yet. Generate scenarios in Scenario Builder first.")
         return
-    page = st.number_input("Register page (50 proposals per page)", 1, max(1, (len(selected)+49)//50), 1)
-    st.dataframe(selected[(page-1)*50:page*50], use_container_width=True, hide_index=True)
+
+    latest_saved = saved_runs[0]
+    run = latest_saved["payload"]
+    run_id = latest_saved["id"]
+    snapshot = run.get("snapshot", {})
+    req = snapshot.get("request", {})
+    inputs = req.get("inputs", {})
+    results = run.get("results", {})
+
+    st.markdown("### Latest Run Engineer Review")
+    st.caption("Review proposed safety scenarios from the last run for each model mode. Exclude or re-include any scenario to dynamically recalculate the overall risk.")
+
+    # High-level run metadata
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Run ID", run_id[:12])
+    m2.metric("Operating Context", f"{inputs.get('time_of_day', 'day')}, {inputs.get('weather', 'dry')}")
+    m3.metric("Selected Faults", ", ".join(inputs.get("faults", [])) or "None")
+    m4.metric("Generation Mode", req.get("generation_mode", "scenario_drafts").replace("_", " ").title())
+
+    # The three modes
+    modes = [
+        ("qualcomm", "Qualcomm Cloud", "☁️"),
+        ("laptop_local", "Laptop Local", "💻"),
+        ("uno_q", "Arduino UNO Q", "⚡"),
+    ]
+
+    mode_tabs = st.tabs([f"{icon} {label}" for _, label, icon in modes])
+
+    # Current reviews and recalculated risks
+    reviews = s.store.reviews(run_id)
+    calculated_risk = recalculate(run, reviews)
+
+    all_export_scenarios = []
+
+    for tab, (backend, label, icon) in zip(mode_tabs, modes):
+        with tab:
+            result = results.get(backend)
+            if not result:
+                st.info(f"**{label}** was not executed in this run.")
+                continue
+
+            status = result.get("status", "unknown")
+            model_name = result.get("model_id") or result.get("model_details", {}).get("name") or "unrecorded"
+            scenarios = result.get("scenarios", [])
+
+            h1, h2, h3, h4 = st.columns(4)
+            h1.metric("Model", model_name)
+            h2.metric("Execution", status.title())
+            latency = result.get("generation_latency_ms")
+            h3.metric("Generation Time", f"{latency / 1000:.1f} s" if latency is not None else "N/A")
+            tokens = result.get("runtime_metrics", {}).get("total_tokens")
+            h4.metric("Tokens Used", f"{tokens:,}" if tokens else "N/A")
+
+            if status == "failed":
+                st.error(f"Inference failed: {result.get('error', 'Unknown error')}")
+                continue
+
+            if not scenarios:
+                st.warning(f"No scenarios were proposed by {label} in this run.")
+                continue
+
+            # Mode risk evaluation
+            mode_eval = calculated_risk.get(backend, {})
+            included_scopes = set(mode_eval.get("included", []))
+            excluded_scopes = set(mode_eval.get("engineer_excluded", []))
+
+            risk_level = (mode_eval.get("risk_level") or "NO INCLUDED SCENARIOS").upper()
+            risk_score = mode_eval.get("risk_score")
+
+            # Risk Summary Card
+            with st.container(border=True):
+                st.markdown(f"**{icon} {label} — Recalculated Risk Evaluation**")
+                r1, r2, r3, r4 = st.columns(4)
+                r1.metric("Overall Risk", risk_level)
+                r2.metric("Risk Score", risk_score if risk_score is not None else "—")
+                r3.metric("Included Scenarios", len(included_scopes))
+                r4.metric("Excluded Scenarios", len(excluded_scopes))
+
+                for step in mode_eval.get("calculation_steps", []):
+                    st.caption(f"• {step}")
+
+            st.markdown("#### Proposed Scenarios")
+
+            for i, sc in enumerate(scenarios, 1):
+                scenario_id = sc.get("scenario_id", f"DRAFT-{i}")
+                scope = f"{backend}:{scenario_id}"
+                is_excluded = scope in excluded_scopes
+                for rev in reviews:
+                    if rev.get("scenario_id") == scope and rev.get("payload", {}).get("decision") == "rejected":
+                        is_excluded = True
+                        break
+
+                hazards = sc.get("hazards", [])
+                hazard_id = hazards[0].get("hazard_id") if hazards else None
+                risk_assess = sc.get("risk_assessments", {})
+                sc_risk = risk_assess.get(hazard_id, {}) if hazard_id else {}
+                sc_level = (sc_risk.get("risk_level") or "unknown").upper()
+                sc_score = sc_risk.get("risk_score", "—")
+                sc_sev = sc_risk.get("severity", "—")
+                sc_lik = sc_risk.get("likelihood", "—")
+
+                all_export_scenarios.append({
+                    "backend": backend,
+                    "mode": label,
+                    "scenario_id": scenario_id,
+                    "title": sc.get("title", "Untitled"),
+                    "status": "Excluded" if is_excluded else "Included",
+                    "hazard_id": hazard_id or "",
+                    "severity": sc_sev,
+                    "likelihood": sc_lik,
+                    "risk_score": sc_score,
+                    "risk_level": sc_level,
+                    "narrative": sc.get("scenario_narrative", ""),
+                })
+
+                with st.container(border=True):
+                    col_title, col_action = st.columns([3, 1])
+                    with col_title:
+                        title_text = sc.get("title", "Untitled scenario")
+                        badge = "🔴 [EXCLUDED]" if is_excluded else "🟢 [INCLUDED IN RISK]"
+                        st.markdown(f"**{badge} {scenario_id}: {title_text}**")
+                        st.caption(f"Risk: **{sc_level}** (Score: {sc_score} · Severity: {sc_sev} · Likelihood: {sc_lik})")
+
+                    with col_action:
+                        if is_excluded:
+                            if st.button("↩️ Re-include in Risk", key=f"reinc_{backend}_{scenario_id}"):
+                                s.store.delete_reviews_for_scenario(run_id, scope)
+                                st.rerun()
+                        else:
+                            if st.button("❌ Remove from Risk", key=f"rem_{backend}_{scenario_id}"):
+                                s.store.review(run_id, scope, "rejected", "Engineer Review", "Excluded from risk evaluation")
+                                st.rerun()
+
+                    stmts = sc.get("statements", [])
+                    if stmts:
+                        for stmt in stmts:
+                            rec_id = stmt.get("record_id", "")
+                            text = stmt.get("text", "")
+                            if rec_id.startswith("H-"):
+                                st.markdown(f"**⚠️ Hazard:** {text} `[{rec_id}]`")
+                            elif rec_id.startswith("M-"):
+                                st.markdown(f"**🛡️ Mitigation:** {text} `[{rec_id}]`")
+                            elif rec_id.startswith("T-"):
+                                st.markdown(f"**🧪 Acceptance Test:** {text} `[{rec_id}]`")
+                            else:
+                                st.markdown(f"• {text} `[{rec_id}]`")
+                    elif sc.get("scenario_narrative"):
+                        st.write(sc.get("scenario_narrative"))
+
+                    if sc_risk.get("explanation"):
+                        with st.expander("Knowledge Base Risk Details", expanded=False):
+                            st.write(sc_risk.get("explanation"))
+
+    # Result Export Option at the bottom
+    st.divider()
+    st.subheader("Export Results")
+    st.caption("Download the last run review decisions and recalculated risk evaluation.")
+
+    exp_col1, exp_col2 = st.columns(2)
+    with exp_col1:
+        export_payload = {
+            "run_id": run_id,
+            "created": latest_saved.get("created"),
+            "inputs": inputs,
+            "recalculated_risk": calculated_risk,
+            "scenarios": all_export_scenarios,
+        }
+        st.download_button(
+            "📥 Export Full Review & Risk (JSON)",
+            json_bytes(export_payload),
+            f"review-results-{run_id[:8]}.json",
+            "application/json",
+            use_container_width=True
+        )
+
+    with exp_col2:
+        if all_export_scenarios:
+            st.download_button(
+                "📥 Export Scenarios & Decisions (CSV)",
+                csv_bytes(all_export_scenarios),
+                f"scenarios-review-{run_id[:8]}.csv",
+                "text/csv",
+                use_container_width=True
+            )
+        else:
+            st.button("📥 Export Scenarios & Decisions (CSV)", disabled=True, use_container_width=True)
 
 
 def scenario_builder(s):
@@ -687,9 +727,6 @@ def comparison(s):
             a, b = st.columns(2)
             a.plotly_chart(latency_figure(measured, st.session_state.dark), use_container_width=True, key="matched_latency")
             b.plotly_chart(validation_figure(measured, st.session_state.dark), use_container_width=True, key="matched_validation")
-            scoped_rows = scenario_register(s.store, identity)
-            model_rows = [{**r, **review_counts([p for p in scoped_rows if p["backend"] == r["backend"]])} for r in measured]
-            st.plotly_chart(outcome_figure(model_rows, st.session_state.dark), use_container_width=True, key="matched_decisions")
             st.dataframe(measured, use_container_width=True)
         else:
             st.info("Run a model comparison to see measured latency, proposal validation and human-decision charts.")
@@ -994,25 +1031,11 @@ def history(s):
     with st.expander("Complete run detail"):
         st.json(run)
     entries = {entry["scope"]: entry["candidate"] for entry in proposal_entries(run) if entry["schema_valid"]}
-    latest = s.store.latest_reviews(run["id"])
-    counts = review_counts(scenario_register(s.store, run["id"]))
-    st.write("Latest human decisions", counts)
     if entries:
-        key = st.selectbox("Scenario to inspect and review", list(entries))
-        current_review = latest.get((run["id"], key))
-        scenario_detail(entries[key], run["snapshot"]["evidence"], current_review["payload"]["decision"] if current_review else "pending_review")
-        st.download_button("Export individual scenario", json_bytes({"scenario": entries[key], "configuration": run["snapshot"], "review_scope": key, "human_reviews": s.store.reviews(run["id"])}), f"scenario-{run['id']}.json")
+        key = st.selectbox("Scenario to inspect", list(entries))
+        scenario_detail(entries[key], run["snapshot"]["evidence"])
+        st.download_button("Export individual scenario", json_bytes({"scenario": entries[key], "configuration": run["snapshot"], "review_scope": key}), f"scenario-{run['id']}.json")
         st.download_button("Export scenario CSV", csv_bytes([{k: json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v for k, v in entries[key].items()}]), f"scenario-{run['id']}.csv")
-        reviewer = st.text_input("Reviewer name")
-        choices = ['revision_requested', 'rejected', 'evidence_insufficient', 'additional_testing'] if entries[key].get('needs_human_review') else ['accepted', 'revision_requested', 'rejected', 'evidence_insufficient', 'additional_testing']
-        decision = st.selectbox('Engineering decision', choices)
-        notes = st.text_area("Review notes / mitigation and test link assessment")
-        if st.button("Save human review", disabled=not reviewer.strip()):
-            try:
-                s.store.review(run["id"], key, decision, reviewer, notes)
-                st.success("Human review saved separately from AI content")
-            except ValueError as exc:
-                error(exc)
     reviews = s.store.reviews(run["id"])
     risk_selection_panel(run, reviews)
     assessments = [r for r in s.store.list("risk_assessment") if r["payload"]["run_id"] == run["id"]]

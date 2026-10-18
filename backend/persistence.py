@@ -115,6 +115,10 @@ class Store:
             rows = db.execute("SELECT * FROM reviews WHERE run_id=? ORDER BY created, rowid", (run_id,)).fetchall()
         return [{**dict(r), "payload": json.loads(r["payload"])} for r in rows]
 
+    def delete_reviews_for_scenario(self, run_id, scenario_id):
+        with self.connect() as db:
+            db.execute("DELETE FROM reviews WHERE run_id=? AND scenario_id=?", (run_id, scenario_id))
+
     def clear_history(self):
         with self.connect() as db:
             db.execute("DELETE FROM reviews")

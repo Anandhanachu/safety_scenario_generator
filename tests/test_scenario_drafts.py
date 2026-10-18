@@ -251,9 +251,7 @@ def test_new_pipeline_and_engineer_interface(tmp_path, monkeypatch):
         app.sidebar.radio[0].set_value(page).run()
         assert not app.exception, (page, app.exception)
     app.sidebar.radio[0].set_value('Scenario Register').run()
-    next(w for w in app.text_input if w.label == 'Engineer / reviewer name').set_value('TEST REVIEWER')
-    next(w for w in app.selectbox if w.label == 'Engineering decision').set_value('rejected')
-    next(w for w in app.button if w.label == 'Save engineering decision').click().run()
+    next(w for w in app.button if 'Remove from Risk' in w.label).click().run()
     assert not app.exception
     assert recalculate(run, service.store.reviews(identity))['laptop_local']['status'] == 'no_included_scenarios'
     service.manager.pool.shutdown()
