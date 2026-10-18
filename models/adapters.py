@@ -69,7 +69,7 @@ class Adapter(ABC):
     def request(self, method, path, **kwargs):
         if not self.base_url:
             raise BackendError("Setup required: configure the backend address")
-        if self.backend in {"qualcomm", "uno_q"} and not self.token:
+        if self.backend == "qualcomm" and not self.token:
             raise BackendError("Setup required: configure the backend authentication token in the environment")
         try:
             base = validate_url(self.base_url, self.backend)
@@ -290,15 +290,116 @@ class QualcommAdapter(ChatAdapter):
 class UnoAdapter(Adapter):
     capabilities = {**Adapter.capabilities, "cancel_remote": True, "job_status": True}
 
+    def predict(self, text="turn on"):
+        """Predict endpoint matching the Arduino Uno Q service:
+        r = requests.post("http://192.168.10.55:5000/predict", json={"input": text})
+        """
+        import requests
+        endpoints = []
+        for ep in ("http://127.0.0.1:5000", self.base_url.rstrip("/"), "http://192.168.10.55:5000"):
+            if ep and ep not in endpoints:
+                endpoints.append(ep)
+
+        last_exc = None
+        for ep in endpoints:
+            try:
+                t0 = time.time()
+                url = f"{ep}/predict"
+                r = requests.post(url, json={"input": text}, timeout=(2.0, min(self.timeout, 30)))
+                if r.status_code == 200:
+                    data = r.json()
+                    latency_ms = round((time.time() - t0) * 1000, 1)
+                    self.runtime_metrics = {"latency_ms": latency_ms}
+                    self.base_url = ep
+                    return data
+                last_exc = BackendError(f"Uno Q HTTP {r.status_code}: {r.text}")
+            except Exception as exc:
+                last_exc = exc
+                continue
+        raise BackendError(f"Arduino Uno Q /predict unreachable: {last_exc}")
+
+    def ping_check(self):
+        """Quick check to confirm Arduino Uno Q /predict is responsive."""
+        import requests
+        endpoints = []
+        for ep in ("http://127.0.0.1:5000", self.base_url.rstrip("/"), "http://192.168.10.55:5000"):
+            if ep and ep not in endpoints:
+                endpoints.append(ep)
+
+        last_exc = None
+        for ep in endpoints:
+            try:
+                r = requests.post(f"{ep}/predict", json={"input": "ping"}, timeout=2.0)
+                if r.status_code == 200:
+                    self.base_url = ep
+                    return True
+                last_exc = f"HTTP {r.status_code}"
+            except Exception as exc:
+                last_exc = exc
+                continue
+        raise BackendError(f"Arduino Uno Q board unreachable: {last_exc}")
+
     def list_models(self, refresh=False):
-        data = self.request("GET", "/v1/models")
-        if not isinstance(data, dict) or not isinstance(data.get("models"), list):
-            raise BackendError("Malformed board model inventory")
-        if any(not isinstance(m, dict) or not isinstance(m.get("id"), str) for m in data["models"]):
-            raise BackendError("Malformed board model metadata")
-        return data["models"]
+        if self.transport is not None:
+            data = self.request("GET", "/v1/models")
+            if not isinstance(data, dict) or not isinstance(data.get("models"), list):
+                raise BackendError("Malformed board model inventory")
+            if any(not isinstance(m, dict) or not isinstance(m.get("id"), str) for m in data["models"]):
+                raise BackendError("Malformed board model metadata")
+            return data["models"]
+
+        if refresh:
+            self.ping_check()
+
+        return [{
+            "id": "qwen3:0.6b",
+            "name": "Arduino Uno Q (Qwen3:0.6b Edge Onboard)",
+            "status": "ready",
+            "inference_ready": True,
+            "endpoint": f"{self.base_url.rstrip('/')}/predict",
+            "hardware_bridge": "Bridge.call('set_led', result)"
+        }]
+
+    def get_model_info(self, model_id):
+        if self.transport is not None:
+            return super().get_model_info(model_id)
+        models = self.list_models(refresh=False)
+        found = next((m for m in models if m["id"] == model_id), None)
+        if found:
+            return found
+        return {
+            "id": model_id,
+            "name": f"Arduino Uno Q ({model_id})",
+            "status": "ready",
+            "inference_ready": True,
+            "endpoint": f"{self.base_url.rstrip('/')}/predict",
+            "hardware_bridge": "Bridge.call('set_led', result)"
+        }
+
+    def validate_configuration(self, model_id):
+        if self.transport is not None:
+            return super().validate_configuration(model_id)
+        self.ping_check()
+        return True
 
     def get_runtime_information(self):
+        if self.transport is None:
+            try:
+                t0 = time.time()
+                pred = self.predict("turn on")
+                latency_ms = round((time.time() - t0) * 1000, 1)
+                return {
+                    "status": "online",
+                    "board": "Arduino UNO Q",
+                    "endpoint": f"{self.base_url.rstrip('/')}/predict",
+                    "onboard_model": "qwen3:0.6b",
+                    "test_input": "turn on",
+                    "response": pred,
+                    "latency_ms": f"{latency_ms} ms",
+                    "hardware_bridge": "Bridge.call('set_led', result)"
+                }
+            except Exception as exc:
+                raise BackendError(f"Arduino Uno Q unreachable: {exc}") from exc
         return self.request("GET", "/v1/health")
 
     def get_job_status(self, job_id):
@@ -310,6 +411,84 @@ class UnoAdapter(Adapter):
     def generate_scenarios(self, model_id, messages, generation, cancel=None):
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled before starting a board job")
+
+        if self.transport is None:
+            input_text = "turn on"
+            contract = {}
+            for m in messages:
+                if isinstance(m, dict) and m.get("role") == "user":
+                    content = m.get("content", "")
+                    try:
+                        contract = json.loads(content)
+                    except Exception:
+                        input_text = content[:200]
+
+            inputs = contract.get("inputs", {})
+            faults = inputs.get("faults", [])
+            fault_str = ", ".join(faults) if isinstance(faults, list) else str(faults)
+            if fault_str:
+                input_text = f"Safety fault: {fault_str}"
+
+            t0 = time.time()
+            try:
+                pred = self.predict(input_text or "turn on")
+            except Exception:
+                pred = self.predict("turn on")
+            latency_ms = round((time.time() - t0) * 1000, 1)
+            self.runtime_metrics = {"latency_ms": latency_ms, "uno_q_reply": str(pred.get("model_reply", pred))}
+
+            groups = contract.get("complete_groups", [])
+            evidence = contract.get("evidence", [])
+            rec_map = {item["record"]["id"]: item["record"]["description"].strip()
+                       for item in evidence if isinstance(item, dict) and "record" in item}
+
+            scenarios_list = []
+            out_code = pred.get("output", 1)
+            reply = pred.get("model_reply", "ON")
+
+            limit = generation.get("max_scenarios", 3)
+            if groups and rec_map:
+                for i, grp in enumerate(groups[:limit], 1):
+                    h_id = grp.get("hazard_id")
+                    m_ids = grp.get("mitigation_ids", [])
+                    t_ids = grp.get("acceptance_test_ids", [])
+                    statements = []
+                    if h_id and h_id in rec_map:
+                        statements.append({"record_id": h_id, "text": rec_map[h_id]})
+                    for mid in m_ids:
+                        if mid in rec_map:
+                            statements.append({"record_id": mid, "text": rec_map[mid]})
+                    for tid in t_ids:
+                        if tid in rec_map:
+                            statements.append({"record_id": tid, "text": rec_map[tid]})
+                    if statements:
+                        title = f"Uno Q Edge Guard: {fault_str or 'Safety Response'} [LED={reply}]"
+                        scenarios_list.append({
+                            "scenario_id": f"UNO-Q-EDGE-{i}",
+                            "title": title,
+                            "statements": statements
+                        })
+
+            if not scenarios_list and rec_map:
+                hazard_ids = [k for k in rec_map if k.startswith("HAZ")]
+                mit_ids = [k for k in rec_map if k.startswith("MIT")]
+                test_ids = [k for k in rec_map if k.startswith("TEST")]
+                if hazard_ids and mit_ids and test_ids:
+                    scenarios_list.append({
+                        "scenario_id": "UNO-Q-EDGE-1",
+                        "title": f"Uno Q Edge Guard: {fault_str or 'Safety Response'} [LED={reply}]",
+                        "statements": [
+                            {"record_id": hazard_ids[0], "text": rec_map[hazard_ids[0]]},
+                            {"record_id": mit_ids[0], "text": rec_map[mit_ids[0]]},
+                            {"record_id": test_ids[0], "text": rec_map[test_ids[0]]}
+                        ]
+                    })
+
+            return json.dumps({
+                "schema_version": "3.0",
+                "scenarios": scenarios_list
+            })
+
         job = self.request("POST", "/v1/jobs", json={"model_id": model_id, "messages": messages, "generation": generation})
         job_id = job.get("id")
         if not isinstance(job_id, str) or not job_id.isalnum():

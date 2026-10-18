@@ -112,19 +112,36 @@ def theme(dark):
 
 
 def backend_status_badge(backend, settings, store):
-    """Show runtime reachability without claiming that inference is verified."""
+    """Show runtime reachability without falsely claiming that inference is verified."""
     model_id = settings[backend].get("model_id")
     if not model_id:
         return '<span class="backend-status status-neutral"><span class="status-dot"></span>No model selected</span>'
     if st.session_state.get(f"reachable_{backend}"):
-        completed = any(
-            result.get("status") == "completed" and result.get("model_id") == model_id
-            for saved in store.list("run", 50)
-            for result in saved["payload"].get("results", {}).values()
-            if result.get("backend") == backend
-        )
-        label = "Runtime reachable · inference completed" if completed else "Runtime reachable · inference unverified"
-        return f'<span class="backend-status status-good"><span class="status-dot"></span>{label}</span>'
+        runs = store.list("run", 20)
+        latest_res = None
+        for saved in runs:
+            res = saved.get("payload", {}).get("results", {}).get(backend)
+            if res:
+                latest_res = res
+                break
+        if latest_res:
+            st_val = latest_res.get("status")
+            if st_val == "completed":
+                label = "Runtime reachable · inference completed"
+                cls = "status-good"
+            elif st_val == "failed":
+                label = "Runtime reachable · last run failed"
+                cls = "status-warn"
+            elif st_val == "cancelled":
+                label = "Runtime reachable · cancelled"
+                cls = "status-neutral"
+            else:
+                label = "Runtime reachable · inference unverified"
+                cls = "status-good"
+        else:
+            label = "Runtime reachable · inference unverified"
+            cls = "status-good"
+        return f'<span class="backend-status {cls}"><span class="status-dot"></span>{label}</span>'
     return '<span class="backend-status status-warn"><span class="status-dot"></span>Configured · refresh to check</span>'
 
 
@@ -668,12 +685,24 @@ def scenario_builder(s):
 
         cfg = settings.get(selected_backend, {})
         inventory = st.session_state.get(f"catalogue_{selected_backend}", [])
+        if not inventory:
+            try:
+                adapter = make_adapter(selected_backend, settings)
+                inventory = adapter.list_models(refresh=False)
+                if inventory:
+                    st.session_state[f"catalogue_{selected_backend}"] = inventory
+            except Exception:
+                pass
         model_ids = list(dict.fromkeys(m["id"] for m in inventory))
         persisted = cfg.get("model_id", "")
         if persisted and persisted not in model_ids:
             model_ids.insert(0, persisted)
         if not model_ids and selected_backend == "qualcomm":
             model_ids = ["DeepSeek-R1-Distill-Llama-70B"]
+        elif not model_ids and selected_backend == "uno_q":
+            model_ids = ["qwen3:0.6b"]
+        elif not model_ids and selected_backend == "laptop_local":
+            model_ids = ["qwen3:1.7b"]
         elif not model_ids:
             model_ids = [persisted or "Default Model"]
 
@@ -713,7 +742,7 @@ def scenario_builder(s):
             try:
                 selections = []
                 for b, _, _ in mode_options:
-                    m_id = settings[b].get("model_id") or ("DeepSeek-R1-Distill-Llama-70B" if b == "qualcomm" else "test")
+                    m_id = settings[b].get("model_id") or ("DeepSeek-R1-Distill-Llama-70B" if b == "qualcomm" else ("qwen3:0.6b" if b == "uno_q" else "qwen3:1.7b"))
                     selections.append(Selection(backend=b, model_id=m_id, generation=Generation(max_tokens=settings.get('max_tokens', 1800), temperature=0.0, seed=42)))
                 request = RunRequest(
                     inputs=inputs,
@@ -906,6 +935,16 @@ def model_studio(s):
         with st.container(border=True):
             st.subheader(label)
             st.caption(settings[backend]["base_url"] or "Address not configured")
+            if f"catalogue_{backend}" not in st.session_state:
+                if st.session_state.get(f"reachable_{backend}", False):
+                    try:
+                        adapter = make_adapter(backend, settings)
+                        inv = adapter.list_models(refresh=False)
+                        if inv:
+                            st.session_state[f"catalogue_{backend}"] = inv
+                    except Exception:
+                        st.session_state[f"catalogue_{backend}"] = []
+
             if st.button("Refresh models", key=f"refresh_{backend}"):
                 try:
                     adapter = make_adapter(backend, settings)
@@ -1578,6 +1617,35 @@ def device(s):
             with st.container(border=True):
                 st.markdown("**Board Telemetry & Runtime Info**")
                 st.json(status)
+
+        st.markdown("---")
+        st.markdown("#### ⚡ Real-Time Edge Predict (`/predict`)")
+        st.caption("Executes requests directly against the Arduino Uno Q Python App: `POST /predict` (`{'input': text}`). Controls the physical LED via `Bridge.call('set_led')`.")
+        pred_c1, pred_c2 = st.columns([3, 1])
+        with pred_c1:
+            test_prompt = st.text_input("Predict Input", value="turn on", key="dev_uno_predict_input", help="e.g. 'turn on', 'turn off', or safety instructions")
+        with pred_c2:
+            st.write("")
+            if st.button("🚀 Send to Uno Q", key="dev_uno_predict_btn", use_container_width=True):
+                try:
+                    import time
+                    t0 = time.time()
+                    p_res = u_adapter.predict(test_prompt)
+                    latency = (time.time() - t0) * 1000
+                    st.session_state.board_predict_result = {
+                        "input": test_prompt,
+                        "response": p_res,
+                        "latency_ms": f"{latency:.1f} ms",
+                        "status": "success"
+                    }
+                    st.session_state.reachable_uno_q = True
+                    st.success(f"Uno Q Replied in {latency:.1f} ms!")
+                except Exception as exc:
+                    st.error(f"Prediction failed: {exc}")
+        if "board_predict_result" in st.session_state:
+            with st.container(border=True):
+                st.markdown("**Last Predict Response from Uno Q**")
+                st.json(st.session_state.board_predict_result)
 
             b1, b2 = st.columns(2)
             with b1:
