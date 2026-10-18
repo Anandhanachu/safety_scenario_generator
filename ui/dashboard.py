@@ -227,7 +227,128 @@ def register_page(s):
     columns = st.columns(4)
     for column, label, value in zip(columns, ["All proposed", "Accepted", "Rejected", "Pending review"], [counts["proposed"],counts["accepted"],counts["rejected"],counts["pending_review"]]):
         column.metric(label, value)
-    st.caption("All persisted proposals, including identifiable candidates from schema-invalid output. Latest human decisions replace previous decisions in these counts; the audit trail is retained. Unreadable JSON cannot yield a trustworthy scenario count.")
+    st.caption("Review one frozen run from evidence to model output to engineering decision. Failed and truncated model runs remain visible even when they produced no proposal.")
+
+    saved_runs = s.store.list("run")
+    if saved_runs:
+        run_options = {f"{item['created']} · {item['id']}": item for item in saved_runs}
+        run_label = st.selectbox("Run to review", list(run_options), key="register_run")
+        saved = run_options[run_label]
+        run = saved["payload"]
+        evidence = run.get("snapshot", {}).get("evidence", [])
+        results = run.get("results", {})
+        input_data = run.get("snapshot", {}).get("request", {}).get("inputs", {})
+
+        st.markdown('<div class="workflow-band"><span class="workflow-chip">1 · Inspect TF-IDF evidence</span><span class="workflow-chip">2 · Compare model output</span><span class="workflow-chip">3 · Record engineering decision</span></div>', unsafe_allow_html=True)
+        evidence_tab, output_tab, decision_tab = st.tabs(["1 · TF-IDF evidence", "2 · Model output", "3 · Engineer decision"])
+
+        with evidence_tab:
+            st.caption("This is the exact filtered and ranked evidence snapshot shared by every model in this run. Relevance is not engineering approval.")
+            if input_data:
+                with st.expander("Scenario input", expanded=False):
+                    st.json(input_data)
+            if evidence:
+                evidence_rows = []
+                for item in evidence:
+                    record = item.get("record", {})
+                    evidence_rows.append({
+                        "rank": len(evidence_rows) + 1,
+                        "record_id": record.get("id"),
+                        "type": record.get("type"),
+                        "title": record.get("title"),
+                        "tfidf_score": item.get("score"),
+                        "record_review": record.get("review_status"),
+                        "expert_support": record.get("expert_support_review", "not_reviewed"),
+                        "reviewed_by": record.get("reviewed_by") or "not reviewed",
+                        "illustrative": record.get("illustrative", False),
+                    })
+                st.dataframe(evidence_rows, use_container_width=True, hide_index=True)
+                record_options = {f"{r['record'].get('id')} · {r['record'].get('title')}": r for r in evidence}
+                evidence_choice = st.selectbox("Preview retrieved record", list(record_options), key=f"evidence_{saved['id']}")
+                chosen_evidence = record_options[evidence_choice]
+                a, b, c = st.columns(3)
+                a.metric("TF-IDF rank", list(record_options).index(evidence_choice) + 1)
+                chosen_score = chosen_evidence.get("score")
+                b.metric("Relevance score", f"{chosen_score:.4f}" if isinstance(chosen_score, (int, float)) else "not measured")
+                c.metric("Record status", chosen_evidence["record"].get("review_status", "not recorded").replace("_", " "))
+                st.write(chosen_evidence["record"].get("description", "No description"))
+                with st.expander("Full record and retrieval details"):
+                    st.json(chosen_evidence)
+                st.info("Approve or correct reusable evidence in Knowledge Base. Proposal decisions below apply only to a model's use of this evidence in this run.")
+            else:
+                st.warning("This saved run contains no retrievable evidence snapshot.")
+
+        backend = None
+        result = None
+        entry = None
+        scoped_row = None
+        if results:
+            backend = st.session_state.get(f"register_backend_{saved['id']}")
+            if backend not in results:
+                backend = next(iter(results))
+
+        with output_tab:
+            if not results:
+                st.warning("No backend results were recorded for this run.")
+            else:
+                backend = st.selectbox("Model result", list(results), format_func=lambda value: f"{LABELS.get(value, value)} · {results[value].get('model_id', 'unrecorded')}", key=f"register_backend_{saved['id']}")
+                result = results[backend]
+                a, b, c, d = st.columns(4)
+                a.metric("Execution", result.get("status", "unknown"))
+                b.metric("Schema valid", "Yes" if result.get("schema_valid") else "No")
+                c.metric("Proposals", len(result.get("scenarios", [])))
+                latency = result.get("generation_latency_ms")
+                d.metric("Generation time", f"{latency / 1000:.1f} s" if latency is not None else "not measured")
+                if result.get("error"):
+                    st.error(result["error"])
+                st.caption(f"Requested settings: {result.get('run_settings') or result.get('requested_settings') or 'not recorded'} · applied settings: {result.get('applied_settings', 'not measured')}")
+                model_entries = [item for item in proposal_entries(run) if item["backend"] == backend]
+                if model_entries:
+                    entry_options = {f"{item['scope']} · {item['candidate'].get('title', 'Untitled proposal')}": item for item in model_entries}
+                    entry_label = st.selectbox("Proposal preview", list(entry_options), key=f"register_proposal_{saved['id']}_{backend}")
+                    entry = entry_options[entry_label]
+                    scoped_row = next((row for row in rows if row["run_id"] == saved["id"] and row["review_scope"] == entry["scope"]), None)
+                    if entry["schema_valid"]:
+                        scenario_detail(entry["candidate"], evidence, scoped_row["decision"] if scoped_row else "pending_review")
+                    else:
+                        st.warning("The model returned an identifiable candidate, but it failed schema or evidence verification.")
+                        st.json(entry["candidate"])
+                else:
+                    st.warning("This model produced no reviewable proposal. Inspect the error and attempt diagnostics, then rerun after correcting the model settings.")
+                with st.expander("Model diagnostics and complete normalized result"):
+                    st.json(result)
+
+        with decision_tab:
+            if not results:
+                st.info("There is no model output to review in this run.")
+            else:
+                selected_backend = st.session_state.get(f"register_backend_{saved['id']}", backend)
+                selected_result = results.get(selected_backend, result or {})
+                model_entries = [item for item in proposal_entries(run) if item["backend"] == selected_backend]
+                if not model_entries:
+                    st.info("No proposal can be approved or rejected because this model produced no identifiable scenario. The failed execution remains visible in Model Output.")
+                else:
+                    selected_scope = st.session_state.get(f"register_proposal_{saved['id']}_{selected_backend}")
+                    entry = next((item for item in model_entries if selected_scope and selected_scope.startswith(item["scope"])), model_entries[0])
+                    scoped_row = next((row for row in rows if row["run_id"] == saved["id"] and row["review_scope"] == entry["scope"]), None)
+                    current = scoped_row["decision"] if scoped_row else "pending_review"
+                    st.markdown(f"**Reviewing:** {LABELS.get(selected_backend, selected_backend)} · {selected_result.get('model_id', 'unrecorded')} · {entry['scope']}")
+                    st.caption(f"Current decision: {current.replace('_', ' ')}. Acceptance is available only after all technical and evidence-review flags are resolved.")
+                    reviewer = st.text_input("Engineer / reviewer name", key=f"register_reviewer_{saved['id']}_{entry['scope']}")
+                    decisions = [d for d in DECISIONS if d != "pending_review" and (d != "accepted" or (entry["schema_valid"] and not entry["candidate"].get("needs_human_review")))]
+                    decision = st.selectbox("Engineering decision", decisions, format_func=lambda value: value.replace("_", " ").title(), key=f"register_decision_{saved['id']}_{entry['scope']}")
+                    notes = st.text_area("Review rationale / required follow-up", key=f"register_notes_{saved['id']}_{entry['scope']}")
+                    if st.button("Save engineering decision", disabled=not reviewer.strip(), type="primary", key=f"save_review_{saved['id']}_{entry['scope']}"):
+                        s.store.review(saved["id"], entry["scope"], decision, reviewer, notes)
+                        st.rerun()
+                    with st.expander("Human review audit trail"):
+                        st.json([review for review in s.store.reviews(saved["id"]) if review["scenario_id"] == entry["scope"]])
+    else:
+        st.info("No saved runs yet. Generate a scenario or comparison first; both successful and failed model executions will appear here.")
+
+    st.divider()
+    st.subheader("All proposal decisions")
+    st.caption("Compact register across all runs. Use the review workspace above for evidence and model-level inspection.")
     search = st.text_input("Search all proposed scenarios", placeholder="Scenario ID, title, model, backend or reviewer")
     statuses = st.multiselect("Human decision filter", list(DECISIONS))
     backends = st.multiselect("Backend filter", list(LABELS), format_func=LABELS.get)
@@ -241,26 +362,6 @@ def register_page(s):
         return
     page = st.number_input("Register page (50 proposals per page)", 1, max(1, (len(selected)+49)//50), 1)
     st.dataframe(selected[(page-1)*50:page*50], use_container_width=True, hide_index=True)
-    options = {f"{r['run_id']} / {r['review_scope']}":r for r in selected}
-    selected_key = st.selectbox("Inspect or review a proposal", list(options))
-    row = options[selected_key]
-    run = s.store.get(row["run_id"])["payload"]
-    entry = next(e for e in proposal_entries(run) if e["scope"] == row["review_scope"])
-    if entry["schema_valid"]:
-        scenario_detail(entry["candidate"], run["snapshot"]["evidence"], row["decision"])
-    else:
-        st.warning("This candidate came from invalid model output and is not a validated scenario. Candidate metadata and diagnostics are preserved; full raw output depends on raw-retention settings.")
-        st.json(entry["candidate"])
-        st.write(run["results"][row["backend"]].get("error"))
-    reviewer = st.text_input("Proposal reviewer", key="register_reviewer")
-    decisions = [d for d in DECISIONS if d != 'pending_review' and (d != 'accepted' or (entry['schema_valid'] and not entry['candidate'].get('needs_human_review')))]
-    decision = st.selectbox("Proposal decision", decisions)
-    notes = st.text_area("Proposal review notes")
-    if st.button("Save proposal decision", disabled=not reviewer.strip()):
-        s.store.review(row["run_id"], row["review_scope"], decision, reviewer, notes)
-        st.rerun()
-    with st.expander("Human review audit trail"):
-        st.json([r for r in s.store.reviews(row["run_id"]) if r["scenario_id"] == row["review_scope"]])
 
 
 def scenario_builder(s):
@@ -842,6 +943,7 @@ def settings_page(s):
             settings[backend]['parameter_size'] = a.text_input('Parameter size (verified metadata only; leave blank if unavailable)', settings[backend].get('parameter_size') or '', key=f'parameters_{backend}') or None
             settings[backend]['quantization'] = b.text_input('Quantization (verified metadata only; leave blank if unavailable)', settings[backend].get('quantization') or '', key=f'quantization_{backend}') or None
         max_tokens = st.number_input('Shared maximum generated tokens', 64, 8192, settings.get('max_tokens', 1800))
+        backend_timeout_seconds = st.number_input('Backend request timeout (seconds)', 30, 900, int(settings.get('backend_timeout_seconds', 900)), 30, help='Applies to laptop, UNO Q and cloud requests. Slow local reasoning models may need the full 900 seconds.')
         citation_link_validity_threshold = st.number_input('citation_link_validity threshold for human review', 0.0, 1.0, float(settings.get('citation_link_validity_threshold', 1.0)), 0.05)
         directories = st.text_area("Permitted local model directories (one absolute path per line)", "\n".join(settings.get("model_dirs", [])))
         limit = st.number_input("TF-IDF result limit", 1, 40, settings["retrieval_limit"])
@@ -856,7 +958,7 @@ def settings_page(s):
             if any(not Path(d).is_dir() for d in roots):
                 raise ValueError("Each permitted model directory must exist")
             updated = {b: {"base_url": endpoints[b], "model_id": selected[b], "generation": {**params[b], 'max_tokens': max_tokens}, 'parameter_size': settings[b].get('parameter_size'), 'quantization': settings[b].get('quantization')} for b in LABELS}
-            updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold, max_tokens=max_tokens, citation_link_validity_threshold=citation_link_validity_threshold)
+            updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold, max_tokens=max_tokens, backend_timeout_seconds=backend_timeout_seconds, citation_link_validity_threshold=citation_link_validity_threshold)
             s.store.set_setting("preferences", updated)
             for backend in LABELS:
                 st.session_state.pop(f"catalogue_{backend}", None)

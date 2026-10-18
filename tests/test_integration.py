@@ -239,14 +239,15 @@ def test_register_page_reviews_and_counts_across_models(tmp_path, monkeypatch, d
     app = AppTest.from_file(str(ROOT / "app.py"), default_timeout=20).run()
     app.sidebar.radio[0].set_value("Scenario Register").run()
     assert not app.exception
-    next(x for x in app.text_input if x.label == "Proposal reviewer").set_value("Engineer")
-    next(x for x in app.selectbox if x.label == "Proposal decision").set_value("accepted")
-    next(x for x in app.button if x.label == "Save proposal decision").click().run()
+    assert {tab.label for tab in app.tabs} >= {"1 · TF-IDF evidence", "2 · Model output", "3 · Engineer decision"}
+    next(x for x in app.text_input if x.label == "Engineer / reviewer name").set_value("Engineer")
+    next(x for x in app.selectbox if x.label == "Engineering decision").set_value("accepted")
+    next(x for x in app.button if x.label == "Save engineering decision").click().run()
     assert not app.exception
     counts = review_counts(scenario_register(service.store))
     assert counts["accepted"] == 1 and counts["pending_review"] == 1
-    next(x for x in app.selectbox if x.label == "Proposal decision").set_value("rejected")
-    next(x for x in app.button if x.label == "Save proposal decision").click().run()
+    next(x for x in app.selectbox if x.label == "Engineering decision").set_value("rejected")
+    next(x for x in app.button if x.label == "Save engineering decision").click().run()
     counts = review_counts(scenario_register(service.store))
     assert counts["accepted"] == 0 and counts["rejected"] == 1
     app.sidebar.radio[0].set_value("Model Comparison").run()

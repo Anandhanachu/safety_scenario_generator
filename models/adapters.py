@@ -19,12 +19,12 @@ class Cancelled(BackendError):
     pass
 
 
-DEFAULT_BACKEND_TIMEOUT_SECONDS = 300
+DEFAULT_BACKEND_TIMEOUT_SECONDS = 900
 
 
-def backend_timeout_seconds():
+def backend_timeout_seconds(value=None):
     """Return the bounded HTTP/job timeout used by configured backends."""
-    raw = os.getenv("SAFESCENARIO_BACKEND_TIMEOUT_SECONDS", str(DEFAULT_BACKEND_TIMEOUT_SECONDS))
+    raw = value if value is not None else os.getenv("SAFESCENARIO_BACKEND_TIMEOUT_SECONDS", str(DEFAULT_BACKEND_TIMEOUT_SECONDS))
     try:
         value = int(raw)
     except (TypeError, ValueError):
@@ -83,7 +83,7 @@ class Adapter(ABC):
                 raise BackendError("Backend response exceeds 5 MiB")
             return response.json()
         except (httpx.TimeoutException, TimeoutError):
-            raise BackendError("Backend request timed out") from None
+            raise BackendError(f"Backend request timed out after {self.timeout} seconds") from None
         except (httpx.HTTPError, ValueError):
             raise BackendError("Backend unavailable, endpoint invalid, or malformed JSON response") from None
 
@@ -231,7 +231,8 @@ def make_adapter(backend, settings, transport=None):
     cfg = settings[backend]
     classes = {"laptop_local": ChatAdapter, "qualcomm": QualcommAdapter, "uno_q": UnoAdapter}
     token = os.getenv({"qualcomm": "QUALCOMM_API_KEY", "uno_q": "UNO_Q_TOKEN"}.get(backend, "LAPTOP_API_KEY"), "")
-    return classes[backend](cfg["base_url"], backend, token, timeout=backend_timeout_seconds(), transport=transport)
+    timeout = backend_timeout_seconds(settings.get("backend_timeout_seconds"))
+    return classes[backend](cfg["base_url"], backend, token, timeout=timeout, transport=transport)
 
 
 def discover_files(directories):

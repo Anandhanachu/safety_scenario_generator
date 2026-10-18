@@ -45,4 +45,5 @@ def defaults():
         "model_dirs": [p for p in os.getenv("LOCAL_MODEL_DIRS", "").split(os.pathsep) if p],
         "retrieval_limit": 12,
         "relevance_threshold": 0.05,
+        "backend_timeout_seconds": int(os.getenv("SAFESCENARIO_BACKEND_TIMEOUT_SECONDS", "900")),
     }
