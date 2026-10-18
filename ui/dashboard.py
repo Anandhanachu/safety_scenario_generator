@@ -127,6 +127,8 @@ def scenario_detail(scenario, evidence, decision="pending_review"):
     if 'system_decision' in scenario:
         st.write('Automatic KB screening:', scenario['system_decision'])
         st.caption('AI title is a display label. Statement support uses exact KB description matching; engineer approval is recorded separately.')
+        if scenario.get('recovery_note'):
+            st.info(scenario['recovery_note'])
         for reason in scenario.get('screening_reasons', []):
             st.error(reason)
         if not scenario.get('schema_valid'):

@@ -198,8 +198,8 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
                     recovered_items = screen_drafts([recovery], inputs, evidence, matrix, threshold)
                     if recovered_items:
                         recovered_items[0]['origin'] = 'deterministic_kb_recovery'
-                        recovered_items[0]['screening_reasons'].insert(
-                            0, 'System recovered a complete linked KB group after AI drafts were incomplete')
+                        recovered_items[0]['recovery_note'] = (
+                            'System recovered a complete linked KB group after AI drafts were incomplete')
                         scenarios.extend(recovered_items)
             attempts.append({**metadata, 'valid': True})
             break
