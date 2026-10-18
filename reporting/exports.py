@@ -22,6 +22,8 @@ def comparison_rows(run, reviews=()):
                      'reviewed_support_rate': result.get('reviewed_support_rate'),
                      'requested_settings': json.dumps(result.get('requested_settings', {})),
                      'applied_settings': json.dumps(result.get('applied_settings', {})),
+                     'requested_runtime_options': json.dumps(result.get('requested_runtime_options', {})),
+                     'runtime_metrics': json.dumps(result.get('runtime_metrics', {})),
                      'settings': json.dumps(result.get('constrained', {}).get('settings', result.get('run_settings', {}))),
                      'human_review_flags': json.dumps(result.get('constrained', {}).get('verification', {}).get('human_review_flags', [])),
                      'retrieved_evidence': json.dumps(run.get('snapshot', {}).get('evidence', [])),

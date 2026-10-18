@@ -49,6 +49,11 @@ class RunManager:
         job_id = uuid4().hex
         job = {"id": job_id, "snapshot": snapshot, "results": {}, "progress": {}, "status": "running", "cancel": threading.Event()}
         with self.lock:
+            if any(selection.backend == 'laptop_local' for selection in request.selections) and any(
+                job['status'] == 'running' and 'laptop_local' in job['progress'] and 'laptop_local' not in job['results']
+                for job in self.jobs.values()
+            ):
+                raise ValueError('The laptop backend already has an active request. Wait for it to finish before starting another; duplicate requests queue inside Ollama and increase waiting time.')
             if sum(j["status"] == "running" for j in self.jobs.values()) >= 4:
                 raise ValueError("Four runs already active; wait or cancel one")
             if len(self.jobs) >= 100:
@@ -75,6 +80,7 @@ class RunManager:
                                     'parameter_size': settings[selection.backend].get('parameter_size'),
                                     'quantization': settings[selection.backend].get('quantization')},
                   'run_settings': selection.generation.model_dump()}
+        adapter = None
         try:
             if job["cancel"].is_set():
                 raise Cancelled("Cancelled before readiness check")
@@ -99,6 +105,9 @@ class RunManager:
         except Exception:
             result["error"] = "Unexpected pipeline error; no successful result recorded"
         result['generation_mode'] = job['snapshot']['request'].get('generation_mode', 'record_selection')
+        if adapter is not None:
+            result.setdefault('requested_runtime_options', dict(getattr(adapter, 'requested_runtime_options', {})))
+            result.setdefault('runtime_metrics', dict(getattr(adapter, 'runtime_metrics', {})))
         result["total_pipeline_latency_ms"] = round((time.perf_counter() - start) * 1000 + job['snapshot']['retrieval']['diagnostics']['total_ms'], 3)
         result["finished"] = now()
         with self.lock:
@@ -125,6 +134,8 @@ class RunManager:
         result['reviewed_support_rate'] = measured.reviewed_support_rate
         result['requested_settings'] = measured.requested_settings
         result['applied_settings'] = measured.applied_settings
+        result['requested_runtime_options'] = measured.requested_runtime_options
+        result['runtime_metrics'] = measured.runtime_metrics
         result['candidate_inventory'] = measured.attempts[-1].get('candidate_inventory', [])
         result['declared_candidate_count'] = len(result['scenarios']) or len(result['candidate_inventory'])
         result['status'] = 'completed' if measured.output is not None else 'failed'

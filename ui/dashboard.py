@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 from html import escape
 
 import plotly.express as px
@@ -369,6 +370,8 @@ def register_page(s):
                 if result.get("error"):
                     st.error(result["error"])
                 st.caption(f"Requested settings: {result.get('run_settings') or result.get('requested_settings') or 'not recorded'} · applied settings: {result.get('applied_settings', 'not measured')}")
+                if result.get('requested_runtime_options'):
+                    st.caption(f"Runtime options requested: {result['requested_runtime_options']} · reported token usage: {result.get('runtime_metrics') or 'not measured'}")
                 model_entries = [item for item in proposal_entries(run) if item["backend"] == backend]
                 if model_entries:
                     entry_options = {f"{item['scope']} · {item['candidate'].get('title', 'Untitled proposal')}": item for item in model_entries}
@@ -1011,6 +1014,10 @@ def settings_page(s):
         for backend, label in LABELS.items():
             st.markdown(f"**{label}**")
             endpoints[backend] = st.text_input("Base URL", settings[backend]["base_url"], key=f"endpoint_{backend}")
+            if backend == 'laptop_local':
+                ollama_fast = st.checkbox('Ollama fast response: disable thinking and request JSON',
+                                          value=settings[backend].get('ollama_fast_mode', urlsplit(settings[backend]['base_url']).port == 11434),
+                                          help='For Ollama only. Requests reasoning_effort=none and JSON output. Turn off for other local servers. Runtime options are included in reports.')
             selected[backend] = st.text_input("Selected model ID (revalidated on execution)", settings[backend].get("model_id", ""), key=f"configured_{backend}")
             a, b = st.columns(2)
             current = settings[backend].get("generation", {})
@@ -1034,6 +1041,7 @@ def settings_page(s):
             if any(not Path(d).is_dir() for d in roots):
                 raise ValueError("Each permitted model directory must exist")
             updated = {b: {"base_url": endpoints[b], "model_id": selected[b], "generation": {**params[b], 'max_tokens': max_tokens}, 'parameter_size': settings[b].get('parameter_size'), 'quantization': settings[b].get('quantization')} for b in LABELS}
+            updated['laptop_local']['ollama_fast_mode'] = ollama_fast
             updated.update(model_dirs=roots, retrieval_limit=limit, relevance_threshold=threshold, max_tokens=max_tokens, backend_timeout_seconds=backend_timeout_seconds, citation_link_validity_threshold=citation_link_validity_threshold)
             s.store.set_setting("preferences", updated)
             for backend in LABELS:

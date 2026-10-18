@@ -59,6 +59,8 @@ class RunResult(Strict):
     settings: dict
     requested_settings: dict = Field(default_factory=dict)
     applied_settings: dict = Field(default_factory=dict)
+    requested_runtime_options: dict = Field(default_factory=dict)
+    runtime_metrics: dict = Field(default_factory=dict)
     evidence: list[dict]
     output: SelectionOutput | None = None
     verification: dict
@@ -166,6 +168,8 @@ def execute(adapter, model, inputs, evidence, matrix, max_tokens=1800, threshold
             response = adapter.generate_with_settings(model.name, prompt, settings, cancel)
             raw = response['output']
             result.applied_settings = response['applied_settings']
+            result.requested_runtime_options = response.get('requested_runtime_options', {})
+            result.runtime_metrics = response.get('runtime_metrics', {})
         else:  # Test doubles and older runtime boundaries cannot confirm applied settings.
             raw = adapter.generate_scenarios(model.name, prompt, settings, cancel)
         if cancel and cancel.is_set():
@@ -174,6 +178,7 @@ def execute(adapter, model, inputs, evidence, matrix, max_tokens=1800, threshold
         inventory = []
         metadata = {'attempt': attempt + 1, 'response_sha256': hashlib.sha256(raw.encode()).hexdigest(), 'response_bytes': len(raw.encode())}
         metadata.update(requested_settings=dict(settings), applied_settings=dict(result.applied_settings))
+        metadata.update(requested_runtime_options=result.requested_runtime_options, runtime_metrics=result.runtime_metrics)
         try:
             if len(raw.encode()) > 1024 * 1024:
                 raise ValueError('Output exceeds 1 MiB')

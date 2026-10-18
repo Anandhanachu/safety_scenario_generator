@@ -5,6 +5,8 @@ from pathlib import Path
 import threading
 import time
 import math
+import json
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -39,6 +41,9 @@ class Adapter(ABC):
         self.base_url, self.backend, self.token = base_url, backend, token
         self.timeout, self.transport = timeout, transport
         self.applied_settings = {k: 'not measured' for k in ('temperature', 'seed', 'max_tokens')}
+        self.ollama_fast_mode = False
+        self.requested_runtime_options = {}
+        self.runtime_metrics = {}
 
     def record_settings(self, data):
         """Only explicit runtime reports establish applied/unsupported settings."""
@@ -55,8 +60,11 @@ class Adapter(ABC):
 
     def generate_with_settings(self, model_id, messages, generation, cancel=None):
         self.applied_settings = {k: 'not measured' for k in ('temperature', 'seed', 'max_tokens')}
+        self.requested_runtime_options = {}
+        self.runtime_metrics = {}
         output = self.generate_scenarios(model_id, messages, generation, cancel)
-        return {'output': output, 'requested_settings': dict(generation), 'applied_settings': dict(self.applied_settings)}
+        return {'output': output, 'requested_settings': dict(generation), 'applied_settings': dict(self.applied_settings),
+                'requested_runtime_options': dict(self.requested_runtime_options), 'runtime_metrics': dict(self.runtime_metrics)}
 
     def request(self, method, path, **kwargs):
         if not self.base_url:
@@ -157,8 +165,32 @@ class ChatAdapter(Adapter):
     def generate_scenarios(self, model_id, messages, generation, cancel=None):
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled before inference")
-        data = self.request("POST", "/v1/chat/completions", json={"model": model_id, "messages": messages, "stream": False, **generation})
+        payload = {"model": model_id, "messages": messages, "stream": False, **generation}
+        if self.ollama_fast_mode:
+            self.requested_runtime_options = {'reasoning_effort': 'none', 'response_format': {'type': 'json_object'}}
+            # Both pipeline prompts carry an application-generated schema. Ask
+            # Ollama to enforce it while decoding instead of spending a retry on JSON.
+            for message in messages:
+                if message.get('role') != 'user':
+                    continue
+                try:
+                    contract = json.loads(message['content'])
+                except (ValueError, TypeError, KeyError):
+                    continue
+                if isinstance(contract, dict) and isinstance(contract.get('schema'), dict):
+                    self.requested_runtime_options['response_format'] = {
+                        'type': 'json_schema', 'json_schema': {'name': 'safescenario', 'schema': contract['schema']}}
+                    break
+            payload.update(self.requested_runtime_options)
+        data = self.request("POST", "/v1/chat/completions", json=payload)
         self.record_settings(data)
+        usage = data.get('usage', {})
+        if isinstance(usage, dict):
+            self.runtime_metrics = {key: usage[key] for key in ('prompt_tokens', 'completion_tokens', 'total_tokens')
+                                    if type(usage.get(key)) is int and usage[key] >= 0}
+            details = usage.get('completion_tokens_details', {})
+            if isinstance(details, dict) and type(details.get('reasoning_tokens')) is int:
+                self.runtime_metrics['reasoning_tokens'] = details['reasoning_tokens']
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled locally; remote inference may have completed")
         return content_from_response(data, model_id)
@@ -232,7 +264,10 @@ def make_adapter(backend, settings, transport=None):
     classes = {"laptop_local": ChatAdapter, "qualcomm": QualcommAdapter, "uno_q": UnoAdapter}
     token = os.getenv({"qualcomm": "QUALCOMM_API_KEY", "uno_q": "UNO_Q_TOKEN"}.get(backend, "LAPTOP_API_KEY"), "")
     timeout = backend_timeout_seconds(settings.get("backend_timeout_seconds"))
-    return classes[backend](cfg["base_url"], backend, token, timeout=timeout, transport=transport)
+    adapter = classes[backend](cfg["base_url"], backend, token, timeout=timeout, transport=transport)
+    if backend == 'laptop_local':
+        adapter.ollama_fast_mode = cfg.get('ollama_fast_mode', urlsplit(cfg['base_url']).port == 11434)
+    return adapter
 
 
 def discover_files(directories):
