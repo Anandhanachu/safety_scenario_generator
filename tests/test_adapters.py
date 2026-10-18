@@ -28,6 +28,7 @@ def test_imagine_catalogue_and_documented_chat():
             return httpx.Response(200, json={"chat": ["mock-model"], "embedding": ["mock-embedding"]})
         payload = json.loads(request.content)
         assert payload["model"] == "mock-model" and payload["stream"] is False and payload['do_sample'] is False
+        assert payload['messages'] == [{'role': 'user', 'content': 'test'}]
         return httpx.Response(200, json={"model": "mock-model", "choices": [{"delta": {"content": "{}"}, "finish_reason": "stop"}]})
     adapter = QualcommAdapter("https://aisuite.cirrascale.com/apis", "qualcomm", "test-only", transport=mock_transport(handler))
     assert len(adapter.list_models()) == 2
@@ -49,7 +50,7 @@ def test_imagine_tagged_content_is_decoded(content):
 
 def test_imagine_non_text_union_remains_an_error():
     response = {'model': 'test', 'choices': [{'delta': {'content': {'MultiModal': []}}}]}
-    with pytest.raises(BackendError, match='missing text content'):
+    with pytest.raises(BackendError, match="MultiModal.*length.*0"):
         content_from_response(response, 'test')
 
 

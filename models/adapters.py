@@ -160,13 +160,25 @@ def _text_content(value):
 
 def _response_shape(data):
     """Return non-content diagnostics safe to retain in failed run history."""
+    def shape(value):
+        if isinstance(value, dict):
+            details = {'type': 'dict', 'keys': sorted(value)}
+            for key in ('String', 'Vec', 'MultiModal'):
+                if key in value:
+                    tagged = value[key]
+                    details[key] = {'type': type(tagged).__name__,
+                                    'length': len(tagged) if isinstance(tagged, (str, list, dict)) else None}
+            return details
+        return {'type': type(value).__name__,
+                'length': len(value) if isinstance(value, (str, list)) else None}
     if not isinstance(data, dict):
         return type(data).__name__
     choices = data.get('choices')
     first = choices[0] if isinstance(choices, list) and choices else None
     keys = sorted(first) if isinstance(first, dict) else []
-    nested = {key: sorted(first[key]) for key in ('message', 'delta')
-              if isinstance(first, dict) and isinstance(first.get(key), dict)}
+    nested = {key: {**shape(first[key]),
+                    'content': shape(first[key].get('content')) if isinstance(first[key], dict) else None}
+              for key in ('message', 'delta') if isinstance(first, dict) and key in first}
     return f"top={sorted(data)}; choice={keys}; nested={nested}"
 
 
