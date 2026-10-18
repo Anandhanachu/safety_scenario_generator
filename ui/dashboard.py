@@ -1458,44 +1458,6 @@ def risk_analysis(s):
         st.dataframe(all_hazards, use_container_width=True, hide_index=True)
 
     st.info("**Dynamic Risk Control**: Rejecting or excluding any scenario in **Scenario Register** or **Scenario Builder** immediately recalculates the 0–100 safety risk score in real time.")
-    return
-    entries = {f"{b}:{scenario['scenario_id']}:{h['hazard_id']}": (scenario, h) for b, result in run["results"].items() for scenario in result.get("scenarios", []) for h in scenario["hazards"]}
-    if not entries:
-        st.info("This run has no parsed hazards")
-        return
-    key = st.selectbox("Hazard", list(entries))
-    scenario, hazard = entries[key]
-    st.write(hazard["description"])
-    if run['snapshot'].get('prompt_version') == '2.0-record-selection':
-        st.caption('Severity and likelihood come from the frozen expert record. Correct the KB and rerun to change them. Risk categories are engineering rankings, not calibrated probabilities.')
-        assessment = (scenario.get('risk_assessments') or {}).get(hazard['hazard_id'])
-        if assessment is None:
-            st.warning("Risk assessment is not available for this hazard in the saved run; review the KB inputs and rerun.")
-            st.json({
-                "hazard_id": hazard["hazard_id"],
-                "status": "requires_review",
-                "risk_score": None,
-                "risk_level": None,
-                "explanation": "No matching stored risk assessment was found in this run.",
-            })
-        else:
-            st.json(assessment)
-        return
-    matrix = RiskMatrix.model_validate(run["snapshot"]["risk_matrix"])
-    st.json(matrix.model_dump())
-    st.caption("Use the matrix frozen for this run. Severity and likelihood require a named reviewer, rationale, and approved non-illustrative evidence.")
-    severity = st.selectbox("Severity", [None] + list(matrix.severity), format_func=lambda x: "Unassigned" if x is None else f"{x} · {matrix.severity[x]}")
-    likelihood = st.selectbox("Likelihood", [None] + list(matrix.likelihood), format_func=lambda x: "Unassigned" if x is None else f"{x} · {matrix.likelihood[x]}")
-    evidence = st.multiselect("Supporting evidence IDs", [e["record"]["id"] for e in run["snapshot"]["evidence"]])
-    reviewer = st.text_input("Risk reviewer")
-    rationale = st.text_area("Classification rationale and project criteria")
-    if st.button("Calculate and record assessment"):
-        classification = Classification(severity=severity, likelihood=likelihood, evidence_ids=evidence, reviewer=reviewer, rationale=rationale)
-        assessment = calculate(matrix, classification, run["snapshot"]["evidence"])
-        s.store.save("risk_assessment", {"run_id": run["id"], "hazard_key": key, "classification": classification.model_dump(), "assessment": assessment})
-        st.json(assessment)
-    st.subheader("Recorded assessments")
-    st.json([r["payload"] for r in s.store.list("risk_assessment") if r["payload"]["run_id"] == run["id"]])
 
 
 def simulation_page(s):
