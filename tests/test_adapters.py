@@ -157,3 +157,29 @@ def test_file_inventory_is_not_inference_readiness(tmp_path):
     inventory = discover_files([str(tmp_path)])
     assert inventory[0]["status"] == "file_present_runtime_unverified"
     assert inventory[0]["size_bytes"] == 14
+
+
+def test_reasoning_model_thinking_tags_are_stripped():
+    response = {'model': 'test', 'choices': [{'message': {'content': '<think>\ninternal reasoning\n</think>\n{"ok":true}'}, 'finish_reason': 'stop'}]}
+    assert content_from_response(response, 'test') == '{"ok":true}'
+
+
+def test_truncated_thinking_fails_content_validation():
+    response = {'model': 'test', 'choices': [{'message': {'content': '<think>\nincomplete reasoning without end tag'}, 'finish_reason': 'stop'}]}
+    with pytest.raises(BackendError, match="missing text content"):
+        content_from_response(response, 'test')
+
+
+def test_qualcomm_captures_token_usage_metrics():
+    def handler(request):
+        return httpx.Response(200, json={
+            'model': 'test',
+            'choices': [{'message': {'content': '{"ok":true}'}, 'finish_reason': 'stop'}],
+            'usage': {'prompt_tokens': 15, 'completion_tokens': 25, 'total_tokens': 40}
+        })
+    adapter = QualcommAdapter('https://aisuite.cirrascale.com/apis', 'qualcomm', 'token', transport=mock_transport(handler))
+    res = adapter.generate_with_settings('test', [], {'temperature': 0, 'max_tokens': 64})
+    assert res['runtime_metrics']['prompt_tokens'] == 15
+    assert res['runtime_metrics']['completion_tokens'] == 25
+    assert res['runtime_metrics']['total_tokens'] == 40
+

@@ -184,7 +184,21 @@ def execute(adapter, model, inputs, evidence, matrix, max_tokens=1800, threshold
         try:
             if len(raw.encode()) > 1024 * 1024:
                 raise ValueError('Output exceeds 1 MiB')
-            decoded = strict_json(raw)
+            normalized = raw.strip()
+            if '</think>' in normalized:
+                normalized = normalized.split('</think>', 1)[1].strip()
+            start = normalized.find('{')
+            end = normalized.rfind('}')
+            if start != -1 and end != -1 and end > start:
+                normalized = normalized[start:end+1]
+            elif normalized.startswith('```'):
+                lines = normalized.splitlines()
+                if lines and lines[0].startswith('```'):
+                    lines = lines[1:]
+                if lines and lines[-1].strip() == '```':
+                    lines = lines[:-1]
+                normalized = '\n'.join(lines).strip()
+            decoded = strict_json(normalized)
             if isinstance(decoded, dict) and isinstance(decoded.get('selections'), list):
                 inventory = [{'scenario_id': str(c.get('hazard_id', f'candidate-{i+1}'))[:100], 'title': 'Unverified record selection'} for i, c in enumerate(decoded['selections']) if isinstance(c, dict)][:20]
             output = SelectionOutput.model_validate(decoded)

@@ -186,10 +186,19 @@ def generate_drafts(adapter, model_id, inputs, evidence, matrix, settings, limit
                 raise ValueError('Draft batch exceeds 1 MiB')
             # A single Markdown JSON fence is formatting, not scenario content.
             normalized = raw.strip()
-            if normalized.startswith('```json\n') and normalized.endswith('```'):
-                normalized = normalized[8:-3].strip()
-            elif normalized.startswith('```\n') and normalized.endswith('```'):
-                normalized = normalized[4:-3].strip()
+            if '</think>' in normalized:
+                normalized = normalized.split('</think>', 1)[1].strip()
+            start = normalized.find('{')
+            end = normalized.rfind('}')
+            if start != -1 and end != -1 and end > start:
+                normalized = normalized[start:end+1]
+            elif normalized.startswith('```'):
+                lines = normalized.splitlines()
+                if lines and lines[0].startswith('```'):
+                    lines = lines[1:]
+                if lines and lines[-1].strip() == '```':
+                    lines = lines[:-1]
+                normalized = '\n'.join(lines).strip()
             batch = ScenarioBatch.model_validate(strict_json(normalized))
             if len(batch.scenarios) > limit:
                 raise ValueError('Draft batch exceeds requested scenario limit')

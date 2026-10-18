@@ -197,6 +197,12 @@ def content_from_response(data, expected_model):
                 break
         if not isinstance(content, str) or not content.strip():
             raise ValueError()
+        if '</think>' in content:
+            content = content.split('</think>', 1)[1].strip()
+        elif '<think>' in content:
+            content = ''
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError()
         return content
     except (KeyError, IndexError, TypeError, ValueError, AttributeError):
         raise BackendError("Malformed chat-completion response: missing text content; " + _response_shape(data)) from None
@@ -269,6 +275,13 @@ class QualcommAdapter(ChatAdapter):
                             json={"model": model_id, "messages": messages, "stream": False,
                                   **supported, **self.requested_runtime_options})
         self.record_settings(data)
+        usage = data.get('usage', {})
+        if isinstance(usage, dict):
+            self.runtime_metrics = {key: usage[key] for key in ('prompt_tokens', 'completion_tokens', 'total_tokens')
+                                    if type(usage.get(key)) is int and usage[key] >= 0}
+            details = usage.get('completion_tokens_details', {})
+            if isinstance(details, dict) and type(details.get('reasoning_tokens')) is int:
+                self.runtime_metrics['reasoning_tokens'] = details['reasoning_tokens']
         if cancel and cancel.is_set():
             raise Cancelled("Cancelled locally; hosted inference may have completed and may be billed")
         return content_from_response(data, model_id)
