@@ -29,6 +29,7 @@ from risk_engine.calculator import Classification, RiskMatrix, calculate
 from simulation.engine import SimulationInput, simulate
 
 LABELS = {"laptop_local": "Laptop local", "qualcomm": "Qualcomm cloud", "uno_q": "Arduino UNO Q"}
+ALL_BACKENDS = "all_backends"
 PAGES = ["Overview", "Scenario Builder", "Model Studio", "Model Comparison", "Scenario Register", "Knowledge Base", "Risk Analysis", "Test Simulation", "Evaluation and Benchmarks", "Reports and History", "Device Control", "Settings"]
 
 
@@ -147,6 +148,7 @@ def scenario_detail(scenario, evidence, decision="pending_review"):
 
 def choose_models(settings, prefix, selectable=True):
     chosen = []
+    run_all = st.session_state.get("active_backend") == ALL_BACKENDS
     for backend, label in LABELS.items():
         cfg = settings[backend]
         inventory = st.session_state.get(f"catalogue_{backend}", [])
@@ -161,7 +163,10 @@ def choose_models(settings, prefix, selectable=True):
                 continue
             selected = st.selectbox("Model", ids, index=ids.index(persisted) if persisted in ids else 0, key=f"{prefix}_model_{backend}")
             st.caption("Catalogue listing does not confirm successful inference; readiness is checked on execution.")
-            use = st.checkbox("Include in run", value=backend == "laptop_local", key=f"{prefix}_use_{backend}") if selectable else True
+            use_key = f"{prefix}_use_{backend}"
+            if run_all:
+                st.session_state[use_key] = True
+            use = st.checkbox("Include in run", value=(run_all or backend == "laptop_local"), key=use_key) if selectable else True
             if use:
                 params = {'temperature': 0.0, 'seed': 42, 'max_tokens': settings.get('max_tokens', 1800)}
                 chosen.append(Selection(backend=backend, model_id=selected, generation=Generation.model_validate(params)))
@@ -367,7 +372,7 @@ def register_page(s):
 def scenario_builder(s):
     settings, dataset = s.settings(), s.dataset()
     saved = s.store.setting("scenario_input", ScenarioInput().model_dump())
-    st.caption("Define operating conditions, inspect the shared evidence snapshot, then select the models to run.")
+    st.caption("Define operating conditions, inspect the shared evidence snapshot, then select the models to run. Choose All backends in the sidebar to preselect every configured backend.")
     with st.form("scenario_form"):
         a, b, c = st.columns(3)
         time_of_day = a.selectbox("Time of day", ["day", "night"], index=["day", "night"].index(saved["time_of_day"]))
@@ -1013,10 +1018,17 @@ def main():
         page = st.radio("Workspace", PAGES, label_visibility="collapsed")
         st.divider()
         st.caption(f"KB {s.dataset().version} · {len(s.dataset().records)} records")
-        active_backend = st.selectbox("Active backend", list(LABELS), format_func=LABELS.get)
-        selected = s.settings()[active_backend].get("model_id")
-        st.caption(f"Model: {selected or 'not selected'}")
-        st.caption("Availability: " + ("reachable at last check" if st.session_state.get(f"reachable_{active_backend}") else "not checked / setup required"))
+        backend_options = [ALL_BACKENDS, *LABELS]
+        active_backend = st.selectbox("Active backend", backend_options, format_func=lambda value: "All backends" if value == ALL_BACKENDS else LABELS[value], key="active_backend")
+        if active_backend == ALL_BACKENDS:
+            configured = [f"{LABELS[b]}: {s.settings()[b].get('model_id') or 'not selected'}" for b in LABELS]
+            st.caption("Run together: " + " · ".join(configured))
+            ready = sum(bool(s.settings()[b].get("model_id")) for b in LABELS)
+            st.caption(f"Configured backends: {ready}/{len(LABELS)} · Scenario Builder and Model Comparison will preselect all available models")
+        else:
+            selected = s.settings()[active_backend].get("model_id")
+            st.caption(f"Model: {selected or 'not selected'}")
+            st.caption("Availability: " + ("reachable at last check" if st.session_state.get(f"reachable_{active_backend}") else "not checked / setup required"))
     theme(dark)
     with st.expander('Out of scope / limitations'):
         for limitation in LIMITATIONS:
