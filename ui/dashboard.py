@@ -141,11 +141,23 @@ def scenario_detail(scenario, evidence, decision="pending_review"):
     with conditions:
         st.json(scenario["input_conditions"])
     with hazards:
+        risk_assessments = scenario.get("risk_assessments") or {}
         for hazard in scenario["hazards"]:
             st.write(f"{hazard['hazard_id']} · {hazard['description']}")
             st.write("Potential consequences", hazard["consequences"])
             st.caption("Hypothesis" if hazard["hypothesis"] else "Source-backed claim proposed by model; review needed")
-            st.json(scenario["risk_assessments"][hazard["hazard_id"]])
+            assessment = risk_assessments.get(hazard["hazard_id"])
+            if assessment is None:
+                st.warning("Risk assessment is not available for this hazard. The scenario remains eligible for human review.")
+                st.json({
+                    "hazard_id": hazard["hazard_id"],
+                    "status": "requires_review",
+                    "risk_score": None,
+                    "risk_level": None,
+                    "explanation": "No matching stored risk assessment was found in this run.",
+                })
+            else:
+                st.json(assessment)
     with sources:
         cited = {ref for h in scenario["hazards"] for ref in h["evidence_ids"]}
         for item in evidence:
@@ -766,7 +778,18 @@ def risk_analysis(s):
     st.write(hazard["description"])
     if run['snapshot'].get('prompt_version') == '2.0-record-selection':
         st.caption('Severity and likelihood come from the frozen expert record. Correct the KB and rerun to change them. Risk categories are engineering rankings, not calibrated probabilities.')
-        st.json(scenario['risk_assessments'][hazard['hazard_id']])
+        assessment = (scenario.get('risk_assessments') or {}).get(hazard['hazard_id'])
+        if assessment is None:
+            st.warning("Risk assessment is not available for this hazard in the saved run; review the KB inputs and rerun.")
+            st.json({
+                "hazard_id": hazard["hazard_id"],
+                "status": "requires_review",
+                "risk_score": None,
+                "risk_level": None,
+                "explanation": "No matching stored risk assessment was found in this run.",
+            })
+        else:
+            st.json(assessment)
         return
     matrix = RiskMatrix.model_validate(run["snapshot"]["risk_matrix"])
     st.json(matrix.model_dump())
