@@ -505,9 +505,9 @@ def register_page(s):
 
     # The three modes
     modes = [
-        ("qualcomm", "Qualcomm Cloud", "☁️"),
-        ("laptop_local", "Laptop Local", "💻"),
-        ("uno_q", "Arduino UNO Q", "⚡"),
+        ("qualcomm", "Qualcomm Cloud"),
+        ("laptop_local", "Laptop Local"),
+        ("uno_q", "Arduino UNO Q"),
     ]
 
     # Current reviews and recalculated risks
@@ -519,7 +519,7 @@ def register_page(s):
     c1, c2, c3 = st.columns(3)
     card_cols = {"qualcomm": c1, "laptop_local": c2, "uno_q": c3}
 
-    for backend, label, icon in modes:
+    for backend, label in modes:
         col = card_cols[backend]
         res = results.get(backend)
         b_scenarios = res.get("scenarios", []) if res else []
@@ -530,7 +530,7 @@ def register_page(s):
 
         with col:
             with st.container(border=True):
-                st.markdown(f"**{icon} {label}**")
+                st.markdown(f"**{label}**")
                 if res:
                     st.caption(f"{res.get('status', 'unknown').title()} · {len(b_scenarios)} proposed")
                     risk_badge_cls = "pill-risk-high" if b_score_100 and b_score_100 >= 66 else ("pill-risk-med" if b_score_100 and b_score_100 >= 36 else "pill-risk-low")
@@ -543,10 +543,10 @@ def register_page(s):
     st.write("")
 
     # 2. Eye-Catching Styled Tabs for Each Mode
-    mode_tabs = st.tabs([f"{icon} {label}" for _, label, icon in modes])
+    mode_tabs = st.tabs([label for _, label in modes])
     all_export_scenarios = []
 
-    for tab, (backend, label, icon) in zip(mode_tabs, modes):
+    for tab, (backend, label) in zip(mode_tabs, modes):
         with tab:
             result = results.get(backend)
             if not result:
@@ -590,7 +590,7 @@ def register_page(s):
                 with g_c1:
                     st.markdown(render_odometer_gauge(risk_score_100, risk_level), unsafe_allow_html=True)
                 with g_c2:
-                    st.markdown(f"**{icon} {label} — Recalculated Safety Risk Evaluation**")
+                    st.markdown(f"**{label} — Recalculated Safety Risk Evaluation**")
                     rk1, rk2, rk3 = st.columns(3)
                     rk1.metric("Overall Risk", risk_level)
                     rk2.metric("Included Scenarios", len(included_scopes))
@@ -686,7 +686,7 @@ def register_page(s):
             "scenarios": all_export_scenarios,
         }
         st.download_button(
-            "📥 Export Full Review & Risk (JSON)",
+            "Export Full Review & Risk (JSON)",
             json_bytes(export_payload),
             f"review-results-{run_id[:8]}.json",
             "application/json",
@@ -696,14 +696,14 @@ def register_page(s):
     with exp_col2:
         if all_export_scenarios:
             st.download_button(
-                "📥 Export Scenarios & Decisions (CSV)",
+                "Export Scenarios & Decisions (CSV)",
                 csv_bytes(all_export_scenarios),
                 f"scenarios-review-{run_id[:8]}.csv",
                 "text/csv",
                 use_container_width=True
             )
         else:
-            st.button("📥 Export Scenarios & Decisions (CSV)", disabled=True, use_container_width=True)
+            st.button("Export Scenarios & Decisions (CSV)", disabled=True, use_container_width=True)
 
 
 
@@ -724,7 +724,7 @@ def scenario_builder(s):
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
         <div>
           <span class="eyebrow" style="color:#4f46e5;">Target Operational Design Domain</span>
-          <h3 style="margin:2px 0 0 0;font-size:1.15rem;font-weight:700;">🎯 Operating Context & Fault Selection</h3>
+          <h3 style="margin:2px 0 0 0;font-size:1.15rem;font-weight:700;">Operating Context & Fault Selection</h3>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
           <span class="pill-badge pill-cloud">{inputs_curr.time_of_day.upper()} · {inputs_curr.weather.upper()} · {inputs_curr.visibility.upper()}</span>
@@ -735,7 +735,7 @@ def scenario_builder(s):
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("⚙️ Customize Operating Context & Fault Types (1–3 Faults)", expanded=False):
+    with st.expander("Customize Operating Context & Fault Types (1–3 Faults)", expanded=False):
         with st.form("scenario_form"):
             a, b, c = st.columns(3)
             time_of_day = a.selectbox("Time of day", ["day", "night"], index=["day", "night"].index(saved.get("time_of_day", "day")))
@@ -806,22 +806,22 @@ def scenario_builder(s):
 
     st.markdown("#### Select Inference Option")
     mode_options = [
-        ("qualcomm", "Cloud (Qualcomm)", "☁️"),
-        ("uno_q", "Uno Q (Arduino)", "⚡"),
-        ("laptop_local", "Local (Laptop)", "💻"),
+        ("qualcomm", "Cloud (Qualcomm)"),
+        ("uno_q", "Uno Q (Arduino)"),
+        ("laptop_local", "Local (Laptop)"),
     ]
-    mode_labels = [f"{icon} {label}" for _, label, icon in mode_options]
+    mode_labels = [label for _, label in mode_options]
     selected_label = st.radio("Inference Target", mode_labels, horizontal=True, label_visibility="collapsed", key="builder_selected_target")
 
     # Determine chosen backend
-    selected_backend, active_label, active_icon = next(
-        ((b, l, i) for b, l, i in mode_options if f"{i} {l}" == selected_label),
+    selected_backend, active_label = next(
+        ((b, l) for b, l in mode_options if l == selected_label),
         mode_options[0]
     )
 
     # Content under the selected option
     with st.container(border=True):
-        st.markdown(f"### {active_icon} {active_label} Generator & Risk Evaluation")
+        st.markdown(f"### {active_label} Generator & Risk Evaluation")
 
         cfg = settings.get(selected_backend, {})
         inventory = st.session_state.get(f"catalogue_{selected_backend}", [])
@@ -854,7 +854,7 @@ def scenario_builder(s):
         with col_btn1:
             st.write("")
             st.write("")
-            run_btn = st.button(f"🚀 Generate ({active_label.split()[0]})", type="primary", key=f"gen_{selected_backend}", use_container_width=True)
+            run_btn = st.button(f"Generate ({active_label.split()[0]})", type="primary", key=f"gen_{selected_backend}", use_container_width=True)
         with col_btn2:
             st.write("")
             st.write("")
@@ -1048,7 +1048,7 @@ def scenario_builder(s):
                 dl1, dl2 = st.columns(2)
                 with dl1:
                     st.download_button(
-                        f"📥 Export {active_label} Scenarios (JSON)",
+                        f"Export {active_label} Scenarios (JSON)",
                         json_bytes({"mode": active_label, "recalculated_risk": mode_eval, "scenarios": scenarios}),
                         f"{selected_backend}-scenarios.json",
                         "application/json",
@@ -1057,7 +1057,7 @@ def scenario_builder(s):
                     )
                 with dl2:
                     st.download_button(
-                        f"📥 Export {active_label} Scenarios (CSV)",
+                        f"Export {active_label} Scenarios (CSV)",
                         csv_bytes(export_list),
                         f"{selected_backend}-scenarios.csv",
                         "text/csv",
@@ -1083,7 +1083,7 @@ def model_studio(s):
 
     st.write("")
 
-    ms_tabs = st.tabs(["☁️ Qualcomm Cloud", "⚡ Arduino UNO Q", "💻 Laptop Local"])
+    ms_tabs = st.tabs(["Qualcomm Cloud", "Arduino UNO Q", "Laptop Local"])
     tab_list = [("qualcomm", ms_tabs[0]), ("uno_q", ms_tabs[1]), ("laptop_local", ms_tabs[2])]
 
     for backend, current_tab in tab_list:
@@ -1374,20 +1374,20 @@ def risk_analysis(s):
 
     # 1. Comparative 3-Mode Risk Cards
     modes_meta = [
-        ("qualcomm", "Qualcomm Cloud", "☁️"),
-        ("laptop_local", "Laptop Local", "💻"),
-        ("uno_q", "Arduino UNO Q", "⚡"),
+        ("qualcomm", "Qualcomm Cloud"),
+        ("laptop_local", "Laptop Local"),
+        ("uno_q", "Arduino UNO Q"),
     ]
 
     rc1, rc2, rc3 = st.columns(3)
     cols_map = {"qualcomm": rc1, "laptop_local": rc2, "uno_q": rc3}
 
-    for b, label, icon in modes_meta:
+    for b, label in modes_meta:
         col = cols_map[b]
         b_res = results.get(b)
         with col:
             with st.container(border=True):
-                st.markdown(f"**{icon} {label}**")
+                st.markdown(f"**{label}**")
                 if b_res and b_res.get('included'):
                     raw_sc = b_res.get('risk_score')
                     sc_100 = min(100, round((float(raw_sc) / 9.0) * 100)) if raw_sc is not None else 0
@@ -1435,7 +1435,7 @@ def risk_analysis(s):
         st.caption("Individual hazards identified from approved knowledge-base inputs, mapped through the active risk matrix and scaled out of 100.")
         st.dataframe(all_hazards, use_container_width=True, hide_index=True)
 
-    st.info("💡 **Dynamic Risk Control**: Rejecting or excluding any scenario in **Scenario Register** or **Scenario Builder** immediately recalculates the 0–100 safety risk score in real time.")
+    st.info("**Dynamic Risk Control**: Rejecting or excluding any scenario in **Scenario Register** or **Scenario Builder** immediately recalculates the 0–100 safety risk score in real time.")
     return
     entries = {f"{b}:{scenario['scenario_id']}:{h['hazard_id']}": (scenario, h) for b, result in run["results"].items() for scenario in result.get("scenarios", []) for h in scenario["hazards"]}
     if not entries:
@@ -1656,7 +1656,7 @@ def device(s):
     q_reach = st.session_state.get("reachable_qualcomm", False)
     with c1:
         with st.container(border=True):
-            st.markdown("### ☁️ Qualcomm Cloud")
+            st.markdown("### Qualcomm Cloud")
             st.caption(f"Host: `{urlsplit(q_url).netloc or 'cirrascale.com'}`")
             status_cls = "pill-cloud" if q_reach else ("pill-uno" if q_key else "pill-risk-high")
             status_txt = "Connected" if q_reach else ("API Key Set" if q_key else "Key Required")
@@ -1677,7 +1677,7 @@ def device(s):
     u_reach = st.session_state.get("reachable_uno_q", False)
     with c2:
         with st.container(border=True):
-            st.markdown("### ⚡ Arduino UNO Q")
+            st.markdown("### Arduino UNO Q")
             st.caption(f"Address: `{u_url}`")
             status_cls = "pill-uno" if u_reach else "pill-slate"
             status_txt = "Online" if u_reach else "Disconnected"
@@ -1699,7 +1699,7 @@ def device(s):
     l_reach = st.session_state.get("reachable_laptop_local", False)
     with c3:
         with st.container(border=True):
-            st.markdown("### 💻 Laptop Local")
+            st.markdown("### Laptop Local")
             st.caption(f"Endpoint: `{urlsplit(l_url).netloc or '127.0.0.1:11434'}`")
             status_cls = "pill-local" if l_reach else "pill-slate"
             status_txt = "Available" if l_reach else "Unverified"
@@ -1718,7 +1718,7 @@ def device(s):
     st.write("")
 
     # 2. Detailed Controls Per Environment
-    tabs = st.tabs(["☁️ Qualcomm Cloud Hub", "⚡ Arduino UNO Q Workstation", "💻 Local Inference Station"])
+    tabs = st.tabs(["Qualcomm Cloud Hub", "Arduino UNO Q Workstation", "Local Inference Station"])
 
     with tabs[0]:
         st.subheader("Qualcomm AI Suite Cloud Service")
@@ -1735,7 +1735,7 @@ def device(s):
                 st.info("Catalog not loaded in memory. Click 'Refresh Cloud Catalogue' to query Cirrascale API.")
         with q_col2:
             st.write("**Quick Actions**")
-            if st.button("🔄 Refresh Cloud Catalogue", key="dev_q_refresh_cat", use_container_width=True):
+            if st.button("Refresh Cloud Catalogue", key="dev_q_refresh_cat", use_container_width=True):
                 try:
                     inventory = make_adapter("qualcomm", settings).list_models(refresh=True)
                     st.session_state.catalogue_qualcomm = inventory
@@ -1752,7 +1752,7 @@ def device(s):
         u_adapter = make_adapter("uno_q", settings)
         u_col1, u_col2 = st.columns(2)
         with u_col1:
-            if st.button("🔄 Refresh Board Status", key="dev_uno_refresh", use_container_width=True):
+            if st.button("Refresh Board Status", key="dev_uno_refresh", use_container_width=True):
                 try:
                     st.session_state.board_status = u_adapter.get_runtime_information()
                     st.session_state.reachable_uno_q = True
@@ -1762,7 +1762,7 @@ def device(s):
                     st.session_state.reachable_uno_q = False
                     error(exc)
         with u_col2:
-            if st.button("⏹️ Disconnect Board Session", key="dev_uno_disconnect", use_container_width=True):
+            if st.button("Disconnect Board Session", key="dev_uno_disconnect", use_container_width=True):
                 st.session_state.pop("board_status", None)
                 st.session_state.reachable_uno_q = False
                 st.info("Board session disconnected.")
@@ -1774,14 +1774,14 @@ def device(s):
                 st.json(status)
 
         st.markdown("---")
-        st.markdown("#### ⚡ Real-Time Edge Predict (`/predict`)")
+        st.markdown("#### Real-Time Edge Predict (`/predict`)")
         st.caption("Executes requests directly against the Arduino Uno Q Python App: `POST /predict` (`{'input': text}`). Controls the physical LED via `Bridge.call('set_led')`.")
         pred_c1, pred_c2 = st.columns([3, 1])
         with pred_c1:
             test_prompt = st.text_input("Predict Input", value="turn on", key="dev_uno_predict_input", help="e.g. 'turn on', 'turn off', or safety instructions")
         with pred_c2:
             st.write("")
-            if st.button("🚀 Send to Uno Q", key="dev_uno_predict_btn", use_container_width=True):
+            if st.button("Send to Uno Q", key="dev_uno_predict_btn", use_container_width=True):
                 try:
                     import time
                     t0 = time.time()
@@ -1804,7 +1804,7 @@ def device(s):
 
             b1, b2 = st.columns(2)
             with b1:
-                if st.button("📋 Retrieve Board Agent Logs", key="dev_uno_logs", use_container_width=True):
+                if st.button("Retrieve Board Agent Logs", key="dev_uno_logs", use_container_width=True):
                     try:
                         st.json(u_adapter.request("GET", "/v1/logs"))
                     except BackendError as exc:
@@ -1814,7 +1814,7 @@ def device(s):
                 if tests:
                     name = st.selectbox("MCU Firmware Test", tests, key="dev_uno_test_sel")
                     confirmed = st.checkbox("Confirm read-only probe RPC", key="dev_uno_conf")
-                    if st.button("▶️ Execute Hardware Test", disabled=not confirmed, key="dev_uno_run_test", use_container_width=True):
+                    if st.button("Execute Hardware Test", disabled=not confirmed, key="dev_uno_run_test", use_container_width=True):
                         try:
                             result = u_adapter.request("POST", "/v1/hardware-tests", json={"name": name, "confirmed": confirmed})
                             s.store.save("hardware_test", result)
@@ -1842,7 +1842,7 @@ def device(s):
         with l_col1:
             st.text_input("Local Endpoint URL", value=settings["laptop_local"]["base_url"], disabled=True)
             fast_mode = st.checkbox(
-                "⚡ Ollama Fast Mode (Disable Thinking / Request Clean JSON)",
+                "Ollama Fast Mode (Disable Thinking / Request Clean JSON)",
                 value=settings["laptop_local"].get("ollama_fast_mode", True),
                 help="Suppresses reasoning chain tokens to deliver fast, deterministic output."
             )
@@ -1852,7 +1852,7 @@ def device(s):
                 st.success("Ollama fast mode setting updated.")
         with l_col2:
             st.write("**Model Files & Directory Scanner**")
-            if st.button("📂 Scan Permitted Model Directories", key="dev_local_scan", use_container_width=True):
+            if st.button("Scan Permitted Model Directories", key="dev_local_scan", use_container_width=True):
                 st.session_state.local_files = discover_files(settings.get("model_dirs", []))
                 st.success(f"Discovered {len(st.session_state.local_files)} files.")
 
@@ -1872,9 +1872,9 @@ def settings_page(s):
 
         c_cloud, c_uno, c_local = st.columns(3)
         cols_map = {
-            "qualcomm": (c_cloud, "pill-cloud", "☁️ Qualcomm Cloud", "light-card-cloud"),
-            "uno_q": (c_uno, "pill-uno", "⚡ Arduino UNO Q", "light-card-uno"),
-            "laptop_local": (c_local, "pill-local", "💻 Laptop Local", "light-card-local")
+            "qualcomm": (c_cloud, "pill-cloud", "Qualcomm Cloud", "light-card-cloud"),
+            "uno_q": (c_uno, "pill-uno", "Arduino UNO Q", "light-card-uno"),
+            "laptop_local": (c_local, "pill-local", "Laptop Local", "light-card-local")
         }
 
         endpoints, selected, params = {}, {}, {}
@@ -1984,7 +1984,7 @@ def settings_page(s):
 
 
 def main():
-    st.set_page_config(page_title="SafeScenario AI", page_icon="🛡️", layout="wide")
+    st.set_page_config(page_title="SafeScenario AI", layout="wide")
     s = services()
     with st.sidebar:
         st.markdown("### SafeScenario AI")
