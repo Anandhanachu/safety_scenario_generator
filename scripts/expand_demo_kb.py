@@ -44,6 +44,24 @@ THIRD_GROUP = {
         "Stop before continuing without reliable pedestrian range estimation",
         "Inject lidar unavailability and verify the product stops before continuing without reliable pedestrian range estimation",
     ),
+    "ultrasonic_failure": (
+        "Unavailable near-field obstacle detection",
+        "Ultrasonic sensor failure can prevent reliable detection of nearby obstacles",
+        "Stop or maintain a controlled safe distance when near-field detection is unavailable",
+        "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance",
+    ),
+    "motor_control_failure": (
+        "Uncontrolled drive command",
+        "Motor control failure can cause an unintended or uncommanded drive response",
+        "Disable drive output and enter the documented safe state on motor-control disagreement",
+        "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered",
+    ),
+    "battery_fault": (
+        "Unexpected loss of energy reserve",
+        "A battery fault can cause an unexpected loss of energy during autonomous operation",
+        "Report the battery fault and stop in a controlled location before energy reserve is exhausted",
+        "Inject a battery fault and verify the product reports it and stops in a controlled location",
+    ),
 }
 
 CONDITION_LABEL = {
@@ -110,8 +128,8 @@ def main():
                                 fault, condition, hazard_id)
             additions.extend([hazard, mitigation, acceptance])
     data["records"].extend(additions)
-    data["dataset_id"] = "multi-fault-draft-180"
-    data["dataset_name"] = "Illustrative multi-fault safety knowledge base (3 scenarios per profile)"
+    data["dataset_id"] = "multi-fault-draft-288"
+    data["dataset_name"] = "Illustrative multi-fault safety knowledge base (8 faults, 3 scenarios per profile)"
     PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 

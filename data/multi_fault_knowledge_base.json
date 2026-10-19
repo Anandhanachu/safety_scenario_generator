@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0",
-  "dataset_id": "multi-fault-draft-180",
-  "dataset_name": "Illustrative multi-fault safety knowledge base (3 scenarios per profile)",
+  "dataset_id": "multi-fault-draft-288",
+  "dataset_name": "Illustrative multi-fault safety knowledge base (8 faults, 3 scenarios per profile)",
   "records": [
     {
       "source": "expert_judgment",
@@ -4617,6 +4617,1074 @@
       },
       "hazard_ids": [
         "H-lidar_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-ultrasonic_failure-day_dry-3",
+      "type": "hazard",
+      "title": "Unavailable near-field obstacle detection (day dry)",
+      "description": "Ultrasonic sensor failure can prevent reliable detection of nearby obstacles. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-ultrasonic_failure-day_dry-3"
+      ],
+      "test_ids": [
+        "T-ultrasonic_failure-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-ultrasonic_failure-day_dry-3",
+      "type": "mitigation",
+      "title": "Stop or maintain a controlled safe distance when near-field detection is unavailable.",
+      "description": "Stop or maintain a controlled safe distance when near-field detection is unavailable. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-ultrasonic_failure-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance.",
+      "description": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-ultrasonic_failure-night_dry-3",
+      "type": "hazard",
+      "title": "Unavailable near-field obstacle detection (night dry)",
+      "description": "Ultrasonic sensor failure can prevent reliable detection of nearby obstacles. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-ultrasonic_failure-night_dry-3"
+      ],
+      "test_ids": [
+        "T-ultrasonic_failure-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-ultrasonic_failure-night_dry-3",
+      "type": "mitigation",
+      "title": "Stop or maintain a controlled safe distance when near-field detection is unavailable.",
+      "description": "Stop or maintain a controlled safe distance when near-field detection is unavailable. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-ultrasonic_failure-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance.",
+      "description": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-ultrasonic_failure-rain-3",
+      "type": "hazard",
+      "title": "Unavailable near-field obstacle detection (rain)",
+      "description": "Ultrasonic sensor failure can prevent reliable detection of nearby obstacles. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-ultrasonic_failure-rain-3"
+      ],
+      "test_ids": [
+        "T-ultrasonic_failure-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-ultrasonic_failure-rain-3",
+      "type": "mitigation",
+      "title": "Stop or maintain a controlled safe distance when near-field detection is unavailable.",
+      "description": "Stop or maintain a controlled safe distance when near-field detection is unavailable. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-ultrasonic_failure-rain-3",
+      "type": "acceptance_test",
+      "title": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance.",
+      "description": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-ultrasonic_failure-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Unavailable near-field obstacle detection (reduced visibility)",
+      "description": "Ultrasonic sensor failure can prevent reliable detection of nearby obstacles. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-ultrasonic_failure-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-ultrasonic_failure-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-ultrasonic_failure-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Stop or maintain a controlled safe distance when near-field detection is unavailable.",
+      "description": "Stop or maintain a controlled safe distance when near-field detection is unavailable. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-ultrasonic_failure-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance.",
+      "description": "Disable ultrasonic sensing and verify the product stops or maintains the documented safe distance. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "ultrasonic_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-ultrasonic_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-motor_control_failure-day_dry-3",
+      "type": "hazard",
+      "title": "Uncontrolled drive command (day dry)",
+      "description": "Motor control failure can cause an unintended or uncommanded drive response. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-motor_control_failure-day_dry-3"
+      ],
+      "test_ids": [
+        "T-motor_control_failure-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-motor_control_failure-day_dry-3",
+      "type": "mitigation",
+      "title": "Disable drive output and enter the documented safe state on motor-control disagreement.",
+      "description": "Disable drive output and enter the documented safe state on motor-control disagreement. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-motor_control_failure-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered.",
+      "description": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-motor_control_failure-night_dry-3",
+      "type": "hazard",
+      "title": "Uncontrolled drive command (night dry)",
+      "description": "Motor control failure can cause an unintended or uncommanded drive response. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-motor_control_failure-night_dry-3"
+      ],
+      "test_ids": [
+        "T-motor_control_failure-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-motor_control_failure-night_dry-3",
+      "type": "mitigation",
+      "title": "Disable drive output and enter the documented safe state on motor-control disagreement.",
+      "description": "Disable drive output and enter the documented safe state on motor-control disagreement. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-motor_control_failure-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered.",
+      "description": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-motor_control_failure-rain-3",
+      "type": "hazard",
+      "title": "Uncontrolled drive command (rain)",
+      "description": "Motor control failure can cause an unintended or uncommanded drive response. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-motor_control_failure-rain-3"
+      ],
+      "test_ids": [
+        "T-motor_control_failure-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-motor_control_failure-rain-3",
+      "type": "mitigation",
+      "title": "Disable drive output and enter the documented safe state on motor-control disagreement.",
+      "description": "Disable drive output and enter the documented safe state on motor-control disagreement. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-motor_control_failure-rain-3",
+      "type": "acceptance_test",
+      "title": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered.",
+      "description": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-motor_control_failure-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Uncontrolled drive command (reduced visibility)",
+      "description": "Motor control failure can cause an unintended or uncommanded drive response. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-motor_control_failure-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-motor_control_failure-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-motor_control_failure-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Disable drive output and enter the documented safe state on motor-control disagreement.",
+      "description": "Disable drive output and enter the documented safe state on motor-control disagreement. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-motor_control_failure-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered.",
+      "description": "Inject a motor-control disagreement and verify drive output is disabled and the safe state is entered. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "motor_control_failure"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-motor_control_failure-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-battery_fault-day_dry-3",
+      "type": "hazard",
+      "title": "Unexpected loss of energy reserve (day dry)",
+      "description": "A battery fault can cause an unexpected loss of energy during autonomous operation. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-battery_fault-day_dry-3"
+      ],
+      "test_ids": [
+        "T-battery_fault-day_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L1",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-battery_fault-day_dry-3",
+      "type": "mitigation",
+      "title": "Report the battery fault and stop in a controlled location before energy reserve is exhausted.",
+      "description": "Report the battery fault and stop in a controlled location before energy reserve is exhausted. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-battery_fault-day_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject a battery fault and verify the product reports it and stops in a controlled location.",
+      "description": "Inject a battery fault and verify the product reports it and stops in a controlled location. Operating condition: day dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "day_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-day_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-battery_fault-night_dry-3",
+      "type": "hazard",
+      "title": "Unexpected loss of energy reserve (night dry)",
+      "description": "A battery fault can cause an unexpected loss of energy during autonomous operation. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-battery_fault-night_dry-3"
+      ],
+      "test_ids": [
+        "T-battery_fault-night_dry-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L2",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-battery_fault-night_dry-3",
+      "type": "mitigation",
+      "title": "Report the battery fault and stop in a controlled location before energy reserve is exhausted.",
+      "description": "Report the battery fault and stop in a controlled location before energy reserve is exhausted. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-battery_fault-night_dry-3",
+      "type": "acceptance_test",
+      "title": "Inject a battery fault and verify the product reports it and stops in a controlled location.",
+      "description": "Inject a battery fault and verify the product reports it and stops in a controlled location. Operating condition: night dry.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "night_dry"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-night_dry-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-battery_fault-rain-3",
+      "type": "hazard",
+      "title": "Unexpected loss of energy reserve (rain)",
+      "description": "A battery fault can cause an unexpected loss of energy during autonomous operation. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-battery_fault-rain-3"
+      ],
+      "test_ids": [
+        "T-battery_fault-rain-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-battery_fault-rain-3",
+      "type": "mitigation",
+      "title": "Report the battery fault and stop in a controlled location before energy reserve is exhausted.",
+      "description": "Report the battery fault and stop in a controlled location before energy reserve is exhausted. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-battery_fault-rain-3",
+      "type": "acceptance_test",
+      "title": "Inject a battery fault and verify the product reports it and stops in a controlled location.",
+      "description": "Inject a battery fault and verify the product reports it and stops in a controlled location. Operating condition: rain.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "rain"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-rain-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "H-battery_fault-reduced_visibility-3",
+      "type": "hazard",
+      "title": "Unexpected loss of energy reserve (reduced visibility)",
+      "description": "A battery fault can cause an unexpected loss of energy during autonomous operation. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [
+        "M-battery_fault-reduced_visibility-3"
+      ],
+      "test_ids": [
+        "T-battery_fault-reduced_visibility-3"
+      ],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [],
+      "severity": "S3",
+      "likelihood": "L3",
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "M-battery_fault-reduced_visibility-3",
+      "type": "mitigation",
+      "title": "Report the battery fault and stop in a controlled location before energy reserve is exhausted.",
+      "description": "Report the battery fault and stop in a controlled location before energy reserve is exhausted. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-reduced_visibility-3"
+      ],
+      "severity": null,
+      "likelihood": null,
+      "risk_conflict": false,
+      "expert_support_review": "not_reviewed"
+    },
+    {
+      "id": "T-battery_fault-reduced_visibility-3",
+      "type": "acceptance_test",
+      "title": "Inject a battery fault and verify the product reports it and stops in a controlled location.",
+      "description": "Inject a battery fault and verify the product reports it and stops in a controlled location. Operating condition: reduced visibility.",
+      "source_ids": [],
+      "mitigation_ids": [],
+      "test_ids": [],
+      "related_ids": [],
+      "review_status": "pending_review",
+      "source": "expert_judgment",
+      "illustrative": true,
+      "reviewed_by": null,
+      "tags": {
+        "fault_type": [
+          "battery_fault"
+        ],
+        "operating_condition": [
+          "reduced_visibility"
+        ]
+      },
+      "hazard_ids": [
+        "H-battery_fault-reduced_visibility-3"
       ],
       "severity": null,
       "likelihood": null,

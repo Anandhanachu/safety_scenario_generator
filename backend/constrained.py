@@ -8,13 +8,15 @@ from pydantic import Field, model_validator
 from backend.schemas import Strict, strict_json
 from risk_engine.calculator import stored_risk
 
-Fault = Literal['camera_failure', 'communication_loss', 'reduced_traction', 'processing_delay', 'lidar_failure']
+Fault = Literal['camera_failure', 'communication_loss', 'reduced_traction', 'processing_delay', 'lidar_failure', 'ultrasonic_failure', 'motor_control_failure', 'battery_fault']
 Condition = Literal['day_dry', 'night_dry', 'rain', 'reduced_visibility']
 FAULT_LABELS = {'Camera failure': 'camera_failure', 'Communication loss': 'communication_loss',
-                'Reduced traction': 'reduced_traction', 'Processing delay': 'processing_delay', 'Lidar failure': 'lidar_failure'}
+                'Reduced traction': 'reduced_traction', 'Processing delay': 'processing_delay', 'Lidar failure': 'lidar_failure',
+                'Ultrasonic sensor failure': 'ultrasonic_failure', 'Motor control failure': 'motor_control_failure',
+                'Battery fault': 'battery_fault'}
 LIMITATIONS = [
     'Scenario draft screening accepts exact KB description matches and valid record links only. It does not establish support for unrestricted generated prose. AI titles are display labels. Engineer exclusions recalculate an ordinal worst-hazard ranking, not a real-world probability.',
-    'Initial scope: five fault types (camera, communication, traction, processing delay, lidar) and four conditions (day dry, night dry, rain, reduced visibility).',
+    'Demo scope: eight fault types (camera, communication, traction, processing delay, lidar, ultrasonic, motor control, battery) and four conditions (day dry, night dry, rain, reduced visibility).',
     'One to three supported faults can be selected. Risk covers documented individual hazards; unrecorded fault interactions, physical performance, certification and deployment approval remain outside scope.',
     'Risk categories are engineering rankings, not calibrated probabilities. citation_link_validity measures ID existence, type and linkage only. Expert support is reviewed and reported separately.',
     'Sample records and labels are illustrative drafts awaiting domain-expert review. Benchmark results on them are software checks, not validated safety accuracy.',

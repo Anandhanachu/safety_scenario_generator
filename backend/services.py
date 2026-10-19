@@ -29,6 +29,11 @@ class Services:
         # uploads and edited copies are intentionally never replaced.
         if self.dataset().version == 'ceeff9d314c2bed7':
             self.activate_dataset(parse_upload((ROOT / 'data/multi_fault_knowledge_base.json').read_bytes()))
+        # Upgrade the untouched bundled demo catalogue when a newer checked-in
+        # coverage set is available; custom or edited datasets are preserved.
+        demo = parse_upload((ROOT / 'data/multi_fault_knowledge_base.json').read_bytes())
+        if self.dataset().dataset_id in {'multi-fault-draft-120', 'multi-fault-draft-180'}:
+            self.activate_dataset(demo)
 
     def settings(self):
         return self.store.setting("preferences", defaults())

@@ -201,7 +201,7 @@ def retrieve_with_diagnostics(dataset, query, limit=12, threshold=0.05):
     selected = [i for i in ranked if scores[i] > 0 and scores[i] >= threshold][:limit]
     # Reserve complete groups across faults before filling spare capacity. All
     # members must pass tag filtering, and still report their measured TF-IDF score.
-    if dataset.schema_version == '2.0' and (len(selected_scope[0]) > 1 or dataset.dataset_id in {'multi-fault-draft-120', 'multi-fault-draft-180'}):
+    if dataset.schema_version == '2.0' and (len(selected_scope[0]) > 1 or dataset.dataset_id in {'multi-fault-draft-120', 'multi-fault-draft-180', 'multi-fault-draft-288'}):
         positions = {r['id']: i for i, r in enumerate(index.records)}
         queues = []
         for fault in selected_scope[0]:
