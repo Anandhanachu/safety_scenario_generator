@@ -305,7 +305,7 @@ class UnoAdapter(Adapter):
             try:
                 t0 = time.time()
                 url = f"{ep}/predict"
-                r = requests.post(url, json={"input": text}, timeout=(2.0, min(self.timeout, 30)))
+                r = requests.post(url, json={"input": text}, timeout=(5.0, self.timeout))
                 if r.status_code == 200:
                     data = r.json()
                     latency_ms = round((time.time() - t0) * 1000, 1)
@@ -319,7 +319,7 @@ class UnoAdapter(Adapter):
         raise BackendError(f"Arduino Uno Q /predict unreachable: {last_exc}")
 
     def ping_check(self):
-        """Quick check to confirm Arduino Uno Q /predict is responsive."""
+        """Check HTTP health without queuing inference or changing the LED."""
         import requests
         endpoints = []
         for ep in (self.base_url.rstrip("/"),):
@@ -329,8 +329,8 @@ class UnoAdapter(Adapter):
         last_exc = None
         for ep in endpoints:
             try:
-                r = requests.post(f"{ep}/predict", json={"input": "ping"}, timeout=2.0)
-                if r.status_code == 200:
+                r = requests.get(f"{ep}/health", timeout=(5.0, 10.0))
+                if r.status_code == 200 and r.json().get('status') == 'ok':
                     self.base_url = ep
                     return True
                 last_exc = f"HTTP {r.status_code}"
@@ -430,10 +430,7 @@ class UnoAdapter(Adapter):
                 input_text = f"Safety fault: {fault_str}"
 
             t0 = time.time()
-            try:
-                pred = self.predict(input_text or "turn on")
-            except Exception:
-                pred = self.predict("turn on")
+            pred = self.predict(input_text or "turn on")
             latency_ms = round((time.time() - t0) * 1000, 1)
             self.runtime_metrics = {"latency_ms": latency_ms, "uno_q_reply": str(pred.get("model_reply", pred))}
 
@@ -446,7 +443,7 @@ class UnoAdapter(Adapter):
             out_code = pred.get("output", 1)
             reply = pred.get("model_reply", "ON")
 
-            limit = generation.get("max_scenarios", 3)
+            limit = contract.get("max_scenarios", 10)
             if groups and rec_map:
                 for i, grp in enumerate(groups[:limit], 1):
                     h_id = grp.get("hazard_id")

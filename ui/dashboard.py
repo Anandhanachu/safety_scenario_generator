@@ -908,8 +908,8 @@ def scenario_builder(s):
         if run_all_btn:
             try:
                 selections = []
-                for b, _, _ in mode_options:
-                    m_id = settings[b].get("model_id") or ("DeepSeek-R1-Distill-Llama-70B" if b == "qualcomm" else ("qwen3:0.6b" if b == "uno_q" else "qwen3:1.7b"))
+                for b, _ in mode_options:
+                    m_id = (chosen_model if b == selected_backend else settings[b].get("model_id")) or ("DeepSeek-R1-Distill-Llama-70B" if b == "qualcomm" else ("qwen3:0.6b" if b == "uno_q" else "qwen3:1.7b"))
                     selections.append(Selection(backend=b, model_id=m_id, generation=Generation(max_tokens=settings.get('max_tokens', 1800), temperature=0.0, seed=42)))
                 request = RunRequest(
                     inputs=inputs,

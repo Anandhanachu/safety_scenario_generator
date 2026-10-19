@@ -181,6 +181,35 @@ def test_dashboard_all_pages_and_theme(tmp_path, monkeypatch):
     assert app.session_state["dark"] is True
 
 
+def test_builder_run_all_submits_equal_limits(tmp_path, monkeypatch):
+    import ui.dashboard as dashboard
+    service = Services(tmp_path)
+    captured = []
+
+    class Catalogue:
+        def list_models(self, refresh=False):
+            return [{'id': 'test-model'}]
+
+    def start(request, *args):
+        captured.append(request)
+        raise ValueError('Test capture; no external inference')
+
+    monkeypatch.setattr(dashboard, 'services', lambda: service)
+    monkeypatch.setattr(dashboard, 'make_adapter', lambda *a, **k: Catalogue())
+    monkeypatch.setattr(service.manager, 'start', start)
+    app = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=20).run()
+    app.sidebar.radio[0].set_value('Scenario Builder').run()
+    next(b for b in app.button if b.label == 'Run All 3').click().run()
+    assert not app.exception
+    assert len(captured) == 1
+    request = captured[0]
+    assert request.max_scenarios == 10
+    assert {s.backend for s in request.selections} == {'qualcomm', 'uno_q', 'laptop_local'}
+    assert len({s.generation.max_tokens for s in request.selections}) == 1
+    assert request.selections[0].model_id == 'test-model'
+    service.manager.pool.shutdown()
+
+
 def test_dashboard_saved_result_review_and_risk_views(tmp_path, monkeypatch, dataset, matrix, settings, model_output):
     import ui.dashboard as dashboard
     test_services = Services(tmp_path)
