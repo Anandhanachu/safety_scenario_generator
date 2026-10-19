@@ -935,10 +935,8 @@ def scenario_builder(s):
                 active_job = s.manager.get(active_id)
                 run_identity = active_id
                 if active_job.get("status") == "running":
-                    with st.spinner(f"Inference in progress on {active_label}… results will appear automatically"):
-                        import time as _time
-                        _time.sleep(2)
-                    st.rerun()
+                    run_progress(s, refresh_on_finish=True)
+                    return
                 run_data = active_job
             except KeyError:
                 st.session_state.pop("active_run", None)
@@ -1186,7 +1184,7 @@ def model_studio(s):
 
 
 @st.fragment(run_every=1)
-def run_progress(s):
+def run_progress(s, refresh_on_finish=False):
     identity = st.session_state.get("active_run")
     if not identity:
         return
@@ -1195,10 +1193,27 @@ def run_progress(s):
     except KeyError:
         st.warning("Run unavailable in this process; reopen a saved run from history")
         return
+    if refresh_on_finish and run['status'] != 'running':
+        # Restore the builder's engineer-review controls once all backends finish.
+        st.rerun()
     st.subheader("Execution")
     st.caption(identity)
-    for backend, events in run["progress"].items():
-        st.write(f"{LABELS[backend]} · {events[-1]['stage']} · {events[-1]['at']}")
+    selections = run.get('snapshot', {}).get('request', {}).get('selections', [])
+    if selections:
+        finished = len(run['results'])
+        st.caption(f"{finished} of {len(selections)} backends finished. Results appear independently as each backend completes.")
+        cards = st.columns(len(selections))
+        for card, selection in zip(cards, selections):
+            backend = selection['backend']
+            result = run['results'].get(backend)
+            events = run.get('progress', {}).get(backend, [])
+            stage = events[-1]['stage'] if events else 'waiting'
+            with card.container(border=True):
+                st.markdown(f"**{LABELS.get(backend, backend)}**")
+                st.caption(selection['model_id'])
+                st.write((result['status'] if result else stage).replace('_', ' ').title())
+                if result:
+                    st.metric('Proposed scenarios', len(result.get('scenarios', [])))
     if run["status"] == "running":
         if st.button("Cancel running comparison"):
             st.info(s.manager.cancel(identity)["note"])
@@ -1223,13 +1238,8 @@ def run_progress(s):
         st.download_button("Export comparison CSV", csv_bytes(comparison_rows(run)), f"comparison-{identity}.csv", "text/csv")
         with st.expander("Frozen configuration, evidence and stage timestamps"):
             st.json(run["snapshot"])
-    else:
-        # Inference is still running in a background thread; auto-refresh every 3 s so
-        # results appear automatically when the thread completes, without a manual reload.
-        import time as _time
-        with st.spinner("Inference running — results will appear automatically…"):
-            _time.sleep(3)
-        st.rerun()
+    # Streamlit refreshes only this fragment; no sleep or full-page rerun is
+    # needed while models execute independently in the worker pool.
 def comparison(s):
     st.caption(LIMITATIONS[-1])
     latest_evaluations = [r['payload'] for r in s.store.list('evaluation', 10) if r['payload'].get('summary')]

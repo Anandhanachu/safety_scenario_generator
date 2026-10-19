@@ -210,6 +210,40 @@ def test_builder_run_all_submits_equal_limits(tmp_path, monkeypatch):
     service.manager.pool.shutdown()
 
 
+def test_builder_shows_partial_results_while_other_backends_run(tmp_path, monkeypatch, dataset, matrix, settings, model_output):
+    import ui.dashboard as dashboard
+    service = Services(tmp_path)
+    service.manager = RunManager(service.store, factory(model_output))
+    selections = [Selection(backend=b, model_id='test') for b in ('laptop_local', 'uno_q', 'qualcomm')]
+    identity = service.manager.start(RunRequest(inputs=ScenarioInput(faults=['camera_failure']),
+                                              selections=selections), dataset, matrix, settings)
+    wait_for(service.manager, identity)
+    partial = service.manager.get(identity)
+    partial['status'] = 'running'
+    partial['results'] = {'laptop_local': partial['results']['laptop_local']}
+    for backend in ('uno_q', 'qualcomm'):
+        partial['progress'][backend] = [{'stage': 'running_inference', 'at': 'test'}]
+
+    class Catalogue:
+        def list_models(self, refresh=False):
+            return [{'id': 'test'}]
+
+    monkeypatch.setattr(dashboard, 'services', lambda: service)
+    monkeypatch.setattr(dashboard, 'make_adapter', lambda *a, **k: Catalogue())
+    monkeypatch.setattr(service.manager, 'get', lambda i: partial)
+    app = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=20).run()
+    app.session_state['active_run'] = identity
+    app.sidebar.radio[0].set_value('Scenario Builder').run()
+    assert not app.exception
+    assert any('1 of 3 backends finished' in item.value for item in app.caption)
+    assert any('Arduino UNO Q' in item.value for item in app.markdown)
+    assert any('Qualcomm cloud' in item.value for item in app.markdown)
+    assert any(item.value == 'Running Inference' for item in app.markdown)
+    assert any(b.label == 'Cancel running comparison' for b in app.button)
+    assert any(e.label == 'Raw normalized result' for e in app.expander)
+    service.manager.pool.shutdown()
+
+
 def test_dashboard_saved_result_review_and_risk_views(tmp_path, monkeypatch, dataset, matrix, settings, model_output):
     import ui.dashboard as dashboard
     test_services = Services(tmp_path)
