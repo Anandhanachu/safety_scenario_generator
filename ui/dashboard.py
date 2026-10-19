@@ -367,8 +367,12 @@ def choose_models(settings, prefix, selectable=True):
 
 def overview(s):
     runs = s.store.list("run")
-    latest = runs[0]['payload'] if runs else None
-    rows = scenario_register(s.store, latest['id']) if latest else []
+    latest_saved = runs[0] if runs else None
+    latest = latest_saved['payload'] if latest_saved else None
+    # The run identifier belongs to the SQLite snapshot, not the payload.
+    # Using payload['id'] made Overview fail for normal saved runs.
+    latest_run_id = latest_saved['id'] if latest_saved else None
+    rows = scenario_register(s.store, latest_run_id) if latest_run_id else []
     calculated = recalculate(latest, s.store.reviews(latest['id'])) if latest else {}
     risk_values = [value for value in calculated.values() if value.get('risk_score') is not None]
     highest = max(risk_values, key=lambda value: value['risk_score']) if risk_values else None
@@ -872,7 +876,8 @@ def scenario_builder(s):
         with col_m:
             chosen_model = st.selectbox("Model", model_ids, index=0, key=f"sel_m_{selected_backend}")
         with col_l:
-            scenario_limit = st.number_input("Max scenarios", 1, 10, 3, key=f"lim_{selected_backend}")
+            scenario_limit = st.number_input("Max scenarios per model", 1, 10, 10, key=f"lim_{selected_backend}",
+                                             help="The same limit is applied to every selected backend when Run All 3 is used.")
         with col_btn1:
             st.write("")
             st.write("")
