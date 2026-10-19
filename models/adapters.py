@@ -292,11 +292,11 @@ class UnoAdapter(Adapter):
 
     def predict(self, text="turn on"):
         """Predict endpoint matching the Arduino Uno Q service:
-        r = requests.post("http://192.168.10.55:5000/predict", json={"input": text})
+        POST {configured base_url}/predict with json={"input": text}.
         """
         import requests
         endpoints = []
-        for ep in ("http://127.0.0.1:5000", self.base_url.rstrip("/"), "http://192.168.10.55:5000"):
+        for ep in (self.base_url.rstrip("/"),):
             if ep and ep not in endpoints:
                 endpoints.append(ep)
 
@@ -322,7 +322,7 @@ class UnoAdapter(Adapter):
         """Quick check to confirm Arduino Uno Q /predict is responsive."""
         import requests
         endpoints = []
-        for ep in ("http://127.0.0.1:5000", self.base_url.rstrip("/"), "http://192.168.10.55:5000"):
+        for ep in (self.base_url.rstrip("/"),):
             if ep and ep not in endpoints:
                 endpoints.append(ep)
 

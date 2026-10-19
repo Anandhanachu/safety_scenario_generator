@@ -41,7 +41,7 @@ def defaults():
     return {
         "laptop_local": {"base_url": os.getenv("LAPTOP_BASE_URL", "http://127.0.0.1:8080"), "model_id": ""},
         "qualcomm": {"base_url": os.getenv("QUALCOMM_BASE_URL", "https://aisuite.cirrascale.com/apis"), "model_id": ""},
-        "uno_q": {"base_url": os.getenv("UNO_Q_BASE_URL", "http://192.168.10.55:5000"), "model_id": ""},
+        "uno_q": {"base_url": os.getenv("UNO_Q_BASE_URL", "http://10.85.3.137:5000"), "model_id": ""},
         "model_dirs": [p for p in os.getenv("LOCAL_MODEL_DIRS", "").split(os.pathsep) if p],
         "retrieval_limit": 12,
         "relevance_threshold": 0.05,
